@@ -1,0 +1,43 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+.env
+.env.*
+
+# Node/Frontend
+node_modules/
+webapp/node_modules/
+dist/
+build/
+webapp/dist/
+webapp/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors/IDE
+.vscode/
+.idea/
+*.swp
+
+# Docker/compose artifacts
+*.pid
+*.seed
+*.cover
+
+# Alembic
+migrations/versions/*.pyc
+migrations/versions/__pycache__/
+
+# Reports
+coverage/
+pytest_cache/
+
+# Misc
+*.bak
