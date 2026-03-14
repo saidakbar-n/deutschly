@@ -13,11 +13,10 @@ COPY requirements.txt ./
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy bot code only to keep image small
+# Copy bot code
 COPY bot ./bot
 COPY .env.example ./
 
-ENV PYTHONUNBUFFERED=1 \
-    PORT=8080
+ENV PYTHONUNBUFFERED=1
 
-CMD ["sh", "-c", "uvicorn bot.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["python", "-m", "bot.main"]

@@ -3,8 +3,11 @@ import logging
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
+from fastapi import FastAPI
 
 load_dotenv()
+app = FastAPI()
+
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")
@@ -123,6 +126,9 @@ def main():
         # Polling fallback (local)
         app.run_polling(drop_pending_updates=True)
 
+@app.get("/")
+def root():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     main()
