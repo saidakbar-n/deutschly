@@ -1,0 +1,13 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY webapp/package.json webapp/package-lock.json* webapp/npm-shrinkwrap.json* ./
+RUN npm install
+COPY webapp ./
+RUN npm run build
+
+FROM nginx:stable-alpine
+WORKDIR /usr/share/nginx/html
+COPY --from=build /app/dist ./
+COPY webapp/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
