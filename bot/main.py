@@ -4,16 +4,16 @@ from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 from fastapi import FastAPI
-import uvicorn
 import asyncio
+from uvicorn import Config, Server
 
 # Load env
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # e.g. https://your-railway-app.up.railway.app/webhook
-PORT = int(os.getenv("PORT", "8080"))
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+PORT = int(os.getenv("PORT", 8080))
 
 # Logging
 logging.basicConfig(
@@ -25,12 +25,13 @@ logger = logging.getLogger(__name__)
 # FastAPI app
 api_app = FastAPI()
 
+@api_app.get("/")
+def root():
+    return {"status": "ok"}
 
-# Example API endpoint
 @api_app.get("/status")
 def status():
     return {"status": "ok"}
-
 
 # Telegram bot helper
 def webapp_button(text: str, path: str = "") -> InlineKeyboardMarkup | None:
@@ -39,7 +40,7 @@ def webapp_button(text: str, path: str = "") -> InlineKeyboardMarkup | None:
         return None
     return InlineKeyboardMarkup([[InlineKeyboardButton(text, web_app=WebAppInfo(url=url))]])
 
-
+# Command handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = webapp_button("🚀 Open Deutschly")
     text = (
@@ -51,7 +52,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(text + f"Open WebApp: {WEBAPP_URL}")
 
-
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id if update.effective_user else 0
     kb = webapp_button("👤 My Profile", f"/?user_id={user_id}&screen=profile")
@@ -59,7 +59,6 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Open your Deutschly profile:", reply_markup=kb)
     else:
         await update.message.reply_text(f"Open your Deutschly profile: {WEBAPP_URL}/?user_id={user_id}&screen=profile")
-
 
 async def feed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id if update.effective_user else 0
@@ -69,14 +68,12 @@ async def feed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(f"Your Deutschly feed: {WEBAPP_URL}/?user_id={user_id}&screen=feed")
 
-
 async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kb = webapp_button("🔍 Search learners", "/?screen=search")
     if kb:
         await update.message.reply_text("Search German learners by city/level:", reply_markup=kb)
     else:
         await update.message.reply_text(f"Search German learners: {WEBAPP_URL}/?screen=search")
-
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
@@ -89,7 +86,6 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(text)
 
-
 async def post_init(application: Application):
     await application.bot.set_my_commands(
         [
@@ -101,9 +97,8 @@ async def post_init(application: Application):
         ]
     )
 
-
+# Start Telegram bot
 async def start_bot():
-    """Start Telegram bot webhook or polling."""
     if not TELEGRAM_TOKEN:
         raise SystemExit("Missing TELEGRAM_BOT_TOKEN env var")
 
@@ -132,14 +127,18 @@ async def start_bot():
     else:
         await bot_app.run_polling(drop_pending_updates=True)
 
+# Start FastAPI server as coroutine
+async def start_api():
+    config = Config(app=api_app, host="0.0.0.0", port=PORT, log_level="info")
+    server = Server(config)
+    await server.serve()
 
+# Main
 async def main():
-    # Run FastAPI and bot concurrently
     await asyncio.gather(
-        uvicorn.run(api_app, host="0.0.0.0", port=PORT, log_level="info"),
+        start_api(),
         start_bot(),
     )
-
 
 if __name__ == "__main__":
     asyncio.run(main())
