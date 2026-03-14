@@ -4,22 +4,35 @@ from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 from fastapi import FastAPI
+import uvicorn
+import asyncio
 
+# Load env
 load_dotenv()
-app = FastAPI()
 
-
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # e.g. https://your-railway-app.up.railway.app/webhook
+PORT = int(os.getenv("PORT", "8080"))
 
+# Logging
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
 
+# FastAPI app
+api_app = FastAPI()
 
+
+# Example API endpoint
+@api_app.get("/status")
+def status():
+    return {"status": "ok"}
+
+
+# Telegram bot helper
 def webapp_button(text: str, path: str = "") -> InlineKeyboardMarkup | None:
     url = WEBAPP_URL.rstrip("/") + path
     if not url.startswith("https://"):
@@ -57,6 +70,14 @@ async def feed(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Your Deutschly feed: {WEBAPP_URL}/?user_id={user_id}&screen=feed")
 
 
+async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    kb = webapp_button("🔍 Search learners", "/?screen=search")
+    if kb:
+        await update.message.reply_text("Search German learners by city/level:", reply_markup=kb)
+    else:
+        await update.message.reply_text(f"Search German learners: {WEBAPP_URL}/?screen=search")
+
+
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "Deutschly commands:\n"
@@ -69,16 +90,8 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text)
 
 
-async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    kb = webapp_button("🔍 Search learners", "/?screen=search")
-    if kb:
-        await update.message.reply_text("Search German learners by city/level:", reply_markup=kb)
-    else:
-        await update.message.reply_text(f"Search German learners: {WEBAPP_URL}/?screen=search")
-
-
-async def post_init(app: Application):
-    await app.bot.set_my_commands(
+async def post_init(application: Application):
+    await application.bot.set_my_commands(
         [
             ("start", "Open Deutschly"),
             ("profile", "Open your profile"),
@@ -89,46 +102,44 @@ async def post_init(app: Application):
     )
 
 
-def main():
-    if not TOKEN:
+async def start_bot():
+    """Start Telegram bot webhook or polling."""
+    if not TELEGRAM_TOKEN:
         raise SystemExit("Missing TELEGRAM_BOT_TOKEN env var")
 
-    import asyncio
-    asyncio.set_event_loop(asyncio.new_event_loop())
-
-    logger.info("Starting Deutschly bot with WEBAPP_URL=%s", WEBAPP_URL)
-
-    app = (
+    bot_app = (
         Application.builder()
-        .token(TOKEN)
+        .token(TELEGRAM_TOKEN)
         .post_init(post_init)
         .build()
     )
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("profile", profile))
-    app.add_handler(CommandHandler("feed", feed))
-    app.add_handler(CommandHandler("search", search))
-    app.add_handler(CommandHandler("help", help_cmd))
+    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(CommandHandler("profile", profile))
+    bot_app.add_handler(CommandHandler("feed", feed))
+    bot_app.add_handler(CommandHandler("search", search))
+    bot_app.add_handler(CommandHandler("help", help_cmd))
 
     if WEBHOOK_URL:
-        # Webhook mode (for Railway/Render/etc.)
-        listen_port = int(os.getenv("PORT", "8080"))
-        logger.info("Running webhook at %s on port %s", WEBHOOK_URL, listen_port)
-        app.run_webhook(
+        logger.info("Running webhook at %s on port %s", WEBHOOK_URL, PORT)
+        await bot_app.run_webhook(
             listen="0.0.0.0",
-            port=listen_port,
-            url_path=TOKEN,
-            webhook_url=f"{WEBHOOK_URL.rstrip('/')}/{TOKEN}",
+            port=PORT,
+            url_path=TELEGRAM_TOKEN,
+            webhook_url=f"{WEBHOOK_URL.rstrip('/')}/{TELEGRAM_TOKEN}",
             drop_pending_updates=True,
         )
     else:
-        # Polling fallback (local)
-        app.run_polling(drop_pending_updates=True)
+        await bot_app.run_polling(drop_pending_updates=True)
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
+
+async def main():
+    # Run FastAPI and bot concurrently
+    await asyncio.gather(
+        uvicorn.run(api_app, host="0.0.0.0", port=PORT, log_level="info"),
+        start_bot(),
+    )
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
