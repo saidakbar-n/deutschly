@@ -1,21 +1,27 @@
 import os
 import logging
-import asyncio
 from dotenv import load_dotenv
 
+from fastapi import FastAPI, Request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from fastapi import FastAPI
-import uvicorn
+# --------------------------------------------------
+# ENV
+# --------------------------------------------------
 
-# Load env
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")
+WEBAPP_URL = os.getenv("WEBAPP_URL")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-PORT = int(os.getenv("PORT", "8080"))
+
+if not TOKEN:
+    raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
+
+# --------------------------------------------------
+# LOGGING
+# --------------------------------------------------
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -24,129 +30,133 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# FastAPI app
-app = FastAPI()
+# --------------------------------------------------
+# FASTAPI
+# --------------------------------------------------
+
+api_app = FastAPI()
 
 telegram_app: Application | None = None
 
 
-# ---------- FastAPI routes ----------
+# --------------------------------------------------
+# HELPER
+# --------------------------------------------------
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
-
-@app.get("/status")
-def status():
-    return {"status": "ok"}
-
-
-# ---------- Telegram helpers ----------
-
-def webapp_button(text: str, path: str = "") -> InlineKeyboardMarkup | None:
+def webapp_button(text: str, path: str = "") -> InlineKeyboardMarkup:
     url = WEBAPP_URL.rstrip("/") + path
-    if not url.startswith("https://"):
-        return None
     return InlineKeyboardMarkup(
         [[InlineKeyboardButton(text, web_app=WebAppInfo(url=url))]]
     )
 
 
-# ---------- Telegram commands ----------
+# --------------------------------------------------
+# COMMANDS
+# --------------------------------------------------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     kb = webapp_button("🚀 Open Deutschly")
+
     text = (
         "🇩🇪 Welcome to Deutschly!\n"
         "Social network for German learners.\n"
-        "Create profile → Share progress → Find study buddies.\n"
+        "Create profile → Share progress → Find study buddies."
     )
 
-    if kb:
-        await update.message.reply_text(text, reply_markup=kb)
-    else:
-        await update.message.reply_text(text + f"Open WebApp: {WEBAPP_URL}")
+    await update.message.reply_text(text, reply_markup=kb)
 
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id if update.effective_user else 0
 
-    kb = webapp_button("👤 My Profile", f"/?user_id={user_id}&screen=profile")
+    user_id = update.effective_user.id
 
-    if kb:
-        await update.message.reply_text(
-            "Open your Deutschly profile:", reply_markup=kb
-        )
-    else:
-        await update.message.reply_text(
-            f"{WEBAPP_URL}/?user_id={user_id}&screen=profile"
-        )
+    kb = webapp_button(
+        "👤 My Profile",
+        f"/?user_id={user_id}&screen=profile"
+    )
+
+    await update.message.reply_text(
+        "Open your Deutschly profile:",
+        reply_markup=kb,
+    )
 
 
 async def feed(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id if update.effective_user else 0
 
-    kb = webapp_button("📰 Open Feed", f"/?user_id={user_id}&screen=feed")
+    user_id = update.effective_user.id
 
-    if kb:
-        await update.message.reply_text("Your Deutschly feed:", reply_markup=kb)
-    else:
-        await update.message.reply_text(
-            f"{WEBAPP_URL}/?user_id={user_id}&screen=feed"
-        )
+    kb = webapp_button(
+        "📰 Open Feed",
+        f"/?user_id={user_id}&screen=feed"
+    )
+
+    await update.message.reply_text(
+        "Your Deutschly feed:",
+        reply_markup=kb,
+    )
 
 
 async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    kb = webapp_button("🔍 Search learners", "/?screen=search")
+    kb = webapp_button(
+        "🔍 Search learners",
+        "/?screen=search"
+    )
 
-    if kb:
-        await update.message.reply_text(
-            "Search German learners by city/level:", reply_markup=kb
-        )
-    else:
-        await update.message.reply_text(f"{WEBAPP_URL}/?screen=search")
+    await update.message.reply_text(
+        "Search German learners by city/level:",
+        reply_markup=kb,
+    )
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    text = (
+    await update.message.reply_text(
         "Deutschly commands:\n"
         "/start - Open Deutschly\n"
         "/profile - Open your profile\n"
-        "/feed - Open your feed\n"
+        "/feed - Latest posts\n"
         "/search - Find learners\n"
-        "/help - This help"
-    )
-
-    await update.message.reply_text(text)
-
-
-async def post_init(app: Application):
-    await app.bot.set_my_commands(
-        [
-            ("start", "Open Deutschly"),
-            ("profile", "Open your profile"),
-            ("feed", "Latest posts"),
-            ("search", "Find learners"),
-            ("help", "Help"),
-        ]
+        "/help - Help"
     )
 
 
-# ---------- Telegram startup ----------
+# --------------------------------------------------
+# FASTAPI ROUTES
+# --------------------------------------------------
 
-async def start_bot():
+@api_app.get("/")
+async def root():
+    return {"status": "ok"}
+
+
+@api_app.post(f"/{TOKEN}")
+async def telegram_webhook(req: Request):
+
+    data = await req.json()
+
+    update = Update.de_json(data, telegram_app.bot)
+
+    await telegram_app.process_update(update)
+
+    return {"ok": True}
+
+
+# --------------------------------------------------
+# STARTUP
+# --------------------------------------------------
+
+@api_app.on_event("startup")
+async def startup():
 
     global telegram_app
 
-    if not TOKEN:
-        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN")
+    logger.info("Starting Telegram bot")
 
     telegram_app = (
         Application.builder()
         .token(TOKEN)
-        .post_init(post_init)
         .build()
     )
 
@@ -159,36 +169,19 @@ async def start_bot():
     await telegram_app.initialize()
     await telegram_app.start()
 
-    if WEBHOOK_URL:
+    webhook_url = f"{WEBHOOK_URL.rstrip('/')}/{TOKEN}"
 
-        logger.info("Starting webhook bot")
+    logger.info("Setting webhook: %s", webhook_url)
 
-        await telegram_app.bot.set_webhook(
-            url=f"{WEBHOOK_URL.rstrip('/')}/{TOKEN}"
-        )
-
-    else:
-
-        logger.info("Starting polling bot")
-
-        await telegram_app.updater.start_polling()
+    await telegram_app.bot.set_webhook(webhook_url)
 
 
-# ---------- FastAPI lifecycle ----------
+# --------------------------------------------------
+# SHUTDOWN
+# --------------------------------------------------
 
-@app.on_event("startup")
-async def startup():
+@api_app.on_event("shutdown")
+async def shutdown():
 
-    asyncio.create_task(start_bot())
-
-
-# ---------- Entry point ----------
-
-if __name__ == "__main__":
-
-    uvicorn.run(
-        "bot.main:app",
-        host="0.0.0.0",
-        port=PORT,
-        log_level="info",
-    )
+    if telegram_app:
+        await telegram_app.stop()
