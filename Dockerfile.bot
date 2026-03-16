@@ -1,22 +1,11 @@
 FROM python:3.11-slim
 
-# System deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-# Copy dependency lists
-COPY requirements.txt ./
+COPY requirements.txt .
 
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy bot code
 COPY bot ./bot
-COPY .env.example ./
-
-ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "-m", "bot.main"]
