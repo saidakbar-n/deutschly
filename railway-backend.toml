@@ -28,7 +28,7 @@ env = {
 }
 
 buildCommand = "pip install -r requirements.txt"
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
 
 # Required environment variables to set in Railway:
 # DATABASE_URL - PostgreSQL connection string (Railway provides this)
