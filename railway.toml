@@ -1,8 +1,8 @@
 # Railway.app deployment configuration for Deutschly
-# This file configures both backend and frontend services
+# This file configures the MONOLITHIC deployment (backend + frontend in one service)
 
 [build]
-# Build configuration for the FastAPI backend
+# Build configuration
 builder = "NIXPACKS"
 
 [deploy]
@@ -11,39 +11,36 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
 
 [[services]]
-# FastAPI Backend Service
-name = "deutschly-backend"
+# Combined Backend + Frontend Service
+name = "deutschly-app"
 internalPort = 8000
 protocol = "http"
 env = {
+  # Backend configuration
   DATABASE_URL = "${{ DATABASE_URL }}",
   TELEGRAM_BOT_TOKEN = "${{ TELEGRAM_BOT_TOKEN }}",
   WEBHOOK_URL = "${{ RAILWAY_PUBLIC_DOMAIN }}",
-  SECRET_KEY = "${{ SECRET_KEY }}"
-}
-buildCommand = "pip install -r requirements.txt"
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
-
-[[services]]
-# Frontend Service (React/Vite)
-name = "deutschly-frontend"
-internalPort = 80
-protocol = "http"
-env = {
-  VITE_API_URL = "https://${{ RAILWAY_PUBLIC_DOMAIN }}",
+  SECRET_KEY = "${{ SECRET_KEY }}",
+  
+  # Frontend configuration (for when we serve frontend from backend)
+  FRONTEND_BUILD_DIR = "./webapp/dist",
   VITE_TELEGRAM_BOT_NAME = "Deutschly"
 }
-buildCommand = "cd webapp && npm install && npm run build"
-startCommand = "cd webapp && npx serve -s dist -l 80"
 
-# Environment variables that need to be set in Railway
-# DATABASE_URL: Your PostgreSQL connection string
-# TELEGRAM_BOT_TOKEN: Your Telegram bot token from @BotFather
-# SECRET_KEY: Random secret key for your application
+# Build both backend and frontend
+buildCommand = "pip install -r requirements.txt && cd webapp && npm install && npm run build && cd .."
+
+# Start backend (frontend is served statically by backend)
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
+
+# Environment variables that need to be set in Railway:
+# DATABASE_URL: Your PostgreSQL connection string (Railway provides this)
+# TELEGRAM_BOT_TOKEN: Your Telegram bot token from @BotFather (e.g., 123456789:ABC...)
+# SECRET_KEY: Random secret key (generate with: openssl rand -hex 32)
 # RAILWAY_PUBLIC_DOMAIN: Automatically set by Railway
 
 # After deployment:
-# 1. The backend will automatically set up Telegram webhook to:
-#    https://your-app.up.railway.app/api/v1/telegram/webhook
-# 2. The frontend will be served from the root domain
-# 3. API requests will be proxied to the backend service
+# 1. Backend API will be available at: https://your-app.up.railway.app/api/v1
+# 2. Frontend will be served from: https://your-app.up.railway.app
+# 3. Telegram webhook will be set to: https://your-app.up.railway.app/api/v1/telegram/webhook
+# 4. API documentation: https://your-app.up.railway.app/docs

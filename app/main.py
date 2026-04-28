@@ -17,6 +17,8 @@ if hasattr(typing, "ForwardRef") and hasattr(typing.ForwardRef, "_evaluate"):
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.api import api_router
 from app.core.database import Base, engine
@@ -26,6 +28,11 @@ from app import models  # noqa: F401 ensures models are registered
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Deutschly Social API", version="1.1.0")
+
+# Serve frontend static files in production
+frontend_build_dir = os.getenv("FRONTEND_BUILD_DIR", "./webapp/dist")
+if os.path.exists(frontend_build_dir):
+    app.mount("/", StaticFiles(directory=frontend_build_dir, html=True), name="frontend")
 
 # CORS configuration - allow both local development and production frontend
 allowed_origins = [

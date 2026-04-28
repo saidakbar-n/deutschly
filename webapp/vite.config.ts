@@ -7,4 +7,12 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+  define: {
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:8000/api/v1'),
+    'process.env.VITE_TELEGRAM_BOT_NAME': JSON.stringify(process.env.VITE_TELEGRAM_BOT_NAME || 'Deutschly'),
+  }
 })
