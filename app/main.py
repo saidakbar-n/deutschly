@@ -27,19 +27,34 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Deutschly Social API", version="1.1.0")
 
+# CORS configuration - allow both local development and production frontend
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:3000",
 ]
-extra_origin = os.getenv("FRONTEND_ORIGIN")
-if extra_origin:
-    allowed_origins.append(extra_origin)
+
+# Add production frontend domain from environment variable
+frontend_origin = os.getenv("FRONTEND_ORIGIN")
+if frontend_origin:
+    allowed_origins.append(frontend_origin)
+    # Also allow the domain without https:// prefix if provided with it
+    if frontend_origin.startswith("https://"):
+        allowed_origins.append(frontend_origin[8:])  # Remove https://
+    elif frontend_origin.startswith("http://"):
+        allowed_origins.append(frontend_origin[7:])  # Remove http://
+
+# Allow Railway.app domains by default
+allowed_origins.extend([
+    "https://*.up.railway.app",
+    "https://*.railway.app",
+])
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://localhost(:\\d+)?",
-    allow_credentials=False,
+    allow_origin_regex=r"https?://.*\.railway\.app",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
