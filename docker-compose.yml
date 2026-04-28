@@ -1,16 +1,5 @@
 version: '3.9'
 services:
-  bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.bot
-    env_file:
-      - .env
-    environment:
-      - PORT=8080  # For bot container only
-    ports:
-      - "8080:8080"
-
   webapp:
     build:
       context: .

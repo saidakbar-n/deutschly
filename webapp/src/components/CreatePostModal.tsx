@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createPost, PostPayload } from '../hooks/useApi'
 
-export function CreatePostModal({ userId }: { userId: number }) {
+export function CreatePostModal({ userId, onCreated }: { userId: number; onCreated?: () => void }) {
   const [open, setOpen] = useState(false)
   const [text, setText] = useState('')
   const [type, setType] = useState<PostPayload['type']>('story')
@@ -10,29 +10,34 @@ export function CreatePostModal({ userId }: { userId: number }) {
   const [imageUrl, setImageUrl] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const uploadImage = async (file: File) => {
-    // Stub for Cloudinary upload; replace with real preset/URL.
-    const form = new FormData()
-    form.append('file', file)
-    form.append('upload_preset', 'deutschly')
-    // In real use: await fetch('https://api.cloudinary.com/v1_1/<cloud>/image/upload', { method: 'POST', body: form })
-    // For now, return a local object URL preview.
-    return URL.createObjectURL(file)
-  }
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
 
   const submit = async () => {
     setLoading(true)
     let finalImageUrl = imageUrl
     if (imageFile && !imageUrl) {
-      finalImageUrl = await uploadImage(imageFile)
+      finalImageUrl = await fileToDataUrl(imageFile)
       setImageUrl(finalImageUrl)
     }
-    await createPost({ user_id: userId, type, text, level_tag: level, image_url: finalImageUrl })
+    await createPost({
+      user_id: userId,
+      type,
+      text,
+      level_tag: level,
+      image_url: finalImageUrl,
+    })
     setOpen(false)
     setText('')
     setImageFile(null)
     setImageUrl('')
     setLoading(false)
+    onCreated?.()
   }
 
   if (!open) {

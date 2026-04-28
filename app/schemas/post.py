@@ -5,11 +5,14 @@ from pydantic import BaseModel, Field
 
 class PostBase(BaseModel):
     user_id: int
-    type: str = Field(regex=r"^(story|achievement|tip)$")
+    type: str = Field(regex=r"^(story|achievement|tip|word)$")
     text: Optional[str] = None
     image_url: Optional[str] = None
     level_tag: Optional[str] = None
     expires_in_hours: Optional[int] = Field(default=None, ge=1, le=72)
+    word_term: Optional[str] = Field(default=None, max_length=100)
+    word_meaning: Optional[str] = None
+    word_note: Optional[str] = None
 
 
 class PostCreate(PostBase):
@@ -28,6 +31,9 @@ class PostOut(BaseModel):
     expires_at: Optional[datetime]
     comments_count: int = 0
     liked_by_me: bool = False
+    word_term: Optional[str]
+    word_meaning: Optional[str]
+    word_note: Optional[str]
 
     class Config:
         orm_mode = True

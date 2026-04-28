@@ -30,3 +30,29 @@ def follow_user(target_user_id: int, follower_id: int, db: Session = Depends(get
     db.add(link)
     db.commit()
     return {"detail": "Followed"}
+
+
+@router.delete("/follow/{target_user_id}")
+def unfollow_user(target_user_id: int, follower_id: int, db: Session = Depends(get_db)):
+    link = db.scalar(select(Follow).where(Follow.follower_id == follower_id, Follow.following_id == target_user_id))
+    if not link:
+        return {"detail": "Not following"}
+    db.delete(link)
+    db.commit()
+    return {"detail": "Unfollowed"}
+
+
+@router.get("/follow/{user_id}/followers")
+def list_followers(user_id: int, db: Session = Depends(get_db)):
+    followers = db.scalars(select(Follow).where(Follow.following_id == user_id)).all()
+    ids = [f.follower_id for f in followers]
+    users = db.scalars(select(User).where(User.id.in_(ids))).all()
+    return {"followers": users}
+
+
+@router.get("/follow/{user_id}/following")
+def list_following(user_id: int, db: Session = Depends(get_db)):
+    following = db.scalars(select(Follow).where(Follow.follower_id == user_id)).all()
+    ids = [f.following_id for f in following]
+    users = db.scalars(select(User).where(User.id.in_(ids))).all()
+    return {"following": users}

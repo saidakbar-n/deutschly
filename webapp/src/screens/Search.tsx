@@ -26,7 +26,9 @@ export function Search() {
           <div key={u.id} className="flex items-center justify-between border rounded-xl p-3">
             <div>
               <p className="font-semibold">{u.username}</p>
-              <p className="text-xs text-slate-500">{u.city || '—'} · {u.level}</p>
+              <p className="text-xs text-slate-500">
+                {u.city || '—'} · {u.level}{u.age ? ` · ${u.age} years old` : ''}
+              </p>
             </div>
             <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span>
           </div>

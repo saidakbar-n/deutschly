@@ -1,5 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
+from typing import Optional
+from app.schemas.user import UserOut
 
 
 class CommentCreate(BaseModel):
@@ -13,6 +15,7 @@ class CommentOut(BaseModel):
     user_id: int
     text: str
     created_at: datetime
+    user: Optional[UserOut] = None
 
     class Config:
         orm_mode = True

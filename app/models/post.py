@@ -17,6 +17,9 @@ class Post(Base):
     likes = Column(Integer, default=0)
     timestamp = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=True)
+    word_term = Column(String(100))
+    word_meaning = Column(Text)
+    word_note = Column(Text)
 
     user = relationship("User", back_populates="posts")
     likes_rel = relationship("Like", back_populates="post", cascade="all, delete-orphan")

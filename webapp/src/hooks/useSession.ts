@@ -1,0 +1,57 @@
+import { useCallback, useEffect, useState } from 'react'
+import { bootstrapWebUser, getUser, login, loginTelegram, TelegramLoginPayload, User, WebSignupPayload } from './useApi'
+
+const STORAGE_KEY = 'deutschly:web-user'
+
+export function useSession() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) {
+      setLoading(false)
+      return
+    }
+    const { id } = JSON.parse(saved)
+    getUser(id)
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const signIn = useCallback(async (payload: WebSignupPayload) => {
+    const created = await bootstrapWebUser(payload)
+    setUser(created)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: created.id }))
+    return created
+  }, [])
+
+  const signOut = useCallback(() => {
+    setUser(null)
+    localStorage.removeItem(STORAGE_KEY)
+  }, [])
+
+  const signInWithPassword = useCallback(async (username: string, password: string) => {
+    const u = await login({ username, password })
+    setUser(u)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: u.id }))
+    return u
+  }, [])
+
+  const signInWithTelegram = useCallback(async (payload: TelegramLoginPayload) => {
+    const u = await loginTelegram(payload)
+    setUser(u)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: u.id }))
+    return u
+  }, [])
+
+  const refresh = useCallback(async () => {
+    if (!user) return null
+    const next = await getUser(user.id)
+    setUser(next)
+    return next
+  }, [user])
+
+  return { user, loading, signIn, signOut, refresh, setUser, signInWithPassword, signInWithTelegram }
+}
