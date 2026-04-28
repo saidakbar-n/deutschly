@@ -1,14 +1,22 @@
 from fastapi import APIRouter
 
-from app.api import users, posts, feed, follow, game, experiments, auth, words, bot
+from app.api.users import router as users_router
+from app.api.posts import router as posts_router
+from app.api.feed import router as feed_router
+from app.api.follow import router as follow_router
+from app.api.game import router as game_router
+from app.api.experiments import router as experiments_router
+from app.api.auth import router as auth_router
+from app.api.words import router as words_router
+from app.api.bot import router as bot_router
 
 api_router = APIRouter()
-api_router.include_router(users.router)
-api_router.include_router(posts.router)
-api_router.include_router(feed.router)
-api_router.include_router(follow.router)
-api_router.include_router(game.router)
-api_router.include_router(experiments.router)
-api_router.include_router(auth.router)
-api_router.include_router(words.router)
-api_router.include_router(bot.router)
+api_router.include_router(users_router)
+api_router.include_router(posts_router)
+api_router.include_router(feed_router)
+api_router.include_router(follow_router)
+api_router.include_router(game_router)
+api_router.include_router(experiments_router)
+api_router.include_router(auth_router)
+api_router.include_router(words_router)
+api_router.include_router(bot_router)
