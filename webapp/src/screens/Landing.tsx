@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Sparkles, LogIn, ChevronLeft } from 'lucide-react'
+import { ArrowRight, Sparkles, LogIn, ChevronLeft, UserPlus, Key } from 'lucide-react'
 import { WebSignupPayload, checkUsername } from '../hooks/useApi'
 
 export function Landing({
@@ -10,12 +10,22 @@ export function Landing({
   onLogin: (u: string, p: string) => Promise<any>
 }) {
   const [form, setForm] = useState<WebSignupPayload>({ username: '', level: 'A1', city: '', password: '' })
-  const [step, setStep] = useState<'username' | 'auth'>('username')
+  const [step, setStep] = useState<'welcome' | 'username' | 'auth'>('welcome')
   const [isLogin, setIsLogin] = useState(false)
   const [status, setStatus] = useState<string>('')
   const [password, setPassword] = useState('')
   const [recoveryCodes, setRecoveryCodes] = useState<number[] | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const startLogin = () => {
+    setIsLogin(true)
+    setStep('username')
+  }
+
+  const startSignup = () => {
+    setIsLogin(false)
+    setStep('username')
+  }
 
   const handleContinue = async () => {
     if (!form.username.trim()) {
@@ -26,12 +36,28 @@ export function Landing({
     setStatus('')
     try {
       const { exists } = await checkUsername(form.username)
+      // If user wants to login but username doesn't exist, redirect to signup
+      if (isLogin && !exists) {
+        setIsLogin(false)
+        setStatus('New user? Complete your signup below')
+        setStep('auth')
+        setLoading(false)
+        return
+      }
+      // If user wants to signup but username exists, redirect to login
+      if (!isLogin && exists) {
+        setIsLogin(true)
+        setStatus('User already exists. Please login.')
+        setStep('auth')
+        setLoading(false)
+        return
+      }
       setIsLogin(exists)
       setStep('auth')
     } catch (e) {
       setStatus('Connection error. Try again.')
     } finally {
-      setLoading(false)
+      if (loading) setLoading(false)
     }
   }
 
@@ -72,6 +98,19 @@ export function Landing({
     }
   }
 
+  const goBack = () => {
+    if (step === 'username') {
+      setStep('welcome')
+      setForm({ username: '', level: 'A1', city: '', password: '' })
+      setPassword('')
+      setStatus('')
+    } else if (step === 'auth') {
+      setStep('username')
+      setPassword('')
+      setStatus('')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 text-white flex items-center justify-center p-6">
       <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl items-center">
@@ -91,21 +130,43 @@ export function Landing({
         </div>
         <div className="card bg-white/10 border-white/20 backdrop-blur min-h-[400px] flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-6">
-            {step === 'auth' && (
-              <button onClick={() => setStep('username')} className="p-1 hover:bg-white/10 rounded-lg">
+            {step !== 'welcome' && (
+              <button onClick={goBack} className="p-1 hover:bg-white/10 rounded-lg">
                 <ChevronLeft size={20} />
               </button>
             )}
             <h3 className="text-2xl font-bold text-white">
-              {step === 'username' ? 'Welcome' : isLogin ? 'Welcome back' : 'Create account'}
+              {step === 'welcome' ? 'Welcome' : isLogin ? 'Login' : 'Create account'}
             </h3>
           </div>
 
           <div className="space-y-4">
-            {step === 'username' ? (
+            {step === 'welcome' ? (
+              <>
+                <p className="text-center text-white/80 mb-6">Join Deutschly community today</p>
+                <div className="space-y-3">
+                  <button
+                    disabled={loading}
+                    className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
+                    onClick={startLogin}
+                  >
+                    <Key size={20} /> Login
+                  </button>
+                  <button
+                    disabled={loading}
+                    className="w-full btn-primary bg-blue-500/20 text-white border border-white/30 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-500/30 transition-colors"
+                    onClick={startSignup}
+                  >
+                    <UserPlus size={20} /> Create new account
+                  </button>
+                </div>
+              </>
+            ) : step === 'username' ? (
               <>
                 <div className="space-y-1">
-                  <label className="text-sm text-white/60 ml-1">Who are you?</label>
+                  <label className="text-sm text-white/60 ml-1">
+                    {isLogin ? 'Your username' : 'Choose a username'}
+                  </label>
                   <input
                     className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900 text-lg"
                     placeholder="Username"
@@ -116,11 +177,17 @@ export function Landing({
                   />
                 </div>
                 <button
-                  disabled={loading}
-                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
+                  disabled={loading || !form.username.trim()}
+                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors disabled:opacity-50"
                   onClick={handleContinue}
                 >
                   {loading ? 'Checking...' : 'Continue'} <ArrowRight size={20} />
+                </button>
+                <button
+                  className="w-full text-sm text-white/60 hover:text-white transition-colors"
+                  onClick={goBack}
+                >
+                  {isLogin ? 'Need to create an account?' : 'Already have an account?'}
                 </button>
               </>
             ) : (
@@ -169,8 +236,14 @@ export function Landing({
                   className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
                   onClick={submit}
                 >
-                  {loading ? 'Processing...' : isLogin ? 'Login' : 'Join Deutschly'} 
+                  {loading ? 'Processing...' : isLogin ? 'Login' : 'Create account'} 
                   {isLogin ? <LogIn size={20} /> : <Sparkles size={20} />}
+                </button>
+                <button
+                  className="w-full text-sm text-white/60 hover:text-white transition-colors"
+                  onClick={goBack}
+                >
+                  Back
                 </button>
               </>
             )}

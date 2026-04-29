@@ -32,6 +32,8 @@ allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
+    "https://localhost:5173",
+    "https://127.0.0.1:5173",
 ]
 
 # Add production frontend domain from environment variable
@@ -44,17 +46,33 @@ if frontend_origin:
     elif frontend_origin.startswith("http://"):
         allowed_origins.append(frontend_origin[7:])  # Remove http://
 
-# Allow Railway.app domains by default
-allowed_origins.extend([])
+# Allow Railway.app domains by default for both web and API
+allowed_origins.extend([
+    "https://*.up.railway.app",
+    "https://*.railway.app",
+    "http://*.up.railway.app",
+    "http://*.railway.app",
+])
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://.*\.railway\.app",
+    allow_origin_regex=r"https?://.*\.(up\.railway\.app|railway\.app)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
+
+# Global OPTIONS handler for preflight requests
+@app.options("/api/v1/{path:path}")
+async def handle_api_options(path: str):
+    return {"status": "ok"}
+
+@app.options("/{path:path}")
+async def handle_root_options(path: str):
+    return {"status": "ok"}
 
 app.include_router(api_router)
 
