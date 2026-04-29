@@ -16,6 +16,13 @@ def _generate_recovery_codes() -> list[int]:
     return [randint(10000, 99999) for _ in range(5)]
 
 
+@router.get("/check")
+def check_user(username: str, db: Session = Depends(get_db)):
+    """Check if a username exists."""
+    user = db.scalar(select(User).where(User.username == username))
+    return {"exists": user is not None}
+
+
 @router.post("/signup", response_model=UserOut)
 def signup(payload: WebSignup, db: Session = Depends(get_db)):
     """User signup with web-based authentication."""

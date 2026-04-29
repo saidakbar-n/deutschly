@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { ArrowRight, Sparkles, LogIn } from 'lucide-react'
-import { WebSignupPayload } from '../hooks/useApi'
+import { ArrowRight, Sparkles, LogIn, ChevronLeft } from 'lucide-react'
+import { WebSignupPayload, checkUsername } from '../hooks/useApi'
 
 export function Landing({
   onJoin,
@@ -10,42 +10,65 @@ export function Landing({
   onLogin: (u: string, p: string) => Promise<any>
 }) {
   const [form, setForm] = useState<WebSignupPayload>({ username: '', level: 'A1', city: '', password: '' })
-  const [loginMode, setLoginMode] = useState(false)
+  const [step, setStep] = useState<'username' | 'auth'>('username')
+  const [isLogin, setIsLogin] = useState(false)
   const [status, setStatus] = useState<string>('')
   const [password, setPassword] = useState('')
   const [recoveryCodes, setRecoveryCodes] = useState<number[] | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleContinue = async () => {
+    if (!form.username.trim()) {
+      setStatus('Enter a username')
+      return
+    }
+    setLoading(true)
+    setStatus('')
+    try {
+      const { exists } = await checkUsername(form.username)
+      setIsLogin(exists)
+      setStep('auth')
+    } catch (e) {
+      setStatus('Connection error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const submit = async () => {
-    if (loginMode) {
-      if (!form.username.trim() || !password) {
-        setStatus('Enter username and password')
+    if (isLogin) {
+      if (!password) {
+        setStatus('Enter your password')
         return
       }
+      setLoading(true)
       setStatus('Signing in...')
       try {
         await onLogin(form.username, password)
       } catch (e) {
-        setStatus('Invalid login')
+        setStatus('Invalid password or username')
+      } finally {
+        setLoading(false)
       }
       return
     }
-    if (!form.username.trim()) {
-      setStatus('Pick a username to start')
+
+    if (!password || password.length < 6) {
+      setStatus('Password must be at least 6 characters')
       return
     }
-    if (!password) {
-      setStatus('Set a password')
-      return
-    }
-    setStatus('Creating your space...')
+    setLoading(true)
+    setStatus('Creating your account...')
     try {
       const u = await onJoin({ ...form, password })
       if ((u as any).recovery_codes) {
         setRecoveryCodes((u as any).recovery_codes)
-        setStatus('Copy these recovery codes and keep them safe.')
+        setStatus('Account created! Save these codes.')
       }
     } catch (e) {
-      setStatus('Something went wrong — try again')
+      setStatus('Could not create account — try a different username')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -66,58 +89,101 @@ export function Landing({
             <li>• Save your profile and keep progress synced</li>
           </ul>
         </div>
-        <div className="card bg-white/10 border-white/20 backdrop-blur">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-white">{loginMode ? 'Welcome back' : 'Create your account'}</h3>
-            <button className="text-sm text-white/80 underline" onClick={() => setLoginMode(!loginMode)}>
-              {loginMode ? 'Need an account?' : 'I have an account'}
-            </button>
-          </div>
-          <div className="space-y-3">
-            <input
-              className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-              placeholder="Username"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-            />
-            <input
-              className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-              placeholder="City"
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-            />
-            {!loginMode && (
-              <select
-                className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-                value={form.level}
-                onChange={(e) => setForm({ ...form, level: e.target.value as WebSignupPayload['level'] })}
-              >
-                {['A1', 'A2', 'B1', 'B2', 'C1'].map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
+        <div className="card bg-white/10 border-white/20 backdrop-blur min-h-[400px] flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-6">
+            {step === 'auth' && (
+              <button onClick={() => setStep('username')} className="p-1 hover:bg-white/10 rounded-lg">
+                <ChevronLeft size={20} />
+              </button>
             )}
-            <input
-              className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button className="btn-primary bg-white text-blue-600 flex items-center justify-center gap-2" onClick={submit}>
-              {loginMode ? 'Login' : 'Join Deutschly'} {loginMode ? <LogIn size={18} /> : <ArrowRight size={18} />}
-            </button>
+            <h3 className="text-2xl font-bold text-white">
+              {step === 'username' ? 'Welcome' : isLogin ? 'Welcome back' : 'Create account'}
+            </h3>
+          </div>
 
-            <p className="text-xs text-white/70 min-h-[1rem] text-center">{status}</p>
-            {recoveryCodes && !loginMode && (
-              <div className="mt-2 bg-slate-900/50 border border-white/20 rounded-xl p-3 text-left">
+          <div className="space-y-4">
+            {step === 'username' ? (
+              <>
+                <div className="space-y-1">
+                  <label className="text-sm text-white/60 ml-1">Who are you?</label>
+                  <input
+                    className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900 text-lg"
+                    placeholder="Username"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
+                    autoFocus
+                  />
+                </div>
+                <button
+                  disabled={loading}
+                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
+                  onClick={handleContinue}
+                >
+                  {loading ? 'Checking...' : 'Continue'} <ArrowRight size={20} />
+                </button>
+              </>
+            ) : (
+              <>
+                {!isLogin && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-sm text-white/60 ml-1">City</label>
+                      <input
+                        className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
+                        placeholder="Berlin"
+                        value={form.city}
+                        onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm text-white/60 ml-1">Level</label>
+                      <select
+                        className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
+                        value={form.level}
+                        onChange={(e) => setForm({ ...form, level: e.target.value as WebSignupPayload['level'] })}
+                      >
+                        {['A1', 'A2', 'B1', 'B2', 'C1'].map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <label className="text-sm text-white/60 ml-1">Password</label>
+                  <input
+                    className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && submit()}
+                    autoFocus
+                  />
+                </div>
+                <button
+                  disabled={loading}
+                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
+                  onClick={submit}
+                >
+                  {loading ? 'Processing...' : isLogin ? 'Login' : 'Join Deutschly'} 
+                  {isLogin ? <LogIn size={20} /> : <Sparkles size={20} />}
+                </button>
+              </>
+            )}
+
+            <p className="text-sm text-white/80 min-h-[1.25rem] text-center font-medium">{status}</p>
+            
+            {recoveryCodes && (
+              <div className="mt-2 bg-slate-900/50 border border-white/20 rounded-xl p-4 text-left animate-in fade-in slide-in-from-bottom-2">
                 <p className="text-sm font-semibold mb-1 text-white">Recovery codes</p>
-                <p className="text-xs text-white/80 mb-2">Save these 5 numbers; they will not be shown again.</p>
+                <p className="text-xs text-white/60 mb-3">Save these 5 numbers; they will not be shown again.</p>
                 <div className="grid grid-cols-5 gap-2 text-center font-mono text-white">
                   {recoveryCodes.map((c) => (
-                    <span key={c} className="bg-white/10 rounded-lg py-2 text-sm">
+                    <span key={c} className="bg-white/20 rounded-lg py-2 text-sm">
                       {c}
                     </span>
                   ))}

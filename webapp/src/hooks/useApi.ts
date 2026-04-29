@@ -48,6 +48,11 @@ export async function login(payload: { username: string; password: string }): Pr
   return res.data
 }
 
+export async function checkUsername(username: string): Promise<{ exists: boolean }> {
+  const res = await api.get('/auth/check', { params: { username } })
+  return res.data
+}
+
 
 
 export type PostPayload = {

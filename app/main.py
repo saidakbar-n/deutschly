@@ -45,10 +45,7 @@ if frontend_origin:
         allowed_origins.append(frontend_origin[7:])  # Remove http://
 
 # Allow Railway.app domains by default
-allowed_origins.extend([
-    "https://*.up.railway.app",
-    "https://*.railway.app",
-])
+allowed_origins.extend([])
 
 app.add_middleware(
     CORSMiddleware,
