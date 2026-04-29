@@ -10,10 +10,10 @@ from app.models import User, Post, Like, Comment
 Base.metadata.create_all(bind=engine)
 
 USERS = [
-    {"telegram_id": 1001, "username": "anna", "level": "A2", "city": "Berlin"},
-    {"telegram_id": 1002, "username": "max", "level": "B1", "city": "Munich"},
-    {"telegram_id": 1003, "username": "sophie", "level": "A1", "city": "Hamburg"},
-    {"telegram_id": 1004, "username": "paul", "level": "B2", "city": "Cologne"},
+    {"username": "anna", "level": "A2", "city": "Berlin"},
+    {"username": "max", "level": "B1", "city": "Munich"},
+    {"username": "sophie", "level": "A1", "city": "Hamburg"},
+    {"username": "paul", "level": "B2", "city": "Cologne"},
 ]
 
 POST_TEXTS = [

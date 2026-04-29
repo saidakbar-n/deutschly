@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 @router.post("/profile", response_model=UserOut)
 def upsert_profile(payload: UserCreate, db: Session = Depends(get_db)):
-    existing = db.scalar(select(User).where(User.telegram_id == payload.telegram_id))
+    existing = db.scalar(select(User).where(User.username == payload.username))
     if existing:
         for field, value in payload.dict().items():
             if field == "password":

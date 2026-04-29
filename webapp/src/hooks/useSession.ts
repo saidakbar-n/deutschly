@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { bootstrapWebUser, getUser, login, loginTelegram, TelegramLoginPayload, User, WebSignupPayload } from './useApi'
+import { signup, getUser, login, User, WebSignupPayload } from './useApi'
 
 const STORAGE_KEY = 'deutschly:web-user'
 
@@ -21,7 +21,7 @@ export function useSession() {
   }, [])
 
   const signIn = useCallback(async (payload: WebSignupPayload) => {
-    const created = await bootstrapWebUser(payload)
+    const created = await signup(payload)
     setUser(created)
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: created.id }))
     return created
@@ -39,13 +39,6 @@ export function useSession() {
     return u
   }, [])
 
-  const signInWithTelegram = useCallback(async (payload: TelegramLoginPayload) => {
-    const u = await loginTelegram(payload)
-    setUser(u)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: u.id }))
-    return u
-  }, [])
-
   const refresh = useCallback(async () => {
     if (!user) return null
     const next = await getUser(user.id)
@@ -53,5 +46,5 @@ export function useSession() {
     return next
   }, [user])
 
-  return { user, loading, signIn, signOut, refresh, setUser, signInWithPassword, signInWithTelegram }
+  return { user, loading, signIn, signOut, refresh, setUser, signInWithPassword }
 }

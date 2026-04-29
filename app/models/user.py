@@ -9,7 +9,6 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    telegram_id = Column(BigInteger, unique=True, nullable=False, index=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(200), nullable=True)
     level = Column(String(10), nullable=False)

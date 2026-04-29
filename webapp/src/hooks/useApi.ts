@@ -14,7 +14,6 @@ export const useApi = () => api
 
 export type User = {
   id: number
-  telegram_id: number
   username: string
   level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1'
   city?: string
@@ -41,16 +40,6 @@ export type WebSignupPayload = {
   recovery_codes?: number[]
 }
 
-export type TelegramLoginPayload = {
-  id: number
-  first_name?: string
-  last_name?: string
-  username?: string
-  photo_url?: string
-  auth_date: number
-  hash: string
-}
-
 export type UpdateUserPayload = Partial<Omit<WebSignupPayload, 'username'>> &
   Partial<Pick<User, 'username' | 'words_count'>>
 
@@ -59,10 +48,7 @@ export async function login(payload: { username: string; password: string }): Pr
   return res.data
 }
 
-export async function loginTelegram(payload: TelegramLoginPayload): Promise<User> {
-  const res = await api.post('/auth/telegram', payload)
-  return res.data
-}
+
 
 export type PostPayload = {
   user_id: number
@@ -75,8 +61,8 @@ export type PostPayload = {
   word_note?: string
 }
 
-export async function bootstrapWebUser(data: WebSignupPayload): Promise<User> {
-  const res = await api.post('/auth/web', data)
+export async function signup(data: WebSignupPayload): Promise<User> {
+  const res = await api.post('/auth/signup', data)
   return res.data
 }
 

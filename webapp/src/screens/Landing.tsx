@@ -1,59 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ArrowRight, Sparkles, LogIn } from 'lucide-react'
-import { TelegramLoginPayload, WebSignupPayload } from '../hooks/useApi'
-
-declare global {
-  interface Window {
-    onTelegramAuth: (user: TelegramLoginPayload) => void
-  }
-}
-
-function TelegramLoginButton({ onAuth }: { onAuth: (user: TelegramLoginPayload) => void }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    window.onTelegramAuth = onAuth
-    const script = document.createElement('script')
-    script.src = 'https://telegram.org/js/telegram-widget.js?22'
-    script.setAttribute('data-telegram-login', import.meta.env.VITE_TELEGRAM_BOT_NAME || 'Deutschly')
-    script.setAttribute('data-size', 'large')
-    script.setAttribute('data-onauth', 'onTelegramAuth(user)')
-    script.setAttribute('data-request-access', 'write')
-    script.async = true
-    containerRef.current?.appendChild(script)
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
-      }
-    }
-  }, [onAuth])
-
-  return <div ref={containerRef} className="flex justify-center py-2 bg-white rounded-xl" />
-}
+import { WebSignupPayload } from '../hooks/useApi'
 
 export function Landing({
   onJoin,
   onLogin,
-  onTelegramLogin,
 }: {
   onJoin: (payload: WebSignupPayload) => Promise<any>
   onLogin: (u: string, p: string) => Promise<any>
-  onTelegramLogin: (payload: TelegramLoginPayload) => Promise<any>
 }) {
   const [form, setForm] = useState<WebSignupPayload>({ username: '', level: 'A1', city: '', password: '' })
   const [loginMode, setLoginMode] = useState(false)
   const [status, setStatus] = useState<string>('')
   const [password, setPassword] = useState('')
   const [recoveryCodes, setRecoveryCodes] = useState<number[] | null>(null)
-
-  const handleTelegramAuth = async (user: TelegramLoginPayload) => {
-    setStatus('Signing in with Telegram...')
-    try {
-      await onTelegramLogin(user)
-    } catch (e) {
-      setStatus('Telegram login failed')
-    }
-  }
 
   const submit = async () => {
     if (loginMode) {
@@ -149,15 +109,7 @@ export function Landing({
             <button className="btn-primary bg-white text-blue-600 flex items-center justify-center gap-2" onClick={submit}>
               {loginMode ? 'Login' : 'Join Deutschly'} {loginMode ? <LogIn size={18} /> : <ArrowRight size={18} />}
             </button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/20"></span>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-slate-800 px-2 text-white/50">Or continue with</span>
-              </div>
-            </div>
-            <TelegramLoginButton onAuth={handleTelegramAuth} />
+
             <p className="text-xs text-white/70 min-h-[1rem] text-center">{status}</p>
             {recoveryCodes && !loginMode && (
               <div className="mt-2 bg-slate-900/50 border border-white/20 rounded-xl p-3 text-left">

@@ -4,7 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
-    telegram_id: int
     username: str = Field(min_length=3, max_length=50)
     level: str = Field(regex=r"^(A1|A2|B1|B2|C1)$")
     city: Optional[str] = None
@@ -33,12 +32,14 @@ class UserUpdate(BaseModel):
 
 class UserOut(BaseModel):
     id: int
-    telegram_id: int
     username: str
     level: str
     city: Optional[str]
     interests: Optional[dict]
     profile_photo: Optional[str]
+    full_name: Optional[str] = None
+    about: Optional[str] = None
+    age: Optional[int] = None
     words_count: int
     notify_likes: int
     notify_follows: int
@@ -68,13 +69,3 @@ class WebSignup(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
-
-
-class TelegramLogin(BaseModel):
-    id: int
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    username: Optional[str] = None
-    photo_url: Optional[str] = None
-    auth_date: int
-    hash: str

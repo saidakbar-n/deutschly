@@ -25,7 +25,6 @@ def main(count: int):
         for _ in range(count):
             username = random_username()
             user = User(
-                telegram_id=random.randint(1_000_000, 9_999_999),
                 username=username,
                 level=random.choice(LEVELS),
                 city=random.choice(CITIES),

@@ -12,7 +12,7 @@ import { Header } from './components/Header'
 export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications'
 
 function App() {
-  const { user, loading, signIn, signInWithPassword, signInWithTelegram, signOut, refresh, setUser } = useSession()
+  const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
   const [screen, setScreen] = useState<Screen>('feed')
 
   const nav = useMemo(
@@ -35,7 +35,7 @@ function App() {
   }
 
   if (!user) {
-    return <Landing onJoin={signIn} onLogin={signInWithPassword} onTelegramLogin={signInWithTelegram} />
+    return <Landing onJoin={signIn} onLogin={signInWithPassword} />
   }
 
   return (
