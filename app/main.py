@@ -54,6 +54,14 @@ allowed_origins.extend([
     "http://*.railway.app",
 ])
 
+# Explicitly allow the frontend domain
+frontend_domain = os.getenv("FRONTEND_DOMAIN", "https://deutschly-uz.up.railway.app")
+if frontend_domain not in allowed_origins:
+    allowed_origins.append(frontend_domain)
+    # Also add without protocol for flexibility
+    if frontend_domain.startswith("https://"):
+        allowed_origins.append(frontend_domain[8:])
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
