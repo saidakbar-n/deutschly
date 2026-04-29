@@ -32,8 +32,6 @@ allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
-    "https://deutschly-uz.up.railway.app",  # Production frontend
-    "https://web-production-aab8a.up.railway.app",  # Backend (for same-origin requests)
 ]
 
 # Add production frontend domain from environment variable
@@ -46,14 +44,13 @@ if frontend_origin:
     elif frontend_origin.startswith("http://"):
         allowed_origins.append(frontend_origin[7:])  # Remove http://
 
-# Allow all Railway.app domains by using a more permissive regex
-# This matches any .railway.app subdomain including .up.railway.app
+# Allow Railway.app domains by default
 allowed_origins.extend([])
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://[a-zA-Z0-9._-]+\.railway\.app",
+    allow_origin_regex=r"https?://.*\.railway\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
