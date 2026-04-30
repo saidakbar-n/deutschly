@@ -15,18 +15,28 @@ if hasattr(typing, "ForwardRef") and hasattr(typing.ForwardRef, "_evaluate"):
 
     typing.ForwardRef._evaluate = _patched_forward_ref_evaluate
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
-from app.core.database import Base, engine
+from app.core.database import Base
 from app import models  # noqa: F401 ensures models are registered
 
-app = FastAPI(title="Deutschly Social API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    from app.core.database import get_engine, DATABASE_URL
+    db_url = os.getenv("DATABASE_URL", DATABASE_URL)
+    if db_url.startswith("sqlite"):
+        engine = get_engine()
+        Base.metadata.create_all(bind=engine)
+    print("Application started successfully")
+    yield
+    # Shutdown
+    print("Application shutting down")
 
-# Create tables on startup for quick local dev (only if DATABASE_URL is sqlite)
-if os.getenv("DATABASE_URL", "").startswith("sqlite"):
-    Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Deutschly Social API", version="1.0.0", lifespan=lifespan)
 
 # CORS configuration - explicit domains only
 frontend_domain = os.getenv("FRONTEND_DOMAIN", "https://deutschly-uz.up.railway.app")
