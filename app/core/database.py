@@ -11,14 +11,24 @@ if not DATABASE_URL:
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
-try:
-    engine = create_engine(DATABASE_URL, echo=False, future=True, connect_args=connect_args)
-    # Test the connection
-    with engine.connect() as conn:
-        print("✅ Database connection successful")
-except Exception as e:
-    print(f"❌ Database connection failed: {e}")
-    raise
+# Use pool_pre_ping to handle connection drops gracefully
+# Don't fail on startup if DB is temporarily unavailable
+pool_size = 5
+max_overflow = 10
+pool_timeout = 30
+pool_recycle = 3600
+
+engine = create_engine(
+    DATABASE_URL, 
+    echo=False, 
+    future=True, 
+    connect_args=connect_args,
+    pool_size=pool_size,
+    max_overflow=max_overflow,
+    pool_timeout=pool_timeout,
+    pool_recycle=pool_recycle,
+    pool_pre_ping=True,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True)
 
 class Base(DeclarativeBase):

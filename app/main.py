@@ -22,50 +22,26 @@ from app.api import api_router
 from app.core.database import Base, engine
 from app import models  # noqa: F401 ensures models are registered
 
-# Create tables on startup for quick local dev
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Deutschly Social API", version="1.0.0")
 
-# CORS configuration - allow frontend domains and Railway domains
-allowed_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "https://localhost:5173",
-    "https://127.0.0.1:5173",
-]
+# Create tables on startup for quick local dev (only if DATABASE_URL is sqlite)
+if os.getenv("DATABASE_URL", "").startswith("sqlite"):
+    Base.metadata.create_all(bind=engine)
 
-# Add production frontend domain from environment variable
-frontend_origin = os.getenv("FRONTEND_ORIGIN")
-if frontend_origin:
-    allowed_origins.append(frontend_origin)
-    # Also allow the domain without https:// prefix if provided with it
-    if frontend_origin.startswith("https://"):
-        allowed_origins.append(frontend_origin[8:])  # Remove https://
-    elif frontend_origin.startswith("http://"):
-        allowed_origins.append(frontend_origin[7:])  # Remove http://
-
-# Allow Railway.app domains by default for both web and API
-allowed_origins.extend([
-    "https://*.up.railway.app",
-    "https://*.railway.app",
-    "http://*.up.railway.app",
-    "http://*.railway.app",
-])
-
-# Explicitly allow the frontend domain
+# CORS configuration - explicit domains only
 frontend_domain = os.getenv("FRONTEND_DOMAIN", "https://deutschly-uz.up.railway.app")
-if frontend_domain not in allowed_origins:
-    allowed_origins.append(frontend_domain)
-    # Also add without protocol for flexibility
-    if frontend_domain.startswith("https://"):
-        allowed_origins.append(frontend_domain[8:])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://.*\.(up\.railway\.app|railway\.app)",
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://localhost:5173",
+        frontend_domain,
+        "https://deutschly-uz.up.railway.app",
+        "https://web-production-aab8a.up.railway.app",
+    ],
+    allow_origin_regex=r"^https://[^/]+\.up\.railway\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -88,3 +64,11 @@ app.include_router(api_router)
 @app.get("/")
 async def root():
     return {"message": "Deutschly Social API v1.0 - Social-first German learning"}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+@app.get("/api/health")
+async def api_health():
+    return {"status": "ok"}
