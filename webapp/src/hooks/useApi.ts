@@ -1,9 +1,14 @@
 import axios from 'axios'
 
-// Use relative path for production to avoid domain issues
+// Use environment variable or fallback to production backend URL
 const defaultApiUrl =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? 'http://localhost:8000/api/v1' : 'https://web-production-aab8a.up.railway.app/api/v1')
+
+// In production, if frontend and backend are on same domain, use relative path
+const apiUrl = import.meta.env.PROD && !import.meta.env.VITE_API_URL
+  ? '/api/v1'
+  : defaultApiUrl
 
 const api = axios.create({
   baseURL: defaultApiUrl,

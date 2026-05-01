@@ -2,6 +2,173 @@ import { useState } from 'react'
 import { ArrowRight, Sparkles, LogIn, ChevronLeft, UserPlus, Key } from 'lucide-react'
 import { WebSignupPayload, checkUsername } from '../hooks/useApi'
 
+// ============================================
+// QA Wolf-Style Illustrations
+// ============================================
+
+// Pixel art running wolf - matches QA Wolf's blue pixel wolf
+const RunningWolfPixel = ({ className = '' }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 100 40"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Body - pixel art style matching QA Wolf */}
+    <rect x="10" y="25" width="6" height="6" />
+    <rect x="16" y="25" width="6" height="6" />
+    <rect x="22" y="25" width="6" height="6" />
+    <rect x="28" y="25" width="6" height="6" />
+    <rect x="34" y="25" width="6" height="6" />
+    <rect x="13" y="20" width="6" height="6" />
+    <rect x="19" y="20" width="6" height="6" />
+    <rect x="25" y="20" width="6" height="6" />
+    <rect x="31" y="20" width="6" height="6" />
+    <rect x="16" y="15" width="6" height="6" />
+    <rect x="22" y="15" width="6" height="6" />
+    <rect x="28" y="15" width="6" height="6" />
+    <rect x="22" y="10" width="6" height="6" />
+    {/* Head */}
+    <rect x="34" y="20" width="6" height="6" />
+    <rect x="40" y="20" width="6" height="6" />
+    <rect x="37" y="15" width="6" height="6" />
+    {/* Ears */}
+    <rect x="34" y="10" width="6" height="6" />
+    <rect x="40" y="10" width="6" height="6" />
+    {/* Eyes - white pixels */}
+    <rect x="36" y="17" width="2" height="2" fill="white" />
+    <rect x="42" y="17" width="2" height="2" fill="white" />
+    {/* Tail */}
+    <rect x="4" y="25" width="6" height="6" />
+    <rect x="4" y="31" width="6" height="6" />
+    {/* Legs */}
+    <rect x="10" y="31" width="6" height="6" />
+    <rect x="16" y="31" width="6" height="6" />
+    <rect x="34" y="31" width="6" height="6" />
+    <rect x="40" y="31" width="6" height="6" />
+  </svg>
+)
+
+// Line art wolf for section illustrations
+const LineArtWolf = ({ className = '' }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 120 80"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Body */}
+    <path d="M20 50 L80 50 L90 40 L100 45 L100 55 L90 60 L80 50" />
+    {/* Head */}
+    <path d="M80 50 L95 45 L105 42 L100 40 L105 38 L100 42" />
+    <circle cx="100" cy="40" r="1.5" fill="currentColor" />
+    <path d="M97 38 L103 38" />
+    {/* Ears */}
+    <path d="M95 35 L98 32 L101 35" />
+    <path d="M101 35 L104 32 L107 35" />
+    {/* Legs */}
+    <path d="M30 60 L25 70" />
+    <path d="M40 60 L35 70" />
+    <path d="M70 60 L65 70" />
+    <path d="M80 60 L75 70" />
+    {/* Tail */}
+    <path d="M20 50 L10 45 L5 50 L10 55 L20 50" />
+  </svg>
+)
+
+// Static wolf illustration for hero
+const HeroWolf = ({ className = '' }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 200 120"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Main body */}
+    <path d="M40 80 L120 80 L140 60 L160 70 L160 90 L140 100 L120 80" />
+    
+    {/* Head */}
+    <path d="M120 80 L140 70 L165 70 L160 60 L170 55 L165 50 L160 60" />
+    
+    {/* Eyes */}
+    <circle cx="160" cy="65" r="2.5" fill="currentColor" />
+    <path d="M157 63 L163 63" stroke="white" strokeWidth="1.5" />
+    
+    {/* Ears */}
+    <path d="M140 55 L145 50 L150 55" />
+    <path d="M155 50 L160 45 L165 50" />
+    
+    {/* Nose */}
+    <path d="M170 55 L172 57 L170 59" fill="currentColor" />
+    
+    {/* Legs */}
+    <path d="M60 95 L55 110" />
+    <path d="M80 95 L75 110" />
+    <path d="M110 95 L105 110" />
+    <path d="M130 95 L125 110" />
+    
+    {/* Tail - curved */}
+    <path d="M40 80 Q20 70 10 80 Q15 90 40 80" />
+    
+    {/* Belly */}
+    <path d="M60 85 L100 85" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+  </svg>
+)
+
+// Arrow icon matching QA Wolf style
+const QaWolfArrow = ({ className = '' }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M5 12 L19 12" />
+    <path d="M12 5 L19 12 L12 19" />
+  </svg>
+)
+
+// Animated wolf that simulates running
+const AnimatedRunningWolf = ({ className = '' }: { className?: string }) => (
+  <div className={`relative ${className}`}>
+    {/* Container with overflow for running effect */}
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Multiple wolf positions for smooth animation */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <RunningWolfPixel className="w-16 h-8 text-indigo-500 animate-qaw-wolf-run" />
+      </div>
+    </div>
+  </div>
+)
+
+// Feature checkmark icon
+const FeatureCheck = ({ className = '' }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M5 13 L9 17 L19 7" />
+  </svg>
+)
+
+// ============================================
+// Main Landing Component
+// ============================================
+
 export function Landing({
   onJoin,
   onLogin,
@@ -57,7 +224,7 @@ export function Landing({
     } catch (e) {
       setStatus('Connection error. Try again.')
     } finally {
-      if (loading) setLoading(false)
+      setLoading(false)
     }
   }
 
@@ -112,159 +279,292 @@ export function Landing({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 text-white flex items-center justify-center p-6">
-      <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl items-center">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm">
-            <Sparkles size={16} /> New: Web experience is live
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight">Deutschly on the web</h1>
-          <p className="text-lg text-white/80">
-            Share learning wins, follow other learners, and keep your streak all in one place on the web.
-          </p>
-          <ul className="text-white/80 space-y-1 text-sm">
-            <li>• Post stories, achievements, and tips</li>
-            <li>• Discover nearby learners by city and level</li>
-            <li>• Save your profile and keep progress synced</li>
-          </ul>
-        </div>
-        <div className="card bg-white/10 border-white/20 backdrop-blur min-h-[400px] flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-6">
-            {step !== 'welcome' && (
-              <button onClick={goBack} className="p-1 hover:bg-white/10 rounded-lg">
-                <ChevronLeft size={20} />
+    <div className="min-h-screen hero-bg text-slate-800">
+      {/* Background pattern overlay */}
+      <div className="fixed inset-0 bg-qaw-pattern" />
+      
+      {/* Decorative floating elements */}
+      <div className="fixed top-20 left-10 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-30 animate-qaw-float" style={{ animationDelay: '0s' }} />
+      <div className="fixed bottom-40 right-20 w-48 h-48 bg-sky-100 rounded-full blur-3xl opacity-20 animate-qaw-float" style={{ animationDelay: '1s' }} />
+      <div className="fixed top-1/2 right-10 w-24 h-24 bg-purple-100 rounded-full blur-2xl opacity-25 animate-qaw-float" style={{ animationDelay: '2s' }} />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-16">
+        {/* ============================================
+            Hero Section - QA Wolf Style
+        ============================================ */}
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left side - Content */}
+          <div className="space-y-8">
+            {/* Logo */}
+            <div className="inline-flex items-center gap-3">
+              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <RunningWolfPixel className="w-7 h-4 text-white" />
+              </div>
+              <span className="text-3xl font-bold text-gradient-indigo">Deutschly</span>
+            </div>
+
+            {/* Main Headline */}
+            <div className="space-y-6">
+              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight">
+                Learn German.
+                <br />
+                <span className="inline-block animate-qaw-pulse">
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0s' }}> Share </span>
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0.1s' }}>your </span>
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0.2s' }}>journey.</span>
+                </span>
+              </h1>
+              <p className="text-xl text-slate-600 max-w-lg">
+                Connect with fellow learners. Share stories, achievements, and tips.
+                <br />
+                Track your progress together — <span className="text-indigo-600 font-medium">fast and fearlessly.</span>
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                disabled={loading}
+                className="btn-primary flex items-center justify-center gap-2"
+                onClick={startSignup}
+              >
+                <UserPlus size={20} />
+                Get started
               </button>
-            )}
-            <h3 className="text-2xl font-bold text-white">
-              {step === 'welcome' ? 'Welcome' : isLogin ? 'Login' : 'Create account'}
-            </h3>
+              <button
+                disabled={loading}
+                className="btn-secondary flex items-center justify-center gap-2"
+                onClick={startLogin}
+              >
+                <Key size={20} />
+                Sign in
+              </button>
+            </div>
+
+            {/* Features List */}
+            <div className="space-y-4 pt-4">
+              {[
+                { text: 'Post your learning wins', icon: <Sparkles size={16} /> },
+                { text: 'Follow other learners', icon: <FeatureCheck className="w-5 h-5" /> },
+                { text: 'Keep your streak alive', icon: <FeatureCheck className="w-5 h-5" /> },
+                { text: 'Sync across devices', icon: <FeatureCheck className="w-5 h-5" /> },
+              ].map((item, i) => (
+                <div
+                  key={item.text}
+                  className="flex items-center gap-3 text-slate-700 opacity-0 animate-qaw-fade-in-up"
+                  style={{ animationDelay: `${0.4 + i * 0.15}s` }}
+                >
+                  <div className="feature-icon">
+                    {item.icon}
+                  </div>
+                  <span>{item.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {step === 'welcome' ? (
-              <>
-                <p className="text-center text-white/80 mb-6">Join Deutschly community today</p>
-                <div className="space-y-3">
+          {/* Right side - Hero Illustration */}
+          <div className="relative hidden lg:block">
+            {/* Main wolf illustration */}
+            <div className="relative w-full h-96">
+              <div className="absolute top-0 right-0 w-80 h-80">
+                <HeroWolf className="w-full h-full text-indigo-400 animate-qaw-float" />
+              </div>
+              
+              {/* Animated running wolf overlay */}
+              <div className="absolute bottom-16 left-8 w-48 h-16">
+                <AnimatedRunningWolf />
+              </div>
+              
+              {/* Small pixel wolves */}
+              <div className="absolute top-12 right-12">
+                <RunningWolfPixel className="w-8 h-4 text-indigo-300 opacity-60" />
+              </div>
+              <div className="absolute bottom-32 right-24">
+                <RunningWolfPixel className="w-6 h-3 text-indigo-200 opacity-40" />
+              </div>
+            </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute -top-8 -right-8 w-24 h-24 bg-indigo-100 rounded-full blur-2xl opacity-50" />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-sky-100 rounded-full blur-2xl opacity-40" />
+          </div>
+        </div>
+
+        {/* ============================================
+            Auth Form Card - QA Wolf Style
+        ============================================ */}
+        <div className="mt-16 lg:mt-24">
+          <div className="max-w-2xl mx-auto">
+            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
+                {step !== 'welcome' && (
                   <button
-                    disabled={loading}
-                    className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
-                    onClick={startLogin}
+                    onClick={goBack}
+                    className="p-2 -ml-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
                   >
-                    <Key size={20} /> Login
+                    <ChevronLeft size={20} />
                   </button>
-                  <button
-                    disabled={loading}
-                    className="w-full btn-primary bg-blue-500/20 text-white border border-white/30 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-500/30 transition-colors"
-                    onClick={startSignup}
-                  >
-                    <UserPlus size={20} /> Create new account
-                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {step === 'welcome' ? 'Join Deutschly' : isLogin ? 'Welcome back' : 'Create account'}
+                  </h3>
                 </div>
-              </>
-            ) : step === 'username' ? (
-              <>
-                <div className="space-y-1">
-                  <label className="text-sm text-white/60 ml-1">
-                    {isLogin ? 'Your username' : 'Choose a username'}
-                  </label>
-                  <input
-                    className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900 text-lg"
-                    placeholder="Username"
-                    value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
-                    autoFocus
-                  />
-                </div>
-                <button
-                  disabled={loading || !form.username.trim()}
-                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors disabled:opacity-50"
-                  onClick={handleContinue}
-                >
-                  {loading ? 'Checking...' : 'Continue'} <ArrowRight size={20} />
-                </button>
-                <button
-                  className="w-full text-sm text-white/60 hover:text-white transition-colors"
-                  onClick={goBack}
-                >
-                  {isLogin ? 'Need to create an account?' : 'Already have an account?'}
-                </button>
-              </>
-            ) : (
-              <>
-                {!isLogin && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-sm text-white/60 ml-1">City</label>
+              </div>
+
+              <div className="space-y-4">
+                {step === 'welcome' ? (
+                  <>
+                    <p className="text-center text-slate-500 mb-2">
+                      Start your German learning journey today
+                    </p>
+                    <p className="text-center text-sm text-slate-400 mb-6">
+                      Free forever. No credit card needed.
+                    </p>
+                  </>
+                ) : step === 'username' ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium text-slate-700 ml-1">
+                        {isLogin ? 'Username' : 'Choose username'}
+                      </label>
                       <input
-                        className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-                        placeholder="Berlin"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
+                        className="input-primary"
+                        placeholder="e.g., deutschlerner"
+                        value={form.username}
+                        onChange={(e) => setForm({ ...form, username: e.target.value })}
+                        onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
+                        autoFocus
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-sm text-white/60 ml-1">Level</label>
-                      <select
-                        className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-                        value={form.level}
-                        onChange={(e) => setForm({ ...form, level: e.target.value as WebSignupPayload['level'] })}
-                      >
-                        {['A1', 'A2', 'B1', 'B2', 'C1'].map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
-                        ))}
-                      </select>
+                    <button
+                      disabled={loading || !form.username.trim()}
+                      className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleContinue}
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+                      ) : (
+                        <>
+                          Continue
+                          <QaWolfArrow className="w-5 h-5" />
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+                      onClick={goBack}
+                    >
+                      {isLogin ? 'New here? Create account' : 'Already have an account?'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {!isLogin && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="block text-sm font-medium text-slate-700 ml-1">City</label>
+                          <input
+                            className="input-primary"
+                            placeholder="Berlin"
+                            value={form.city}
+                            onChange={(e) => setForm({ ...form, city: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="block text-sm font-medium text-slate-700 ml-1">Level</label>
+                          <select
+                            className="input-primary"
+                            value={form.level}
+                            onChange={(e) => setForm({ ...form, level: e.target.value as WebSignupPayload['level'] })}
+                          >
+                            {['A1', 'A2', 'B1', 'B2', 'C1'].map((level) => (
+                              <option key={level} value={level}>
+                                {level}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium text-slate-700 ml-1">Password</label>
+                      <input
+                        className="input-primary"
+                        type="password"
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && submit()}
+                        autoFocus
+                      />
+                      {!isLogin && (
+                        <p className="text-xs text-slate-500 ml-1">Minimum 6 characters</p>
+                      )}
+                    </div>
+                    <button
+                      disabled={loading}
+                      className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={submit}
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+                      ) : (
+                        <>
+                          {isLogin ? 'Sign in' : 'Create account'}
+                          {isLogin ? <LogIn size={18} /> : <Sparkles size={18} />}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+                      onClick={goBack}
+                    >
+                      Back
+                    </button>
+                  </>
+                )}
+
+                {/* Status message */}
+                <p className="text-sm text-center font-medium min-h-[1.25rem] transition-colors duration-200
+                  {status.includes('error') || status.includes('Invalid') || status.includes('Could not') 
+                    ? 'text-red-500' 
+                    : status.includes('created') || status.includes('Welcome')
+                      ? 'text-green-600'
+                      : 'text-slate-500'}
+                ">
+                  {status}
+                </p>
+
+                {/* Recovery codes */}
+                {recoveryCodes && (
+                  <div className="mt-4 bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-left animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                    <p className="text-sm font-semibold mb-1 text-slate-900">
+                      Save these recovery codes
+                    </p>
+                    <p className="text-xs text-slate-500 mb-3">
+                      These 5 numbers can help recover your account. They will not be shown again.
+                    </p>
+                    <div className="grid grid-cols-5 gap-2 text-center font-mono text-slate-700">
+                      {recoveryCodes.map((c) => (
+                        <span key={c} className="bg-white rounded-lg py-2 text-sm border border-slate-200">
+                          {c}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
-                <div className="space-y-1">
-                  <label className="text-sm text-white/60 ml-1">Password</label>
-                  <input
-                    className="w-full rounded-xl px-4 py-3 bg-white/90 text-slate-900"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && submit()}
-                    autoFocus
-                  />
-                </div>
-                <button
-                  disabled={loading}
-                  className="w-full btn-primary bg-white text-blue-600 py-4 flex items-center justify-center gap-2 text-lg font-semibold hover:bg-blue-50 transition-colors"
-                  onClick={submit}
-                >
-                  {loading ? 'Processing...' : isLogin ? 'Login' : 'Create account'} 
-                  {isLogin ? <LogIn size={20} /> : <Sparkles size={20} />}
-                </button>
-                <button
-                  className="w-full text-sm text-white/60 hover:text-white transition-colors"
-                  onClick={goBack}
-                >
-                  Back
-                </button>
-              </>
-            )}
-
-            <p className="text-sm text-white/80 min-h-[1.25rem] text-center font-medium">{status}</p>
-            
-            {recoveryCodes && (
-              <div className="mt-2 bg-slate-900/50 border border-white/20 rounded-xl p-4 text-left animate-in fade-in slide-in-from-bottom-2">
-                <p className="text-sm font-semibold mb-1 text-white">Recovery codes</p>
-                <p className="text-xs text-white/60 mb-3">Save these 5 numbers; they will not be shown again.</p>
-                <div className="grid grid-cols-5 gap-2 text-center font-mono text-white">
-                  {recoveryCodes.map((c) => (
-                    <span key={c} className="bg-white/20 rounded-lg py-2 text-sm">
-                      {c}
-                    </span>
-                  ))}
-                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 mt-16 text-center text-sm text-slate-400">
+        <p>© 2025 Deutschly. All rights reserved.</p>
       </div>
     </div>
   )
