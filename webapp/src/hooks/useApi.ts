@@ -145,3 +145,22 @@ export async function listComments(postId: number, limit = 50, offset = 0) {
   const res = await api.get(`/posts/${postId}/comments`, { params: { limit, offset } })
   return res.data
 }
+
+// File upload for profile photos
+export async function uploadProfilePhoto(userId: number, file: File): Promise<{ url: string; filename: string }> {
+  const formData = new FormData()
+  formData.append('user_id', userId.toString())
+  formData.append('file', file)
+  
+  const res = await api.post('/upload/profile-photo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return res.data
+}
+
+export async function deleteProfilePhoto(userId: number): Promise<{ message: string }> {
+  const res = await api.delete('/upload/profile-photo', { params: { user_id: userId } })
+  return res.data
+}

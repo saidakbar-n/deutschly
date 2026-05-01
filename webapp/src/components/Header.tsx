@@ -79,8 +79,25 @@ export function Header({
         </select>
       </div>
 
-      {/* User info and logout */}
+      {/* User profile photo and logout */}
       <div className="flex items-center gap-3">
+        <button
+          onClick={() => onNav('profile')}
+          className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 hover:border-indigo-400 transition-colors cursor-pointer"
+          title="View profile"
+        >
+          {user.profile_photo ? (
+            <img
+              src={user.profile_photo}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-slate-400" />
+            </div>
+          )}
+        </button>
         <button 
           className="p-2 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm border border-slate-100 
                     hover:bg-slate-50 transition-colors text-slate-500 hover:text-slate-700"
