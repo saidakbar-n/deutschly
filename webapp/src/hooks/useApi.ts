@@ -146,6 +146,37 @@ export async function listComments(postId: number, limit = 50, offset = 0) {
   return res.data
 }
 
+export type Notification = {
+  id: number
+  user_id: number
+  from_user_id: number | null
+  type: string
+  text: string | null
+  post_id: number | null
+  is_read: number
+  created_at: string
+}
+
+export type NotificationsResponse = {
+  notifications: Notification[]
+  unread_count: number
+}
+
+export async function fetchNotifications(userId: number, limit = 20, offset = 0): Promise<NotificationsResponse> {
+  const res = await api.get(`/notifications/${userId}`, { params: { limit, offset } })
+  return res.data
+}
+
+export async function markNotificationRead(notificationId: number) {
+  const res = await api.post(`/notifications/${notificationId}/read`)
+  return res.data
+}
+
+export async function markAllNotificationsRead(userId: number) {
+  const res = await api.post(`/notifications/read-all/${userId}`)
+  return res.data
+}
+
 // File upload for profile photos
 export async function uploadProfilePhoto(userId: number, file: File): Promise<{ url: string; filename: string }> {
   const formData = new FormData()

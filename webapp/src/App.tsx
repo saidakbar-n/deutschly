@@ -90,7 +90,7 @@ function App() {
               {screen === 'search' && <Search />}
               {screen === 'words' && <Words user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
-              {screen === 'notifications' && <Notifications />}
+              {screen === 'notifications' && <Notifications user={user} />}
             </div>
           </div>
 
