@@ -10,7 +10,6 @@ class UserBase(BaseModel):
     interests: Optional[dict] = None
     profile_photo: Optional[str] = None
     words_count: Optional[int] = 0
-    password: Optional[str] = Field(default=None, min_length=6, max_length=128)
 
 
 class UserCreate(UserBase):
@@ -41,9 +40,12 @@ class UserOut(BaseModel):
     about: Optional[str] = None
     age: Optional[int] = None
     words_count: int
-    notify_likes: int
-    notify_follows: int
-    notify_comments: int
+    posts_count: int = 0
+    followers_count: int = 0
+    following_count: int = 0
+    notify_likes: int = 1
+    notify_follows: int = 1
+    notify_comments: int = 1
     recovery_codes: Optional[list[int]] = None
     created_at: datetime
 

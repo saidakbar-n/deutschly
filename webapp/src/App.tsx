@@ -141,9 +141,7 @@ function App() {
               </h3>
               <div className="space-y-3">
                 {[
-                  { label: 'Posts', value: user.posts_count || 0 },
-                  { label: 'Followers', value: user.followers_count || 0 },
-                  { label: 'Following', value: user.following_count || 0 },
+                  { label: 'Words', value: user.words_count || 0 },
                 ].map((stat, i) => (
                   <div 
                     key={stat.label} 

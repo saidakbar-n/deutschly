@@ -1,17 +1,9 @@
 import axios from 'axios'
 
-// Use environment variable or fallback to production backend URL
-const defaultApiUrl =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:8000/api/v1' : 'https://web-production-aab8a.up.railway.app/api/v1')
-
-// In production, if frontend and backend are on same domain, use relative path
-const apiUrl = import.meta.env.PROD && !import.meta.env.VITE_API_URL
-  ? '/api/v1'
-  : defaultApiUrl
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
 const api = axios.create({
-  baseURL: defaultApiUrl,
+  baseURL: apiUrl,
   withCredentials: false,
 })
 
@@ -28,6 +20,9 @@ export type User = {
   about?: string
   age?: number
   words_count: number
+  notify_likes: number
+  notify_follows: number
+  notify_comments: number
   recovery_codes?: number[]
   created_at: string
 }
@@ -38,15 +33,12 @@ export type WebSignupPayload = {
   city?: string
   interests?: Record<string, unknown>
   profile_photo?: string
-  full_name?: string
-  about?: string
-  age?: number
   password: string
   recovery_codes?: number[]
 }
 
 export type UpdateUserPayload = Partial<Omit<WebSignupPayload, 'username'>> &
-  Partial<Pick<User, 'username' | 'words_count'>>
+  Partial<Pick<User, 'username' | 'words_count' | 'full_name' | 'about' | 'age'>>
 
 export async function login(payload: { username: string; password: string }): Promise<User> {
   const res = await api.post('/auth/login', payload)
@@ -59,16 +51,12 @@ export async function checkUsername(username: string): Promise<{ exists: boolean
 }
 
 
-
 export type PostPayload = {
   user_id: number
   type: 'story' | 'achievement' | 'tip' | 'word'
   text?: string
   image_url?: string
   level_tag?: string
-  word_term?: string
-  word_meaning?: string
-  word_note?: string
 }
 
 export async function signup(data: WebSignupPayload): Promise<User> {

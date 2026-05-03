@@ -176,7 +176,7 @@ export function Landing({
   onJoin: (payload: WebSignupPayload) => Promise<any>
   onLogin: (u: string, p: string) => Promise<any>
 }) {
-  const [form, setForm] = useState<WebSignupPayload>({ username: '', level: 'A1', city: '', password: '' })
+  const [form, setForm] = useState<Omit<WebSignupPayload, 'password'>>({ username: '', level: 'A1', city: '' })
   const [step, setStep] = useState<'welcome' | 'username' | 'auth'>('welcome')
   const [isLogin, setIsLogin] = useState(false)
   const [status, setStatus] = useState<string>('')
@@ -268,7 +268,7 @@ export function Landing({
   const goBack = () => {
     if (step === 'username') {
       setStep('welcome')
-      setForm({ username: '', level: 'A1', city: '', password: '' })
+      setForm({ username: '', level: 'A1', city: '' })
       setPassword('')
       setStatus('')
     } else if (step === 'auth') {

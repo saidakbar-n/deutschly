@@ -3,7 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
-from app.models import User, Word
+from app.models import User, Word, Post, Follow
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserList
 from passlib.hash import pbkdf2_sha256
 
@@ -40,13 +40,21 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    # ensure words_count is in sync with actual words table
+    
     actual_words = db.scalar(select(func.count()).select_from(Word).where(Word.user_id == user_id)) or 0
-    if user.words_count != actual_words:
-        user.words_count = actual_words
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    actual_posts = db.scalar(select(func.count()).select_from(Post).where(Post.user_id == user_id)) or 0
+    followers = db.scalar(select(func.count()).select_from(Follow).where(Follow.following_id == user_id)) or 0
+    following = db.scalar(select(func.count()).select_from(Follow).where(Follow.follower_id == user_id)) or 0
+
+    user.words_count = actual_words
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    # Attach computed fields (not stored in DB)
+    user.__dict__['posts_count'] = actual_posts
+    user.__dict__['followers_count'] = followers
+    user.__dict__['following_count'] = following
     return user
 
 
