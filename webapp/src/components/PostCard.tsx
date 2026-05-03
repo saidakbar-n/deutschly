@@ -52,7 +52,8 @@ export function PostCard({
   onComment, 
   commentsOpen,
   currentUserId,
-  onDelete 
+  onDelete,
+  timestamp,
 }: PostCardProps) {
   const safeImage = image_url || undefined
   const isMine = currentUserId !== undefined && author.id === currentUserId

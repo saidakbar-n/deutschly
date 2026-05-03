@@ -94,6 +94,16 @@ export async function listWords(userId: number, limit = 50, offset = 0) {
   return res.data
 }
 
+export async function saveWord(wordId: number, userId: number) {
+  const res = await api.post(`/words/${wordId}/save`, null, { params: { user_id: userId } })
+  return res.data
+}
+
+export async function deleteWord(wordId: number, userId: number) {
+  const res = await api.delete(`/words/${wordId}`, { params: { user_id: userId } })
+  return res.data
+}
+
 export async function listWordsFeed(limit = 50, offset = 0) {
   const res = await api.get(`/words/feed`, { params: { limit, offset } })
   return res.data

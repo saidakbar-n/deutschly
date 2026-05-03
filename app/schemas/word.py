@@ -14,6 +14,7 @@ class WordCreate(WordBase):
 class WordOut(WordBase):
     id: int
     user_id: int
+    saved_from_id: Optional[int] = None
     created_at: datetime
 
     class Config:

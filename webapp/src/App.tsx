@@ -5,7 +5,7 @@ import { Feed } from './screens/Feed'
 import { Search } from './screens/Search'
 import { Words } from './screens/Words'
 import { Notifications } from './components/Notifications'
-import { WordPanel } from './components/WordPanel'
+
 import { useSession } from './hooks/useSession'
 import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
@@ -124,11 +124,6 @@ function App() {
                   Keep your streak going — share a story today.
                 </p>
               </div>
-            </div>
-
-            {/* Word Panel */}
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <WordPanel user={user} />
             </div>
 
             {/* Quick Stats */}

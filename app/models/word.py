@@ -12,6 +12,7 @@ class Word(Base):
     term = Column(String(100), nullable=False)
     meaning = Column(Text, nullable=False)
     note = Column(Text)
+    saved_from_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="words")
