@@ -10,37 +10,9 @@ from passlib.hash import pbkdf2_sha256
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 
-@router.post("/profile", response_model=UserOut)
-def upsert_profile(payload: UserCreate, db: Session = Depends(get_db)):
-    existing = db.scalar(select(User).where(User.username == payload.username))
-    if existing:
-        for field, value in payload.dict().items():
-            if field == "password":
-                existing.password_hash = pbkdf2_sha256.hash(value)
-            else:
-                setattr(existing, field, value)
-        db.add(existing)
-        db.commit()
-        db.refresh(existing)
-        return existing
-
-    data = payload.dict()
-    password = data.pop("password", None)
-    if password:
-        data["password_hash"] = pbkdf2_sha256.hash(password)
-    user = User(**data)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-
-@router.get("/{user_id}", response_model=UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
+# Helper to attach computed counts to user
+def _attach_counts(user: User, db: Session) -> User:
+    user_id = user.id
     actual_words = db.scalar(select(func.count()).select_from(Word).where(Word.user_id == user_id)) or 0
     actual_posts = db.scalar(select(func.count()).select_from(Post).where(Post.user_id == user_id)) or 0
     followers = db.scalar(select(func.count()).select_from(Follow).where(Follow.following_id == user_id)) or 0
@@ -58,20 +30,29 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@router.put("/{user_id}", response_model=UserOut)
-def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
-    user = db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    for field, value in payload.dict(exclude_unset=True).items():
-        if field == "password":
-            user.password_hash = pbkdf2_sha256.hash(value)
-        else:
-            setattr(user, field, value)
+@router.post("/profile", response_model=UserOut)
+def upsert_profile(payload: UserCreate, db: Session = Depends(get_db)):
+    existing = db.scalar(select(User).where(User.username == payload.username))
+    if existing:
+        for field, value in payload.dict().items():
+            if field == "password":
+                existing.password_hash = pbkdf2_sha256.hash(value)
+            else:
+                setattr(existing, field, value)
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+        return _attach_counts(existing, db)
+
+    data = payload.dict()
+    password = data.pop("password", None)
+    if password:
+        data["password_hash"] = pbkdf2_sha256.hash(password)
+    user = User(**data)
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return _attach_counts(user, db)
 
 
 @router.get("/search", response_model=UserList)
@@ -105,3 +86,24 @@ def search_users(
     total = db.scalar(count_stmt) or 0
     users = db.scalars(stmt.offset(offset).limit(limit)).all()
     return UserList(results=users, total=total)
+
+
+@router.get("/{user_id}", response_model=UserOut)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return _attach_counts(user, db)
+
+
+@router.put("/{user_id}", response_model=UserOut)
+def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    for field, value in payload.dict(exclude_unset=True).items():
+        if field == "password":
+            user.password_hash = pbkdf2_sha256.hash(value)
+        else:
+            setattr(user, field, value)
+    return _attach_counts(user, db)

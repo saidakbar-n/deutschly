@@ -64,6 +64,9 @@ class WebSignup(BaseModel):
     city: Optional[str] = None
     interests: Optional[dict] = None
     profile_photo: Optional[str] = None
+    full_name: Optional[str] = None
+    about: Optional[str] = None
+    age: Optional[int] = None
     password: str = Field(min_length=6, max_length=128)
     recovery_codes: Optional[list[int]] = None
 

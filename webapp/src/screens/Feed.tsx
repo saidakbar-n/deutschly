@@ -9,10 +9,11 @@ export function Feed({ user }: { user: User }) {
   const [loading, setLoading] = useState(false)
   const [openPostId, setOpenPostId] = useState<number | null>(null)
   const [comments, setComments] = useState<Record<number, any[]>>({})
-  const [commentText, setCommentText] = useState('')
+  const [commentText, setCommentText] = useState<Record<number, string>>({})
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [peekUser, setPeekUser] = useState<any | null>(null)
   const [peekLoading, setPeekLoading] = useState(false)
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
 
   const loadFeed = useCallback(async () => {
     setLoading(true)
@@ -27,16 +28,30 @@ export function Feed({ user }: { user: User }) {
 
   const handleLike = async (postId: number) => {
     await likePost(postId, userId)
-    setItems((prev) =>
-      prev.map((it) =>
-        it.post.id === postId ? { ...it, post: { ...it.post, likes: (it.post.likes || 0) + 1 } } : it
+    setLikedPosts((prev) => {
+      const newSet = new Set(prev)
+      const isCurrentlyLiked = newSet.has(postId)
+      const change = isCurrentlyLiked ? -1 : +1
+      if (isCurrentlyLiked) {
+        newSet.delete(postId)
+      } else {
+        newSet.add(postId)
+      }
+      // Update items with the correct change
+      setItems((prevItems) =>
+        prevItems.map((it) => {
+          if (it.post.id !== postId) return it
+          return { ...it, post: { ...it.post, likes: (it.post.likes || 0) + change } }
+        })
       )
-    )
+      return newSet
+    })
   }
 
   const toggleComments = async (postId: number) => {
     if (openPostId === postId) {
       setOpenPostId(null)
+      setCommentText((prev) => ({ ...prev, [postId]: '' }))
       return
     }
     setOpenPostId(postId)
@@ -49,10 +64,10 @@ export function Feed({ user }: { user: User }) {
   }
 
   const handleCommentSubmit = async (postId: number) => {
-    if (!commentText.trim()) return
-    const text = commentText.trim()
+    const text = (commentText[postId] || '').trim()
+    if (!text) return
     await commentPost(postId, { user_id: userId, text })
-    setCommentText('')
+    setCommentText((prev) => ({ ...prev, [postId]: '' }))
     setComments((prev) => ({
       ...prev,
       [postId]: [
@@ -108,10 +123,10 @@ export function Feed({ user }: { user: User }) {
                   <input
                     className="flex-1 border rounded-lg px-3 py-2 text-sm"
                     placeholder="Write a comment..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
+                    value={commentText[it.post.id] || ''}
+                    onChange={(e) => setCommentText((prev) => ({ ...prev, [it.post.id]: e.target.value }))}
                   />
-                  <button className="btn-primary" onClick={() => handleCommentSubmit(it.post.id)} disabled={!commentText.trim()}>
+                  <button className="btn-primary" onClick={() => handleCommentSubmit(it.post.id)} disabled={!(commentText[it.post.id] || '').trim()}>
                     Send
                   </button>
                 </div>

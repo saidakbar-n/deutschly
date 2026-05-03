@@ -53,7 +53,7 @@ export async function checkUsername(username: string): Promise<{ exists: boolean
 
 export type PostPayload = {
   user_id: number
-  type: 'story' | 'achievement' | 'tip' | 'word'
+  type: 'story' | 'achievement' | 'tip'
   text?: string
   image_url?: string
   level_tag?: string

@@ -528,13 +528,13 @@ export function Landing({
                 )}
 
                 {/* Status message */}
-                <p className="text-sm text-center font-medium min-h-[1.25rem] transition-colors duration-200
-                  {status.includes('error') || status.includes('Invalid') || status.includes('Could not') 
+                <p className={"text-sm text-center font-medium min-h-[1.25rem] transition-colors duration-200 " + (
+                  status.includes('error') || status.includes('Invalid') || status.includes('Could not') 
                     ? 'text-red-500' 
                     : status.includes('created') || status.includes('Welcome')
                       ? 'text-green-600'
-                      : 'text-slate-500'}
-                ">
+                      : 'text-slate-500'
+                )}>
                   {status}
                 </p>
 
