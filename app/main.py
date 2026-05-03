@@ -38,20 +38,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Deutschly Social API", version="1.0.0", lifespan=lifespan)
 
-# CORS configuration - explicit domains only
-frontend_domain = os.getenv("FRONTEND_DOMAIN", "https://deutschly-uz.up.railway.app")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:3000",
         "https://localhost:5173",
-        frontend_domain,
-        "https://deutschly-uz.up.railway.app",
-        "https://web-production-aab8a.up.railway.app",
+        "http://127.0.0.1:5173",
     ],
-    allow_origin_regex=r"^https://[^/]+\.up\.railway\.app$",
+    allow_origin_regex=r"^http://192\.168\.\d+\.\d+:\d+$",  # allows any local network IP
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
