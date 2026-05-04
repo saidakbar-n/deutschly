@@ -22,6 +22,16 @@ def create_quiz(payload: QuizCreate, db: Session = Depends(get_db)):
     return quiz
 
 
+@router.get("/quizzes/{user_id}/latest", response_model=Optional[QuizOut])
+def get_latest_quiz(user_id: int, db: Session = Depends(get_db)):
+    quiz = db.scalar(
+        select(Quiz)
+        .where(Quiz.user_id == user_id)
+        .order_by(Quiz.created_at.desc())
+    )
+    return quiz
+
+
 @router.get("/quizzes/{user_id}", response_model=list[QuizOut])
 def list_quizzes(user_id: int, limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
     quizzes = db.scalars(
@@ -32,13 +42,3 @@ def list_quizzes(user_id: int, limit: int = 50, offset: int = 0, db: Session = D
         .limit(limit)
     ).all()
     return quizzes
-
-
-@router.get("/quizzes/{user_id}/latest", response_model=Optional[QuizOut])
-def get_latest_quiz(user_id: int, db: Session = Depends(get_db)):
-    quiz = db.scalar(
-        select(Quiz)
-        .where(Quiz.user_id == user_id)
-        .order_by(Quiz.created_at.desc())
-    )
-    return quiz

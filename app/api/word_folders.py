@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, or_, update as sa_update
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -106,8 +106,7 @@ def delete_folder(folder_id: int, user_id: int = Query(...), db: Session = Depen
     
     # Move words from this folder to uncategorized
     db.execute(
-        "UPDATE words SET folder_id = NULL WHERE folder_id = :folder_id",
-        {"folder_id": folder_id}
+        sa_update(Word).where(Word.folder_id == folder_id).values(folder_id=None)
     )
     
     db.delete(folder)
@@ -115,7 +114,7 @@ def delete_folder(folder_id: int, user_id: int = Query(...), db: Session = Depen
     return {"detail": "Folder deleted, words moved to uncategorized"}
 
 
-@router.post("/{folder_id}/reorder")
+@router.post("/reorder")
 def reorder_folders(folders: list[dict], db: Session = Depends(get_db)):
     """Reorder folders by updating sort_order values."""
     for folder_data in folders:

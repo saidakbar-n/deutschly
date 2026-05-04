@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder } from '../hooks/useApi'
-import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp } from 'lucide-react'
+import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder } from '../hooks/useApi'
+import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen } from 'lucide-react'
 
 // Helper function to get article color based on term and singular/plural
 function getArticleColor(term: string, isSingular: boolean): string {
@@ -630,6 +630,9 @@ export function Words({ user }: { user: User }) {
   const [quizMode, setQuizMode] = useState(false)
   const [quizHistory, setQuizHistory] = useState<Quiz[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [folders, setFolders] = useState<WordFolder[]>([])
+  const [folderModalOpen, setFolderModalOpen] = useState(false)
+  const [wordsByFolder, setWordsByFolder] = useState<{ uncategorized: Word[]; folders: Record<number, { folder: WordFolder; words: Word[] }> } | null>(null)
 
   const loadMyWords = useCallback(async () => {
     setLoading(true)
@@ -643,6 +646,42 @@ export function Words({ user }: { user: User }) {
     setSavedIds(saved)
     setLoading(false)
   }, [user.id])
+
+  const loadWordsByFolder = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await listWordsByFolder(user.id)
+      setWordsByFolder(data)
+      
+      // Also load folders to get their details
+      const foldersData = await listWordFolders(user.id)
+      setFolders(foldersData || [])
+      
+      // Update myWords for quiz functionality
+      const allWords: Word[] = []
+      if (data?.uncategorized) allWords.push(...data.uncategorized)
+      if (data?.folders) {
+        Object.values(data.folders).forEach(f => allWords.push(...f.words))
+      }
+      setMyWords(allWords)
+      
+      const saved = new Set<number>(
+        allWords
+          .filter((w: Word) => w.saved_from_id)
+          .map((w: Word) => w.saved_from_id as number)
+      )
+      setSavedIds(saved)
+    } catch (error) {
+      console.error('Failed to load words by folder:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [user.id])
+
+  // Helper function to get folder by ID
+  const getFolderById = (folderId: number) => {
+    return folders.find(f => f.id === folderId)
+  }
 
   const loadCommunityWords = useCallback(async () => {
     setLoading(true)
@@ -658,9 +697,14 @@ export function Words({ user }: { user: User }) {
     setLoadingHistory(false)
   }, [user.id])
 
+  const loadFolders = useCallback(async () => {
+    const data = await listWordFolders(user.id)
+    setFolders(data || [])
+  }, [user.id])
+
   useEffect(() => {
-    loadMyWords()
-  }, [loadMyWords])
+    loadWordsByFolder()
+  }, [loadWordsByFolder])
 
   useEffect(() => {
     if (tab === 'community') loadCommunityWords()
@@ -739,7 +783,7 @@ export function Words({ user }: { user: User }) {
       {/* My Words Tab */}
       {tab === 'mine' && (
         <div className="space-y-3">
-          <AddWordForm userId={user.id} onAdded={handleAdded} />
+          <AddWordForm userId={user.id} onAdded={handleAdded} folders={folders} onCreateFolder={() => setFolderModalOpen(true)} />
 
           {myWords.length >= 3 && (
             <button
@@ -813,6 +857,13 @@ export function Words({ user }: { user: User }) {
           )}
         </div>
       )}
+      <FolderManagerModal
+        userId={user.id}
+        folders={folders}
+        isOpen={folderModalOpen}
+        onClose={() => setFolderModalOpen(false)}
+        onFoldersUpdated={() => { loadFolders(); setFolderModalOpen(false) }}
+      />
     </div>
   )
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
 import type { TabType } from '../components/FollowersFollowingModal'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Folder, FolderOpen } from 'lucide-react'
 
 interface ProfileProps {
   user?: User
@@ -28,8 +28,10 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const [user, setUser] = useState<User | null>(initialUser || null)
   const [userLoading, setUserLoading] = useState(false)
   const [userWords, setUserWords] = useState<any[]>([])
+  const [wordsByFolder, setWordsByFolder] = useState<{ uncategorized: any[]; folders: Record<number, { folder: WordFolder; words: any[] }> } | null>(null)
   const [wordsLoading, setWordsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'posts' | 'words'>('posts')
+  const [folders, setFolders] = useState<WordFolder[]>([])
 
   const [form, setForm] = useState({
     username: '',
@@ -84,6 +86,28 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
     }
   }, [user])
 
+  const loadWordsByFolder = useCallback(async () => {
+    if (!user) return
+    setWordsLoading(true)
+    try {
+      const data = await listWordsByFolder(user.id)
+      setWordsByFolder(data)
+      
+      // Also load folders to get their details
+      const foldersData = await listWordFolders(user.id)
+      setFolders(foldersData || [])
+    } catch (error) {
+      console.error('Failed to load words by folder:', error)
+    } finally {
+      setWordsLoading(false)
+    }
+  }, [user])
+
+  // Helper function to get folder by ID
+  const getFolderById = (folderId: number) => {
+    return folders.find(f => f.id === folderId)
+  }
+
   const loadFollowers = useCallback(async () => {
     if (!user) return
     setFollowersLoading(true)
@@ -132,9 +156,9 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
 
   useEffect(() => {
     if (user && activeTab === 'words') {
-      loadWords()
+      loadWordsByFolder()
     }
-  }, [user, activeTab, loadWords])
+  }, [user, activeTab, loadWordsByFolder])
 
   const save = async () => {
     if (!user) return
@@ -537,40 +561,117 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
               {wordsLoading && <span className="text-sm text-slate-500">Loading...</span>}
             </div>
 
-            <div className="space-y-3">
-              {userWords.map((w) => (
-                <div
-                  key={w.id}
-                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                >
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-lg">{w.term}</p>
-                    <p className="text-slate-600 text-sm mt-1">{w.meaning}</p>
-                    {w.note && <p className="text-slate-500 text-xs mt-1 italic">{w.note}</p>}
-                  </div>
-                  <div className="flex gap-2">
-                    {w.is_singular !== undefined && (
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {w.is_singular ? 'Singular' : 'Plural'}
+            {wordsLoading ? (
+              <div className="text-center py-10">
+                <p className="text-slate-500">Loading words...</p>
+              </div>
+            ) : !wordsByFolder ? (
+              <div className="text-center py-12">
+                <p className="text-slate-400 text-lg">No words yet.</p>
+                <p className="text-slate-500 text-sm mt-2">
+                  {isOwnProfile ? 'Start adding words to your collection!' : `${user.username} hasn't added any words yet.`}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Uncategorized Folder */}
+                {(wordsByFolder.uncategorized?.length || 0) > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <FolderOpen size={18} className="text-slate-400" />
+                      <h3 className="font-semibold text-slate-800">Uncategorized</h3>
+                      <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                        {wordsByFolder.uncategorized.length} words
                       </span>
-                    )}
-                    <span className="text-xs text-slate-400">
-                      {new Date(w.created_at).toLocaleDateString()}
-                    </span>
+                    </div>
+                    <div className="space-y-3">
+                      {wordsByFolder.uncategorized.map((w) => (
+                        <div
+                          key={w.id}
+                          className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900 text-lg">{w.term}</p>
+                            <p className="text-slate-600 text-sm mt-1">{w.meaning}</p>
+                            {w.note && <p className="text-slate-500 text-xs mt-1 italic">{w.note}</p>}
+                          </div>
+                          <div className="flex gap-2">
+                            {w.is_singular !== undefined && (
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {w.is_singular ? 'Singular' : 'Plural'}
+                              </span>
+                            )}
+                            <span className="text-xs text-slate-400">
+                              {new Date(w.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-              {userWords.length === 0 && !wordsLoading && (
-                <div className="text-center py-12">
-                  <p className="text-slate-400 text-lg">No words yet.</p>
-                  <p className="text-slate-500 text-sm mt-2">
-                    {isOwnProfile ? 'Start adding words to your collection!' : `${user.username} hasn't added any words yet.`}
-                  </p>
-                </div>
-              )}
-            </div>
+                )}
+
+                {/* Folders with words */}
+                {Object.entries(wordsByFolder.folders || {}).map(([folderId, folderData]) => {
+                  const folder = getFolderById(Number(folderId)) || folderData.folder
+                  const words = folderData.words
+                  
+                  if (words.length === 0) return null
+                  
+                  return (
+                    <div key={folderId} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
+                        <Folder size={18} className="text-slate-400" />
+                        <h3 className="font-semibold text-slate-800">{folder.name}</h3>
+                        <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                          {words.length} words
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {words.map((w) => (
+                          <div
+                            key={w.id}
+                            className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                          >
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900 text-lg">{w.term}</p>
+                              <p className="text-slate-600 text-sm mt-1">{w.meaning}</p>
+                              {w.note && <p className="text-slate-500 text-xs mt-1 italic">{w.note}</p>}
+                            </div>
+                            <div className="flex gap-2">
+                              {w.is_singular !== undefined && (
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {w.is_singular ? 'Singular' : 'Plural'}
+                                </span>
+                              )}
+                              <span className="text-xs text-slate-400">
+                                {new Date(w.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Empty state */}
+                {(wordsByFolder.uncategorized?.length || 0) === 0 && 
+                 Object.values(wordsByFolder.folders || {}).every(f => f.words.length === 0) && (
+                  <div className="text-center py-12">
+                    <p className="text-slate-400 text-lg">No words yet.</p>
+                    <p className="text-slate-500 text-sm mt-2">
+                      {isOwnProfile ? 'Start adding words to your collection!' : `${user.username} hasn't added any words yet.`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

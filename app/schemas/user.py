@@ -27,6 +27,9 @@ class UserUpdate(BaseModel):
     notify_likes: Optional[int] = None
     notify_follows: Optional[int] = None
     notify_comments: Optional[int] = None
+    full_name: Optional[str] = None
+    about: Optional[str] = None
+    age: Optional[int] = None
 
 
 class UserOut(BaseModel):
