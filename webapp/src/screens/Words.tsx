@@ -661,7 +661,7 @@ export function Words({ user }: { user: User }) {
       const allWords: Word[] = []
       if (data?.uncategorized) allWords.push(...data.uncategorized)
       if (data?.folders) {
-        Object.values(data.folders).forEach(f => allWords.push(...f.words))
+        Object.values(data.folders as Record<number, { folder: any; words: Word[] }>).forEach(f => allWords.push(...f.words))
       }
       setMyWords(allWords)
       
