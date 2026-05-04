@@ -38,22 +38,14 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
     setText('')
     setImageFile(null)
     setImageUrl('')
+    setLevel('A1')
+    setType('story')
     setLoading(false)
     onCreated?.()
   }
 
-  // Preview URL for the selected image
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  
   const handleImageChange = (file: File | null) => {
     setImageFile(file)
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-      return () => URL.revokeObjectURL(url)
-    } else {
-      setPreviewUrl(null)
-    }
   }
 
   if (!open) {
@@ -69,10 +61,10 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 animate-qaw-fade-in-up" style={{ animationDelay: '0.1s' }}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-24 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-2xl p-6 animate-qaw-fade-in-up" style={{ animationDelay: '0.1s' }}>
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 pt-2">
           <h2 className="text-2xl font-bold text-gradient-indigo">New Post</h2>
           <button 
             className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
@@ -80,7 +72,9 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               setOpen(false)
               setText('')
               setImageFile(null)
-              setPreviewUrl(null)
+              setImageUrl('')
+              setLevel('A1')
+              setType('story')
             }}
           >
             <X size={20} />
@@ -92,7 +86,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
           <textarea
             className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 placeholder-slate-400
                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                      resize-none min-h-[120px] transition-all"
+                      min-h-[180px] resize-y transition-all"
             maxLength={280}
             placeholder="Share your German learning journey..."
             value={text}
@@ -100,23 +94,6 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
           />
           <p className="text-right text-xs text-slate-400 mt-1">{280 - text.length} characters left</p>
         </div>
-
-        {/* Image Preview */}
-        {previewUrl && (
-          <div className="relative mb-6 rounded-xl overflow-hidden shadow-lg shadow-slate-200">
-            <img src={previewUrl} alt="Preview" className="w-full h-auto max-h-64 object-contain bg-slate-50" />
-            <button
-              className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-xl 
-                        shadow-md text-slate-500 hover:text-slate-700 transition-colors"
-              onClick={() => {
-                setImageFile(null)
-                setPreviewUrl(null)
-              }}
-            >
-              <X size={18} />
-            </button>
-          </div>
-        )}
 
         {/* Image Upload */}
         <div className="mb-6">
@@ -173,21 +150,38 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
           </div>
         </div>
 
-        {/* Submit Button */}
-        <button
-          className="btn-primary w-full flex items-center justify-center gap-2"
-          onClick={submit}
-          disabled={loading || !text.trim()}
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
-          ) : (
-            <>
-              <Send size={18} />
-              Post Now
-            </>
-          )}
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          <button
+            className="flex-1 btn-secondary flex items-center justify-center gap-2"
+            onClick={() => {
+              setOpen(false)
+              setText('')
+              setImageFile(null)
+              setImageUrl('')
+              setLevel('A1')
+              setType('story')
+            }}
+            disabled={loading}
+          >
+            <X size={18} />
+            Cancel
+          </button>
+          <button
+            className="flex-1 btn-primary flex items-center justify-center gap-2"
+            onClick={submit}
+            disabled={loading || !text.trim()}
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+            ) : (
+              <>
+                <Send size={18} />
+                Post Now
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )

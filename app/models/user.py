@@ -27,6 +27,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
+    word_folders = relationship("WordFolder", back_populates="user", cascade="all, delete-orphan")
     followers = relationship(
         "Follow",
         foreign_keys="Follow.following_id",

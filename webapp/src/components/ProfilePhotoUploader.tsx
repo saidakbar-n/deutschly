@@ -9,6 +9,7 @@ export type ProfilePhotoUploaderProps = {
   onDeleteComplete?: () => void
   className?: string
   size?: 'sm' | 'md' | 'lg'
+  disabled?: boolean
 }
 
 export function ProfilePhotoUploader({
@@ -18,6 +19,7 @@ export function ProfilePhotoUploader({
   onDeleteComplete,
   className = '',
   size = 'md',
+  disabled = false,
 }: ProfilePhotoUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -74,6 +76,7 @@ export function ProfilePhotoUploader({
   )
 
   const handleClickUpload = () => {
+    if (disabled) return
     fileInputRef.current?.click()
   }
 
@@ -81,26 +84,29 @@ export function ProfilePhotoUploader({
     (e: React.DragEvent) => {
       e.preventDefault()
       setIsDragging(false)
+      if (disabled) return
       const file = e.dataTransfer.files?.[0]
       if (file) {
         handleFileChange(file)
       }
     },
-    [handleFileChange]
+    [handleFileChange, disabled]
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
+    if (disabled) return
     setIsDragging(true)
-  }, [])
+  }, [disabled])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault()
+    if (disabled) return
     setIsDragging(false)
-  }, [])
+  }, [disabled])
 
   const handleDelete = async () => {
-    if (!currentPhoto) return
+    if (!currentPhoto || disabled) return
     
     try {
       await deleteProfilePhoto(userId)
@@ -132,7 +138,8 @@ export function ProfilePhotoUploader({
           ${isDragging ? 'border-indigo-500 bg-indigo-50' : ''}
           ${error ? 'border-red-500' : ''}
           ${success ? 'border-green-500' : ''}
-          transition-all duration-300 cursor-pointer shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-indigo-100`}
+          transition-all duration-300 shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-indigo-100
+          ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
         onClick={handleClickUpload}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -186,9 +193,11 @@ export function ProfilePhotoUploader({
               e.stopPropagation()
               handleDelete()
             }}
+            disabled={disabled}
             className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full 
                       flex items-center justify-center shadow-lg hover:bg-white 
-                      transition-colors text-slate-600 hover:text-red-500"
+                      transition-colors text-slate-600 hover:text-red-500
+                      disabled:opacity-40 disabled:cursor-not-allowed"
             title="Remove photo"
           >
             <X className="w-4 h-4" />
@@ -200,11 +209,13 @@ export function ProfilePhotoUploader({
           <button
             onClick={(e) => {
               e.stopPropagation()
-              fileInputRef.current?.click()
+              if (!disabled) fileInputRef.current?.click()
             }}
+            disabled={disabled}
             className="absolute bottom-2 right-2 w-8 h-8 bg-indigo-600 rounded-full 
                       flex items-center justify-center shadow-lg hover:bg-indigo-700 
-                      transition-colors text-white"
+                      transition-colors text-white
+                      disabled:opacity-40 disabled:cursor-not-allowed"
             title="Change photo"
           >
             <Camera className="w-4 h-4" />

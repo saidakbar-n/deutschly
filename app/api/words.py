@@ -3,13 +3,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_db
-from app.models import Word, User
-from app.schemas.word import WordCreate, WordOut
+from app.models import Word, User, WordFolder
+from app.schemas.word import WordCreate, WordOut, WordUpdate
 
-router = APIRouter(prefix="/api/v1/words", tags=["words"])
+router = APIRouter(prefix="/api/v1", tags=["words"])
 
 
-@router.get("/feed")
+@router.get("/words/feed")
 def list_words_feed(limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
     words = db.scalars(
         select(Word)
@@ -24,6 +24,7 @@ def list_words_feed(limit: int = 50, offset: int = 0, db: Session = Depends(get_
             "term": w.term,
             "meaning": w.meaning,
             "note": w.note,
+            "is_singular": w.is_singular,
             "saved_from_id": w.saved_from_id,
             "created_at": w.created_at,
             "user_id": w.user_id,
@@ -39,7 +40,7 @@ def list_words_feed(limit: int = 50, offset: int = 0, db: Session = Depends(get_
     ]
 
 
-@router.post("/", response_model=WordOut)
+@router.post("/words", response_model=WordOut)
 def create_word(payload: WordCreate, db: Session = Depends(get_db)):
     user = db.get(User, payload.user_id)
     if not user:
@@ -53,7 +54,7 @@ def create_word(payload: WordCreate, db: Session = Depends(get_db)):
     return word
 
 
-@router.post("/{word_id}/save", response_model=WordOut)
+@router.post("/words/{word_id}/save", response_model=WordOut)
 def save_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     original = db.get(Word, word_id)
     if not original:
@@ -73,6 +74,7 @@ def save_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
         term=original.term,
         meaning=original.meaning,
         note=original.note,
+        is_singular=original.is_singular,
         saved_from_id=word_id,
     )
     db.add(saved)
@@ -83,7 +85,7 @@ def save_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     return saved
 
 
-@router.delete("/{word_id}")
+@router.delete("/words/{word_id}")
 def delete_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     word = db.get(Word, word_id)
     if not word:
@@ -99,13 +101,85 @@ def delete_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     return {"detail": "deleted"}
 
 
-@router.get("/{user_id}", response_model=list[WordOut])
-def list_words(user_id: int, limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
+@router.get("/words/{user_id}", response_model=list[WordOut])
+def list_words(user_id: int, limit: int = 50, offset: int = 0, folder_id: int | None = None, db: Session = Depends(get_db)):
+    """List words for a user, optionally filtered by folder."""
+    stmt = select(Word).where(Word.user_id == user_id)
+    if folder_id is not None:
+        stmt = stmt.where(Word.folder_id == folder_id)
     words = db.scalars(
-        select(Word)
-        .where(Word.user_id == user_id)
-        .order_by(Word.created_at.desc())
+        stmt.order_by(Word.created_at.desc())
         .offset(offset)
         .limit(limit)
     ).all()
     return words
+
+
+@router.put("/words/{word_id}", response_model=WordOut)
+def update_word(word_id: int, payload: WordUpdate, user_id: int, db: Session = Depends(get_db)):
+    """Update a word (e.g., move to different folder)."""
+    word = db.get(Word, word_id)
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+    if word.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot update others' words")
+    
+    # If changing folder, validate it belongs to user
+    if payload.folder_id is not None:
+        folder = db.get(WordFolder, payload.folder_id)
+        if folder and folder.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Cannot use another user's folder")
+    
+    for field, value in payload.dict(exclude_unset=True).items():
+        setattr(word, field, value)
+    
+    db.add(word)
+    db.commit()
+    db.refresh(word)
+    return word
+
+
+@router.get("/words/{user_id}/by-folder")
+def list_words_by_folder(user_id: int, db: Session = Depends(get_db)):
+    """List all words for a user grouped by folder."""
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all folders for this user
+    folders = db.scalars(
+        select(WordFolder)
+        .where(WordFolder.user_id == user_id)
+        .order_by(WordFolder.sort_order, WordFolder.created_at)
+    ).all()
+    
+    # Get words without folder (uncategorized)
+    uncategorized = db.scalars(
+        select(Word)
+        .where(Word.user_id == user_id, Word.folder_id == None)
+        .order_by(Word.created_at.desc())
+    ).all()
+    
+    # Get words by folder
+    words_by_folder = {}
+    for folder in folders:
+        folder_words = db.scalars(
+            select(Word)
+            .where(Word.user_id == user_id, Word.folder_id == folder.id)
+            .order_by(Word.created_at.desc())
+        ).all()
+        words_by_folder[folder.id] = {
+            "folder": {
+                "id": folder.id,
+                "name": folder.name,
+                "color": folder.color,
+                "icon": folder.icon,
+                "sort_order": folder.sort_order,
+            },
+            "words": folder_words
+        }
+    
+    return {
+        "uncategorized": uncategorized,
+        "folders": words_by_folder
+    }

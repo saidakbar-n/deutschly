@@ -98,7 +98,9 @@ export function Feed({ user }: { user: User }) {
 
   return (
     <div className="space-y-4" id="app">
-      <CreatePostModal userId={userId} onCreated={loadFeed} />
+      <div className="card p-4">
+        <CreatePostModal userId={userId} onCreated={loadFeed} />
+      </div>
       {loading && <p className="text-sm text-slate-500">Loading feed...</p>}
       <div className="space-y-3">
         {items.map((it) => (

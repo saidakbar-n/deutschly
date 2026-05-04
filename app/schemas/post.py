@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class PostBase(BaseModel):
     user_id: int
-    type: str = Field(regex=r"^(story|achievement|tip)$")
+    type: str = Field(regex=r"^(story|achievement|tip|question)$")
     text: Optional[str] = None
     image_url: Optional[str] = None
     level_tag: Optional[str] = None

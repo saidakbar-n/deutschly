@@ -20,6 +20,9 @@ export type User = {
   about?: string
   age?: number
   words_count: number
+  posts_count?: number
+  followers_count?: number
+  following_count?: number
   notify_likes: number
   notify_follows: number
   notify_comments: number
@@ -53,7 +56,7 @@ export async function checkUsername(username: string): Promise<{ exists: boolean
 
 export type PostPayload = {
   user_id: number
-  type: 'story' | 'achievement' | 'tip'
+  type: 'story' | 'achievement' | 'tip' | 'question'
   text?: string
   image_url?: string
   level_tag?: string
@@ -84,13 +87,23 @@ export async function createPost(payload: PostPayload) {
   return res.data
 }
 
-export async function createWord(payload: { user_id: number; term: string; meaning: string; note?: string }) {
+export async function createWord(payload: { user_id: number; term: string; meaning: string; note?: string; is_singular?: boolean; folder_id?: number }) {
   const res = await api.post('/words', payload)
   return res.data
 }
 
-export async function listWords(userId: number, limit = 50, offset = 0) {
-  const res = await api.get(`/words/${userId}`, { params: { limit, offset } })
+export async function listWords(userId: number, limit = 50, offset = 0, folderId?: number) {
+  const res = await api.get(`/words/${userId}`, { params: { limit, offset, folder_id: folderId } })
+  return res.data
+}
+
+export async function listWordsByFolder(userId: number) {
+  const res = await api.get(`/words/${userId}/by-folder`)
+  return res.data
+}
+
+export async function updateWord(wordId: number, userId: number, data: { folder_id?: number; term?: string; meaning?: string; note?: string; is_singular?: boolean }) {
+  const res = await api.put(`/words/${wordId}`, data, { params: { user_id: userId } })
   return res.data
 }
 
@@ -131,6 +144,21 @@ export async function commentPost(postId: number, payload: { user_id: number; te
 
 export async function listUserPosts(userId: number, limit = 50, offset = 0) {
   const res = await api.get(`/posts/user/${userId}`, { params: { limit, offset } })
+  return res.data
+}
+
+export async function listFollowers(userId: number) {
+  const res = await api.get(`/follow/${userId}/followers`)
+  return res.data
+}
+
+export async function listFollowing(userId: number) {
+  const res = await api.get(`/follow/${userId}/following`)
+  return res.data
+}
+
+export async function unfollowUser(targetId: number, followerId: number) {
+  const res = await api.delete(`/follow/${targetId}`, { params: { follower_id: followerId } })
   return res.data
 }
 
@@ -191,5 +219,96 @@ export async function uploadProfilePhoto(userId: number, file: File): Promise<{ 
 
 export async function deleteProfilePhoto(userId: number): Promise<{ message: string }> {
   const res = await api.delete('/upload/profile-photo', { params: { user_id: userId } })
+  return res.data
+}
+
+export type Quiz = {
+  id: number
+  user_id: number
+  total_questions: number
+  correct_answers: number
+  score_percentage: number
+  word_ids?: number[]
+  duration_seconds?: number
+  created_at: string
+}
+
+export type QuizCreatePayload = {
+  user_id: number
+  total_questions: number
+  correct_answers: number
+  score_percentage: number
+  word_ids?: number[]
+  duration_seconds?: number
+}
+
+export async function createQuiz(payload: QuizCreatePayload): Promise<Quiz> {
+  const res = await api.post('/quizzes', payload)
+  return res.data
+}
+
+export async function listQuizzes(userId: number, limit = 50, offset = 0): Promise<Quiz[]> {
+  const res = await api.get(`/quizzes/${userId}`, { params: { limit, offset } })
+  return res.data
+}
+
+export async function getLatestQuiz(userId: number): Promise<Quiz | null> {
+  const res = await api.get(`/quizzes/${userId}/latest`)
+  return res.data
+}
+
+// Word Folder types
+export type WordFolder = {
+  id: number
+  user_id: number
+  name: string
+  description: string | null
+  color: string
+  icon: string | null
+  sort_order: number
+  words_count?: number
+  created_at: string
+  updated_at: string
+}
+
+export type WordFolderCreatePayload = {
+  user_id: number
+  name: string
+  description?: string
+  color?: string
+  icon?: string
+}
+
+export type WordFolderUpdatePayload = {
+  name?: string
+  description?: string
+  color?: string
+  icon?: string
+  sort_order?: number
+}
+
+// Word Folder API endpoints
+export async function createWordFolder(payload: WordFolderCreatePayload): Promise<WordFolder> {
+  const res = await api.post('/folders', payload)
+  return res.data
+}
+
+export async function listWordFolders(userId: number): Promise<WordFolder[]> {
+  const res = await api.get(`/folders/user/${userId}`)
+  return res.data
+}
+
+export async function updateWordFolder(folderId: number, payload: WordFolderUpdatePayload): Promise<WordFolder> {
+  const res = await api.put(`/folders/${folderId}`, payload)
+  return res.data
+}
+
+export async function deleteWordFolder(folderId: number, userId: number): Promise<{ detail: string }> {
+  const res = await api.delete(`/folders/${folderId}`, { params: { user_id: userId } })
+  return res.data
+}
+
+export async function reorderWordFolders(folders: { id: number; sort_order: number }[]): Promise<{ detail: string }> {
+  const res = await api.post('/folders/reorder', folders)
   return res.data
 }

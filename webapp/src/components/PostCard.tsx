@@ -98,8 +98,10 @@ export function PostCard({
 
       {/* Post Content */}
       {safeImage && (
-        <div className="rounded-xl overflow-hidden mb-4 shadow-lg shadow-slate-200">
-          <img src={safeImage} alt="" className="w-full h-auto object-cover" />
+        <div className="rounded-xl overflow-hidden mb-4 shadow-lg shadow-slate-200 border-4 border-slate-200">
+          <div className="aspect-square bg-slate-50">
+            <img src={safeImage} alt="" className="w-full h-full object-cover" />
+          </div>
         </div>
       )}
       

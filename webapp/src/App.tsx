@@ -12,11 +12,12 @@ import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
 
-export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications'
+export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile'
 
 function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
   const [screen, setScreen] = useState<Screen>('feed')
+  const [viewedUserId, setViewedUserId] = useState<number | null>(null)
 
   const nav = useMemo(
     () => [
@@ -45,7 +46,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen hero-bg">
+    <div className="min-h-screen hero-bg overflow-y-auto">
       {/* ============================================
           Background Decorative Elements - QA Wolf Style
       ============================================ */}
@@ -87,9 +88,10 @@ function App() {
           <div className="space-y-6">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed user={user} />}
-              {screen === 'search' && <Search />}
+              {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
+              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
               {screen === 'notifications' && <Notifications user={user} />}
             </div>
           </div>
