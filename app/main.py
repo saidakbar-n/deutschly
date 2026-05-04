@@ -18,6 +18,8 @@ if hasattr(typing, "ForwardRef") and hasattr(typing.ForwardRef, "_evaluate"):
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.api import api_router
 from app.core.database import Base
@@ -62,6 +64,10 @@ async def handle_api_options(path: str):
 @app.options("/{path:path}")
 async def handle_root_options(path: str):
     return {"status": "ok"}
+
+# Serve uploaded files
+Path("uploads").mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(api_router)
 

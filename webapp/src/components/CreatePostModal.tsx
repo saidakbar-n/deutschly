@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createPost, PostPayload } from '../hooks/useApi'
+import { createPost, PostPayload, uploadPostImage } from '../hooks/useApi'
 import { Image, X, Type, Tag, Send } from 'lucide-react'
 
 export function CreatePostModal({ userId, onCreated }: { userId: number; onCreated?: () => void }) {
@@ -8,44 +8,33 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   const [type, setType] = useState<PostPayload['type']>('story')
   const [level, setLevel] = useState('A1')
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imageUrl, setImageUrl] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const fileToDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
 
   const submit = async () => {
     if (!text.trim()) return
     setLoading(true)
-    let finalImageUrl = imageUrl
-    if (imageFile && !imageUrl) {
-      finalImageUrl = await fileToDataUrl(imageFile)
-      setImageUrl(finalImageUrl)
+    try {
+      let finalImageUrl = ''
+      if (imageFile) {
+        const { url } = await uploadPostImage(userId, imageFile)
+        finalImageUrl = url
+      }
+      await createPost({
+        user_id: userId,
+        type,
+        text,
+        level_tag: level,
+        image_url: finalImageUrl || undefined,
+      })
+      setOpen(false)
+      setText('')
+      setImageFile(null)
+      setLevel('A1')
+      setType('story')
+      onCreated?.()
+    } finally {
+      setLoading(false)
     }
-    await createPost({
-      user_id: userId,
-      type,
-      text,
-      level_tag: level,
-      image_url: finalImageUrl,
-    })
-    setOpen(false)
-    setText('')
-    setImageFile(null)
-    setImageUrl('')
-    setLevel('A1')
-    setType('story')
-    setLoading(false)
-    onCreated?.()
-  }
-
-  const handleImageChange = (file: File | null) => {
-    setImageFile(file)
   }
 
   if (!open) {
@@ -72,7 +61,6 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               setOpen(false)
               setText('')
               setImageFile(null)
-              setImageUrl('')
               setLevel('A1')
               setType('story')
             }}
@@ -104,7 +92,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             className="block w-full text-sm text-slate-500
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-xl file:border-0
@@ -158,7 +146,6 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               setOpen(false)
               setText('')
               setImageFile(null)
-              setImageUrl('')
               setLevel('A1')
               setType('story')
             }}

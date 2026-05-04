@@ -217,6 +217,16 @@ export async function uploadProfilePhoto(userId: number, file: File): Promise<{ 
   return res.data
 }
 
+export async function uploadPostImage(userId: number, file: File): Promise<{ url: string }> {
+  const formData = new FormData()
+  formData.append('user_id', String(userId))
+  formData.append('file', file)
+  const res = await api.post('/upload/profile-photo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data
+}
+
 export async function deleteProfilePhoto(userId: number): Promise<{ message: string }> {
   const res = await api.delete('/upload/profile-photo', { params: { user_id: userId } })
   return res.data
