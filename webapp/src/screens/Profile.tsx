@@ -232,22 +232,22 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
 
   return (
     <div className="space-y-6 animate-qaw-fade-in-up">
-      {/* Back Button (for viewing other users) */}
+      {/* Back Button (for viewing other users) - Responsive */}
       {onBack && (
         <button
-          className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mb-4"
+          className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mb-4 px-2"
           onClick={onBack}
         >
           <ArrowLeft className="w-5 h-5" />
-          Back to Search
+          <span className="hidden sm:inline">Back to Search</span>
         </button>
       )}
 
-      {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {/* Profile Photo Section */}
-          <div className="flex flex-col items-center md:items-start gap-4">
+      {/* Profile Header - Responsive Grid */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start">
+          {/* Profile Photo Section - Centered on mobile, left on desktop */}
+          <div className="flex flex-col items-center md:items-start gap-3 md:gap-4">
             {isOwnProfile ? (
               <ProfilePhotoUploader
                 userId={user.id}
@@ -462,33 +462,34 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         </div>
       </div>
 
-      {/* Follower and Following Stats Bar */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6">
-        <div className="flex items-center justify-center gap-8 mb-6">
+      {/* Follower and Following Stats Bar - Responsive */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6">
+        <div className="flex items-center justify-center gap-4 md:gap-8 mb-4 md:mb-6 flex-wrap">
           <button
-            className="text-center hover:bg-slate-50 rounded-xl p-2 transition-colors"
+            className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors w-24 md:w-auto"
             onClick={() => openFollowersModal('followers')}
           >
-            <p className="text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
-            <p className="text-sm text-slate-600 font-medium">Followers</p>
+            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
+            <p className="text-xs md:text-sm text-slate-600 font-medium">Followers</p>
           </button>
-          <div className="w-px h-12 bg-slate-200" />
+          <div className="hidden md:block w-px h-10 md:h-12 bg-slate-200" />
+          <div className="md:hidden w-full h-px bg-slate-200 my-2" />
           <button
-            className="text-center hover:bg-slate-50 rounded-xl p-2 transition-colors"
+            className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors w-24 md:w-auto"
             onClick={() => openFollowersModal('following')}
           >
-            <p className="text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
-            <p className="text-sm text-slate-600 font-medium">Following</p>
+            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
+            <p className="text-xs md:text-sm text-slate-600 font-medium">Following</p>
           </button>
         </div>
       </div>
 
-      {/* Content Tabs (Posts / Words) */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 md:p-8">
-        {/* Tab Navigation */}
-        <div className="flex border-b border-slate-200 mb-6">
+      {/* Content Tabs (Posts / Words) - Responsive */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
+        {/* Tab Navigation - Responsive */}
+        <div className="flex border-b border-slate-200 mb-4 md:mb-6 overflow-x-auto">
           <button
-            className={`px-6 py-3 font-semibold text-sm transition-all ${
+            className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
               activeTab === 'posts'
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-slate-500 hover:text-slate-700'
@@ -498,7 +499,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
             Posts ({user.posts_count || 0})
           </button>
           <button
-            className={`px-6 py-3 font-semibold text-sm transition-all ${
+            className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
               activeTab === 'words'
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-slate-500 hover:text-slate-700'
@@ -509,64 +510,81 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           </button>
         </div>
 
-        {/* Posts Tab */}
+        {/* Posts Tab - Responsive Grid */}
         {activeTab === 'posts' && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 gap-2">
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">
                 {isOwnProfile ? 'My Posts' : `${user.username}'s Posts`}
               </h2>
               {postsLoading && <span className="text-sm text-slate-500">Loading...</span>}
             </div>
 
-            <div className="space-y-4">
-              {posts.map((p) => (
-                <PostCard
-                  key={p.id}
-                  id={p.id}
-                  author={{ id: p.user_id, username: user.username, level: user.level, city: user.city }}
-                  text={p.text}
-                  image_url={p.image_url}
-                  type={p.type}
-                  likes={p.likes}
-                  comments_count={p.comments_count}
-                  currentUserId={currentUser?.id || user.id}
-                  onDelete={isOwnProfile ? async () => {
-                    const ok = window.confirm('Delete this post?')
-                    if (!ok) return
-                    await deletePost(p.id, user.id)
-                    setPosts((prev) => prev.filter((x) => x.id !== p.id))
-                  } : undefined}
-                />
-              ))}
-              {posts.length === 0 && !postsLoading && (
-                <div className="text-center py-12">
-                  <p className="text-slate-400 text-lg">No posts yet.</p>
-                  <p className="text-slate-500 text-sm mt-2">
-                    {isOwnProfile ? 'Start sharing your learning journey!' : `${user.username} hasn't shared any posts yet.`}
-                  </p>
-                </div>
-              )}
-            </div>
+            {postsLoading ? (
+              <div className="grid grid-cols-1 gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="bg-slate-50 rounded-xl p-4 animate-pulse">
+                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {posts.map((p) => (
+                  <div key={p.id} className="w-full">
+                    <PostCard
+                      id={p.id}
+                      author={{ id: p.user_id, username: user.username, level: user.level, city: user.city }}
+                      text={p.text}
+                      image_url={p.image_url}
+                      type={p.type}
+                      likes={p.likes}
+                      comments_count={p.comments_count}
+                      currentUserId={currentUser?.id || user.id}
+                      onDelete={isOwnProfile ? async () => {
+                        const ok = window.confirm('Delete this post?')
+                        if (!ok) return
+                        await deletePost(p.id, user.id)
+                        setPosts((prev) => prev.filter((x) => x.id !== p.id))
+                      } : undefined}
+                    />
+                  </div>
+                ))}
+                {posts.length === 0 && !postsLoading && (
+                  <div className="sm:col-span-2 lg:col-span-3 text-center py-8 md:py-12">
+                    <p className="text-slate-400 text-lg">No posts yet.</p>
+                    <p className="text-slate-500 text-sm mt-2">
+                      {isOwnProfile ? 'Start sharing your learning journey!' : `${user.username} hasn't shared any posts yet.`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
 
-        {/* Words Tab */}
+        {/* Words Tab - Responsive Grid */}
         {activeTab === 'words' && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 gap-2">
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">
                 {isOwnProfile ? 'My Words' : `${user.username}'s Words`}
               </h2>
               {wordsLoading && <span className="text-sm text-slate-500">Loading...</span>}
             </div>
 
             {wordsLoading ? (
-              <div className="text-center py-10">
-                <p className="text-slate-500">Loading words...</p>
+              <div className="grid grid-cols-1 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-slate-50 rounded-xl p-4 animate-pulse">
+                    <div className="h-4 bg-slate-200 rounded w-1/4 mb-2"></div>
+                    <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                  </div>
+                ))}
               </div>
             ) : !wordsByFolder ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8 md:py-12">
                 <p className="text-slate-400 text-lg">No words yet.</p>
                 <p className="text-slate-500 text-sm mt-2">
                   {isOwnProfile ? 'Start adding words to your collection!' : `${user.username} hasn't added any words yet.`}
@@ -577,25 +595,25 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                 {/* Uncategorized Folder */}
                 {(wordsByFolder.uncategorized?.length || 0) > 0 && (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <FolderOpen size={18} className="text-slate-400" />
                       <h3 className="font-semibold text-slate-800">Uncategorized</h3>
                       <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
                         {wordsByFolder.uncategorized.length} words
                       </span>
                     </div>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {wordsByFolder.uncategorized.map((w) => (
                         <div
                           key={w.id}
-                          className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                          className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
                         >
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900 text-lg">{w.term}</p>
-                            <p className="text-slate-600 text-sm mt-1">{w.meaning}</p>
-                            {w.note && <p className="text-slate-500 text-xs mt-1 italic">{w.note}</p>}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-slate-900 text-base md:text-lg truncate">{w.term}</p>
+                            <p className="text-slate-600 text-xs md:text-sm mt-1 truncate">{w.meaning}</p>
+                            {w.note && <p className="text-slate-500 text-xs mt-1 italic truncate">{w.note}</p>}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-shrink-0 ml-2">
                             {w.is_singular !== undefined && (
                               <span className={`text-xs px-2 py-1 rounded-full ${
                                 w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
@@ -603,7 +621,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                                 {w.is_singular ? 'Singular' : 'Plural'}
                               </span>
                             )}
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-slate-400 hidden sm:inline">
                               {new Date(w.created_at).toLocaleDateString()}
                             </span>
                           </div>
@@ -622,26 +640,26 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   
                   return (
                     <div key={folderId} className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
-                        <Folder size={18} className="text-slate-400" />
-                        <h3 className="font-semibold text-slate-800">{folder.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: folder.color || '#6366f1' }} />
+                        <Folder size={18} className="text-slate-400 flex-shrink-0" />
+                        <h3 className="font-semibold text-slate-800 truncate">{folder.name}</h3>
                         <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
                           {words.length} words
                         </span>
                       </div>
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {words.map((w) => (
                           <div
                             key={w.id}
-                            className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                            className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
                           >
-                            <div className="flex-1">
-                              <p className="font-semibold text-slate-900 text-lg">{w.term}</p>
-                              <p className="text-slate-600 text-sm mt-1">{w.meaning}</p>
-                              {w.note && <p className="text-slate-500 text-xs mt-1 italic">{w.note}</p>}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-900 text-base md:text-lg truncate">{w.term}</p>
+                              <p className="text-slate-600 text-xs md:text-sm mt-1 truncate">{w.meaning}</p>
+                              {w.note && <p className="text-slate-500 text-xs mt-1 italic truncate">{w.note}</p>}
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-shrink-0 ml-2">
                               {w.is_singular !== undefined && (
                                 <span className={`text-xs px-2 py-1 rounded-full ${
                                   w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
@@ -649,7 +667,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                                   {w.is_singular ? 'Singular' : 'Plural'}
                                 </span>
                               )}
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs text-slate-400 hidden sm:inline">
                                 {new Date(w.created_at).toLocaleDateString()}
                               </span>
                             </div>
@@ -663,7 +681,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                 {/* Empty state */}
                 {(wordsByFolder.uncategorized?.length || 0) === 0 && 
                  Object.values(wordsByFolder.folders || {}).every(f => f.words.length === 0) && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-8 md:py-12">
                     <p className="text-slate-400 text-lg">No words yet.</p>
                     <p className="text-slate-500 text-sm mt-2">
                       {isOwnProfile ? 'Start adding words to your collection!' : `${user.username} hasn't added any words yet.`}

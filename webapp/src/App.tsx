@@ -4,6 +4,7 @@ import { Profile } from './screens/Profile'
 import { Feed } from './screens/Feed'
 import { Search } from './screens/Search'
 import { Words } from './screens/Words'
+import { Onboarding } from './screens/Onboarding'
 import { Notifications } from './components/Notifications'
 
 import { useSession } from './hooks/useSession'
@@ -11,6 +12,7 @@ import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
+import { Home, Compass, User as UserIcon, BookOpen, Bell } from 'lucide-react'
 
 export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile'
 
@@ -18,6 +20,9 @@ function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
   const [screen, setScreen] = useState<Screen>('feed')
   const [viewedUserId, setViewedUserId] = useState<number | null>(null)
+  const [onboarded, setOnboarded] = useState(() => {
+    return localStorage.getItem('deutschly:onboarded') === 'true'
+  })
 
   const nav = useMemo(
     () => [
@@ -45,8 +50,21 @@ function App() {
     return <Landing onJoin={signIn} onLogin={signInWithPassword} />
   }
 
+  if (!onboarded) {
+    return (
+      <Onboarding
+        user={user}
+        onDone={(updatedUser) => {
+          setUser(updatedUser)
+          localStorage.setItem('deutschly:onboarded', 'true')
+          setOnboarded(true)
+        }}
+      />
+    )
+  }
+
   return (
-    <div className="min-h-screen hero-bg overflow-y-auto">
+    <div className="min-h-screen hero-bg overflow-y-auto pb-20 md:pb-0">
       {/* ============================================
           Background Decorative Elements - QA Wolf Style
       ============================================ */}
@@ -80,12 +98,12 @@ function App() {
         </header>
 
         {/* ============================================
-            Main Content Grid
+            Main Content Grid - Responsive Layout
         ============================================ */}
-        <div className="grid lg:grid-cols-[2fr,1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[3fr,1fr] lg:grid-cols-[2fr,1fr] gap-6">
           
-          {/* Main Content Area */}
-          <div className="space-y-6">
+          {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
+          <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed user={user} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
@@ -98,8 +116,9 @@ function App() {
 
           {/* ============================================
               Sidebar - QA Wolf Style Cards
+              Hidden on mobile, visible on tablet+ (md:)
           ============================================ */}
-          <div className="space-y-4 hidden lg:block">
+          <div className="space-y-4 hidden md:block">
             
             {/* User Progress Card */}
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.4s' }}>
@@ -108,11 +127,9 @@ function App() {
                   <WolfLogo className="w-10 h-10" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">{user.full_name || user.username}</p>
                   <p className="text-sm text-slate-600">
                     {user.city || 'City TBD'} · <span className={`level-badge level-${user.level.toLowerCase()}`}>{user.level}</span>
                   </p>
-                  {user.age && <p className="text-sm text-slate-600">{user.age} years old</p>}
                 </div>
               </div>
               
@@ -172,6 +189,36 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Navigation - Only on small screens */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
+        <div className="flex justify-around items-center py-2 px-4">
+          {[
+            { key: 'feed' as Screen, icon: Home, label: 'Feed' },
+            { key: 'search' as Screen, icon: Compass, label: 'Discover' },
+            { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
+            { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
+            { key: 'notifications' as Screen, icon: Bell, label: 'Alerts' },
+          ].map((item) => {
+            const Icon = item.icon
+            const isActive = screen === item.key
+            return (
+              <button
+                key={item.key}
+                onClick={() => setScreen(item.key)}
+                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
+                  isActive
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                <Icon size={22} />
+                <span className="text-xs font-semibold">{item.label}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

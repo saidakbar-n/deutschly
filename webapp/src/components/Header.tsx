@@ -1,4 +1,4 @@
-import { LogOut, Home, Compass, User, BookOpen, Bell } from 'lucide-react'
+import { LogOut, Home, Compass, BookOpen, Bell, User } from 'lucide-react'
 import { User as UserType } from '../hooks/useApi'
 import { Screen } from '../App'
 
@@ -46,8 +46,8 @@ export function Header({
 }) {
   return (
     <div className="flex items-center gap-4">
-      {/* Navigation Tabs */}
-      <div className="hidden md:flex items-center gap-1 bg-slate-100 rounded-2xl p-1">
+      {/* Navigation Tabs - Visible on desktop */}
+      <div className="hidden lg:flex items-center gap-1 bg-slate-100 rounded-2xl p-1">
         {nav.map((item) => (
           <button
             key={item.key}
@@ -64,8 +64,26 @@ export function Header({
         ))}
       </div>
 
-      {/* Mobile navigation dropdown */}
-      <div className="md:hidden">
+      {/* Tablet navigation icons only - visible on md to lg */}
+      <div className="hidden md:flex lg:hidden items-center gap-1">
+        {nav.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => onNav(item.key)}
+            className={`p-2 rounded-xl transition-all duration-200
+              ${active === item.key 
+                ? 'bg-indigo-100 text-indigo-600' 
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+              }`}
+            title={item.label}
+          >
+            <NavIcon screen={item.key} isActive={active === item.key} />
+          </button>
+        ))}
+      </div>
+
+      {/* Mobile navigation dropdown - hidden since we use bottom nav */}
+      <div className="md:hidden hidden">
         <select
           className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold"
           value={active}
@@ -79,25 +97,8 @@ export function Header({
         </select>
       </div>
 
-      {/* User profile photo and logout */}
+      {/* Logout */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => onNav('profile')}
-          className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 hover:border-indigo-400 transition-colors cursor-pointer"
-          title="View profile"
-        >
-          {user.profile_photo ? (
-            <img
-              src={user.profile_photo}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center">
-              <User className="w-5 h-5 text-slate-400" />
-            </div>
-          )}
-        </button>
         <button 
           className="p-2 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm border border-slate-100 
                     hover:bg-slate-50 transition-colors text-slate-500 hover:text-slate-700"

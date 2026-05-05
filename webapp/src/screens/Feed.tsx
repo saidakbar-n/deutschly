@@ -97,8 +97,8 @@ export function Feed({ user }: { user: User }) {
   }
 
   return (
-    <div className="space-y-4" id="app">
-      <div className="card p-4">
+    <div className="space-y-4 p-2 sm:p-4 lg:p-6" id="app">
+      <div className="card p-3 sm:p-4">
         <CreatePostModal userId={userId} onCreated={loadFeed} />
       </div>
       {loading && <p className="text-sm text-slate-500">Loading feed...</p>}
@@ -120,7 +120,7 @@ export function Feed({ user }: { user: User }) {
               currentUserId={userId}
             />
             {openPostId === it.post.id && (
-              <div className="border border-slate-200 rounded-xl p-3 space-y-3 bg-slate-50">
+              <div className="border border-slate-200 rounded-xl p-2 sm:p-3 space-y-3 bg-slate-50">
                 <div className="flex gap-2">
                   <input
                     className="flex-1 border rounded-lg px-3 py-2 text-sm"
@@ -128,7 +128,7 @@ export function Feed({ user }: { user: User }) {
                     value={commentText[it.post.id] || ''}
                     onChange={(e) => setCommentText((prev) => ({ ...prev, [it.post.id]: e.target.value }))}
                   />
-                  <button className="btn-primary" onClick={() => handleCommentSubmit(it.post.id)} disabled={!(commentText[it.post.id] || '').trim()}>
+                  <button className="btn-primary px-3 sm:px-4" onClick={() => handleCommentSubmit(it.post.id)} disabled={!(commentText[it.post.id] || '').trim()}>
                     Send
                   </button>
                 </div>
@@ -137,12 +137,12 @@ export function Feed({ user }: { user: User }) {
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {(comments[it.post.id] || []).map((c: any) => (
-                      <div key={c.id} className="text-sm bg-white border rounded-lg px-3 py-2">
-                        <div className="flex items-center justify-between">
-                          <button className="font-semibold text-blue-600" onClick={() => viewUser(c.user_id)}>
+                      <div key={c.id} className="text-sm bg-white border rounded-lg px-2 sm:px-3 py-2">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <button className="font-semibold text-blue-600 text-sm" onClick={() => viewUser(c.user_id)}>
                             {c.user?.username || (c.user_id === userId ? user.username : `User ${c.user_id}`)}
                           </button>
-                          <span className="text-[10px] text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
+                          <span className="text-[10px] sm:text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
                         </div>
                         <p className="text-slate-700 mt-1">{c.text}</p>
                       </div>
@@ -158,8 +158,8 @@ export function Feed({ user }: { user: User }) {
         ))}
       </div>
             {peekUser && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4" onClick={() => setPeekUser(null)}>
-                <div className="bg-white rounded-2xl shadow-lg p-4 w-full max-w-sm space-y-2" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-2 sm:p-4" onClick={() => setPeekUser(null)}>
+                <div className="bg-white rounded-2xl shadow-lg p-3 sm:p-4 w-full max-w-sm space-y-2" onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg">{peekUser.username}</h3>
                     <button className="text-slate-500 text-sm" onClick={() => setPeekUser(null)}>Close</button>

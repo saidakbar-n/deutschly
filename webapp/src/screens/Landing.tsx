@@ -292,7 +292,7 @@ export function Landing({
         {/* ============================================
             Hero Section - QA Wolf Style
         ============================================ */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left side - Content */}
           <div className="space-y-8">
             {/* Logo */}

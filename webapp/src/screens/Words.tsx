@@ -86,25 +86,25 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder }: { userId: num
   if (!open) {
     return (
       <button
-        className="btn-primary w-full flex items-center justify-center gap-2"
+        className="btn-primary w-full flex items-center justify-center gap-2 py-3 md:py-4"
         onClick={() => setOpen(true)}
       >
-        <Plus size={18} />
-        Add New Word
+        <Plus size={18} className="md:size-5" />
+        <span className="text-sm md:text-base">Add New Word</span>
       </button>
     )
   }
 
   return (
-    <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 space-y-3">
+    <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 md:p-5 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-slate-900">New Word</h3>
+        <h3 className="font-semibold text-slate-900 text-sm md:text-base">New Word</h3>
         <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-white transition-colors">
-          <X size={18} />
+          <X size={18} className="md:size-5" />
         </button>
       </div>
       <input
-        className="input-primary"
+        className="input-primary text-sm md:text-base"
         placeholder="German word (e.g. der Hund)"
         value={term}
         autoFocus
@@ -112,32 +112,32 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder }: { userId: num
         onKeyDown={(e) => e.key === 'Enter' && submit()}
       />
       <input
-        className="input-primary"
+        className="input-primary text-sm md:text-base"
         placeholder="Meaning (e.g. the dog)"
         value={meaning}
         onChange={(e) => setMeaning(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
       />
       <textarea
-        className="input-primary resize-none"
+        className="input-primary resize-none text-sm md:text-base"
         placeholder="Your note (optional)"
         rows={2}
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
-      <div className="flex items-center gap-3 py-2">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <span className={`text-sm font-medium ${isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Singular</span>
+      <div className="flex items-center gap-2 md:gap-3 py-2">
+        <label className="flex items-center gap-1.5 md:gap-2 cursor-pointer">
+          <span className={`text-xs md:text-sm font-medium ${isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Singular</span>
           <input
             type="checkbox"
             className="sr-only"
             checked={!isSingular}
             onChange={(e) => setIsSingular(!e.target.checked)}
           />
-          <span className={`w-10 h-5 rounded-full transition-colors ${isSingular ? 'bg-indigo-200' : 'bg-indigo-500'}`}>
-            <span className={`block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${isSingular ? 'translate-x-1' : 'translate-x-5'}`} />
+          <span className={`w-8 md:w-10 h-4 md:h-5 rounded-full transition-colors ${isSingular ? 'bg-indigo-200' : 'bg-indigo-500'}`}>
+            <span className={`block w-3 md:w-4 h-3 md:h-4 rounded-full bg-white shadow-md transform transition-transform ${isSingular ? 'translate-x-1 md:translate-x-1.5' : 'translate-x-4 md:translate-x-5'}`} />
           </span>
-          <span className={`text-sm font-medium ${!isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Plural</span>
+          <span className={`text-xs md:text-sm font-medium ${!isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Plural</span>
         </label>
       </div>
       <div className="relative">
@@ -411,25 +411,25 @@ function WordCard({
 
   return (
     <div
-      className="card group hover:shadow-lg hover:shadow-indigo-50 transition-all duration-200 cursor-pointer select-none"
+      className="card group hover:shadow-lg hover:shadow-indigo-50 transition-all duration-200 cursor-pointer select-none touch-manipulation"
       onClick={() => setFlipped((f) => !f)}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2 md:gap-3">
         <div className="flex-1 min-w-0">
           {!flipped ? (
             <>
-              <p className="text-lg font-bold text-slate-900 truncate">
-                <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold ${getArticleColor(word.term, word.is_singular !== false)}`}>
+              <p className="text-base md:text-lg font-bold text-slate-900 truncate">
+                <span className={`inline-block px-1.5 md:px-2 py-0.5 rounded-md text-xs font-bold ${getArticleColor(word.term, word.is_singular !== false)}`}>
                   {word.term.split(' ')[0]}
                 </span>
                 <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
               </p>
-              <p className="text-xs text-indigo-400 mt-0.5">Tap to reveal meaning</p>
+              <p className="text-xs text-indigo-400 mt-0.5 md:hidden">Tap to reveal</p>
             </>
           ) : (
             <>
-              <p className="text-base font-semibold text-indigo-700">{word.meaning}</p>
-              {word.note && <p className="text-xs text-slate-500 mt-1 whitespace-pre-wrap">{word.note}</p>}
+              <p className="text-base md:text-lg font-semibold text-indigo-700">{word.meaning}</p>
+              {word.note && <p className="text-xs md:text-sm text-slate-500 mt-1 whitespace-pre-wrap">{word.note}</p>}
             </>
           )}
         </div>
@@ -437,7 +437,7 @@ function WordCard({
         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           {!isMine && onSave && (
             <button
-              className={`p-2 rounded-xl transition-colors ${
+              className={`p-2 md:p-2.5 rounded-xl transition-colors ${
                 alreadySaved
                   ? 'text-indigo-400 bg-indigo-50 cursor-default'
                   : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'
@@ -450,11 +450,11 @@ function WordCard({
           )}
           {isMine && onDelete && (
             <button
-              className="p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="p-2 md:p-2.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
               onClick={onDelete}
               title="Delete word"
             >
-              <Trash2 size={15} />
+              <Trash2 size={15} className="md:size-16" />
             </button>
           )}
         </div>
@@ -733,22 +733,22 @@ export function Words({ user }: { user: User }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4 px-1 sm:px-0">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900">Words</h2>
+        <h2 className="text-lg md:text-xl font-bold text-slate-900">Words</h2>
         {loading && <span className="text-xs text-slate-400">Loading...</span>}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto">
+      {/* Tabs - Responsive */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-hide">
         <button
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'mine' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('mine')}
         >
-          <BookOpen size={15} />
-          My Words
+          <BookOpen size={15} className="md:size-5" />
+          <span className="hidden sm:inline">My Words</span>
           {myWords.length > 0 && (
             <span className="ml-1 bg-indigo-100 text-indigo-600 text-xs px-1.5 py-0.5 rounded-full font-bold">
               {myWords.length}
@@ -756,22 +756,22 @@ export function Words({ user }: { user: User }) {
           )}
         </button>
         <button
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'community' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('community')}
         >
-          <Globe size={15} />
-          Community
+          <Globe size={15} className="md:size-5" />
+          <span className="hidden sm:inline">Community</span>
         </button>
         <button
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'history' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('history')}
         >
-          <History size={15} />
-          Quiz History
+          <History size={15} className="md:size-5" />
+          <span className="hidden sm:inline">Quiz History</span>
           {quizHistory.length > 0 && (
             <span className="ml-1 bg-indigo-100 text-indigo-600 text-xs px-1.5 py-0.5 rounded-full font-bold">
               {quizHistory.length}
