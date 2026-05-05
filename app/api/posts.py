@@ -4,6 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
+from app.core.streak import update_streak
 from app.models import Post, User, Like, Comment
 from app.schemas.post import PostCreate, PostOut
 from app.schemas.comment import CommentCreate, CommentOut
@@ -46,6 +47,7 @@ def create_post(payload: PostCreate, db: Session = Depends(get_db)):
         post.expires_at = datetime.utcnow() + timedelta(hours=hours)
     post.ensure_expiry()
     db.add(post)
+    update_streak(user, db)
     db.commit()
     db.refresh(post)
     return _decorate_post(db, post, viewer_id=user.id)

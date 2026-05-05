@@ -3,7 +3,7 @@ import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listCo
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
 
-export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void }) {
+export function Feed({ user, onDiscover, onUserUpdated }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
   const [feedTab, setFeedTab] = useState<'following' | 'discover'>('following')
@@ -106,7 +106,7 @@ export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void
   return (
     <div className="space-y-4 p-2 sm:p-4 lg:p-6" id="app">
       <div className="card p-3 sm:p-4">
-        <CreatePostModal userId={userId} onCreated={loadFeed} />
+        <CreatePostModal userId={userId} onCreated={() => { loadFeed(); onUserUpdated?.() }} />
       </div>
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
         {(['following', 'discover'] as const).map((tab) => (

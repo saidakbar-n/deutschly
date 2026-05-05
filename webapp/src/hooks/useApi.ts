@@ -28,6 +28,8 @@ export type User = {
   about?: string
   age?: number
   words_count: number
+  streak?: number
+  last_active_date?: string
   posts_count?: number
   followers_count?: number
   following_count?: number

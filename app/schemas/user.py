@@ -43,6 +43,8 @@ class UserOut(BaseModel):
     about: Optional[str] = None
     age: Optional[int] = None
     words_count: int
+    streak: int = 0
+    last_active_date: Optional[str] = None
     posts_count: int = 0
     followers_count: int = 0
     following_count: int = 0

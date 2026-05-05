@@ -508,6 +508,12 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           >
             Words ({user.words_count || 0})
           </button>
+          {(user.streak || 0) > 0 && (
+            <div className="flex items-center gap-1.5 text-orange-600 font-semibold text-sm px-4 py-2">
+              <span>🔥</span>
+              <span>{user.streak} day streak</span>
+            </div>
+          )}
         </div>
 
         {/* Posts Tab - Responsive Grid */}

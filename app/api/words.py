@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_db
+from app.core.streak import update_streak
 from app.models import Word, User, WordFolder
 from app.schemas.word import WordCreate, WordOut, WordUpdate
 
@@ -51,6 +52,7 @@ def create_word(payload: WordCreate, db: Session = Depends(get_db)):
     db.add(word)
     user.words_count = (user.words_count or 0) + 1
     db.add(user)
+    update_streak(user, db)
     db.commit()
     db.refresh(word)
     return word

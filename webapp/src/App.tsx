@@ -105,7 +105,7 @@ function App() {
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} />}
+              {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
@@ -140,9 +140,19 @@ function App() {
                   <p className="text-sm text-indigo-600 font-medium">words learned</p>
                 </div>
                 
-                <p className="text-sm text-slate-500 text-center">
-                  Keep your streak going — share a story today.
-                </p>
+                {(user.streak || 0) > 0 ? (
+                  <div className="flex items-center justify-center gap-2 bg-orange-50 rounded-xl p-3">
+                    <span className="text-2xl">🔥</span>
+                    <div>
+                      <p className="font-bold text-orange-700 text-lg leading-none">{user.streak} day streak</p>
+                      <p className="text-xs text-orange-500">Keep it going!</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 text-center">
+                    Post or add a word to start your streak 🔥
+                  </p>
+                )}
               </div>
             </div>
 

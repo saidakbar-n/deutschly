@@ -20,6 +20,8 @@ class User(Base):
     age = Column(Integer)
     words = relationship("Word", back_populates="user", cascade="all, delete-orphan")
     words_count = Column(Integer, default=0)
+    streak = Column(Integer, default=0, nullable=False, server_default='0')
+    last_active_date = Column(String(10), nullable=True)  # stored as 'YYYY-MM-DD'
     notify_likes = Column(Integer, default=1)
     notify_follows = Column(Integer, default=1)
     notify_comments = Column(Integer, default=1)
