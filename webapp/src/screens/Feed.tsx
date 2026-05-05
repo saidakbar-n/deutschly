@@ -1,11 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, followUser, likePost, commentPost, listComments, getUser, User, getImageUrl } from '../hooks/useApi'
+import { fetchFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
 
-export function Feed({ user }: { user: User }) {
+export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
+
+  const handleDelete = async (postId: number) => {
+    await deletePost(postId, userId)
+    setItems((prev) => prev.filter((it) => it.post.id !== postId))
+  }
   const [loading, setLoading] = useState(false)
   const [openPostId, setOpenPostId] = useState<number | null>(null)
   const [comments, setComments] = useState<Record<number, any[]>>({})
@@ -102,6 +107,16 @@ export function Feed({ user }: { user: User }) {
         <CreatePostModal userId={userId} onCreated={loadFeed} />
       </div>
       {loading && <p className="text-sm text-slate-500">Loading feed...</p>}
+      {!loading && items.length === 0 && (
+        <div className="text-center py-14 space-y-3">
+          <p className="text-5xl">🌱</p>
+          <p className="text-slate-700 font-semibold text-lg">Your feed is empty</p>
+          <p className="text-slate-400 text-sm">Follow some learners to see their posts here</p>
+          <button className="btn-primary mt-2" onClick={onDiscover}>
+            Discover people →
+          </button>
+        </div>
+      )}
       <div className="space-y-3">
         {items.map((it) => (
           <div key={it.post.id} className="space-y-2">
@@ -113,9 +128,11 @@ export function Feed({ user }: { user: User }) {
               type={it.post.type}
               likes={it.post.likes}
               comments_count={it.post.comments_count}
+              timestamp={it.post.timestamp ? new Date(it.post.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined}
               onFollow={() => handleFollow(it.author.id)}
               onLike={() => handleLike(it.post.id)}
               onComment={() => toggleComments(it.post.id)}
+              onDelete={() => handleDelete(it.post.id)}
               commentsOpen={openPostId === it.post.id}
               currentUserId={userId}
             />

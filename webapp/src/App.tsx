@@ -105,7 +105,7 @@ function App() {
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              {screen === 'feed' && <Feed user={user} />}
+              {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
@@ -127,6 +127,7 @@ function App() {
                   <WolfLogo className="w-10 h-10" />
                 </div>
                 <div>
+                  <p className="font-bold text-slate-900 text-lg">@{user.username}</p>
                   <p className="text-sm text-slate-600">
                     {user.city || 'City TBD'} · <span className={`level-badge level-${user.level.toLowerCase()}`}>{user.level}</span>
                   </p>
@@ -156,6 +157,9 @@ function App() {
               <div className="space-y-3">
                 {[
                   { label: 'Words', value: user.words_count || 0 },
+                  { label: 'Posts', value: user.posts_count || 0 },
+                  { label: 'Followers', value: user.followers_count || 0 },
+                  { label: 'Following', value: user.following_count || 0 },
                 ].map((stat, i) => (
                   <div 
                     key={stat.label} 
