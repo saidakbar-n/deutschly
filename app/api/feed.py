@@ -99,3 +99,21 @@ def get_feed(
     db.commit()
 
     return FeedResponse(items=items, total=len(candidates), variant=variant)
+
+
+@router.get("/feed/{user_id}/discover", response_model=FeedResponse)
+def get_discover_feed(user_id: int, limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    followed_ids = set(db.scalars(select(Follow.following_id).where(Follow.follower_id == user_id)).all())
+    followed_ids.add(user_id)  # exclude own posts too
+    
+    stmt = select(Post).where(
+        Post.user_id.not_in(followed_ids),
+        (Post.type != "story") | (Post.expires_at.is_(None)) | (Post.expires_at > datetime.utcnow())
+    )
+    if user.level:
+        stmt = stmt.where(Post.level_tag == user.level)
+    
+    posts = db.scalars(stmt.order_by(Post.timestamp.desc()).offset(offset).limit(limit)).all()
+    items = [FeedItem(post=_decorate_post(db, p, viewer_id=user_id), author=db.get(User, p.user_id)) for p in posts]
+    return FeedResponse(items=items, total=len(posts), variant="discover")

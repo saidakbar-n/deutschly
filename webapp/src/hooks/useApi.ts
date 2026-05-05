@@ -90,6 +90,16 @@ export async function fetchFeed(userId: number, limit = 10, offset = 0) {
   return res.data
 }
 
+export async function fetchDiscoverFeed(userId: number, limit = 20, offset = 0) {
+  const res = await api.get(`/feed/${userId}/discover?limit=${limit}&offset=${offset}`)
+  return res.data
+}
+
+export async function fetchWordOfTheDay() {
+  const res = await api.get('/words/word-of-the-day')
+  return res.data
+}
+
 export async function createPost(payload: PostPayload) {
   const res = await api.post('/posts', payload)
   return res.data

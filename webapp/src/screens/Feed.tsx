@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, User, getImageUrl } from '../hooks/useApi'
+import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
 
 export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
+  const [feedTab, setFeedTab] = useState<'following' | 'discover'>('following')
 
   const handleDelete = async (postId: number) => {
     await deletePost(postId, userId)
@@ -22,10 +23,11 @@ export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void
 
   const loadFeed = useCallback(async () => {
     setLoading(true)
-    const data = await fetchFeed(userId, 20, 0)
+    const fetchFn = feedTab === 'following' ? fetchFeed : fetchDiscoverFeed
+    const data = await fetchFn(userId, 20, 0)
     setItems(data.items || [])
     setLoading(false)
-  }, [userId])
+  }, [userId, feedTab])
 
   useEffect(() => {
     loadFeed()
@@ -106,15 +108,36 @@ export function Feed({ user, onDiscover }: { user: User; onDiscover?: () => void
       <div className="card p-3 sm:p-4">
         <CreatePostModal userId={userId} onCreated={loadFeed} />
       </div>
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+        {(['following', 'discover'] as const).map((tab) => (
+          <button
+            key={tab}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+              feedTab === tab ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'
+            }`}
+            onClick={() => setFeedTab(tab)}
+          >
+            {tab === 'following' ? '👥 Following' : '🌍 Discover'}
+          </button>
+        ))}
+      </div>
       {loading && <p className="text-sm text-slate-500">Loading feed...</p>}
       {!loading && items.length === 0 && (
         <div className="text-center py-14 space-y-3">
-          <p className="text-5xl">🌱</p>
-          <p className="text-slate-700 font-semibold text-lg">Your feed is empty</p>
-          <p className="text-slate-400 text-sm">Follow some learners to see their posts here</p>
-          <button className="btn-primary mt-2" onClick={onDiscover}>
-            Discover people →
-          </button>
+          <p className="text-5xl">{feedTab === 'following' ? '🌱' : '🔍'}</p>
+          <p className="text-slate-700 font-semibold text-lg">
+            {feedTab === 'following' ? 'Your feed is empty' : 'No posts to discover'}
+          </p>
+          <p className="text-slate-400 text-sm">
+            {feedTab === 'following' 
+              ? 'Follow some learners to see their posts here' 
+              : 'Check back later for new posts from other learners'}
+          </p>
+          {feedTab === 'following' && onDiscover && (
+            <button className="btn-primary mt-2" onClick={onDiscover}>
+              Discover people →
+            </button>
+          )}
         </div>
       )}
       <div className="space-y-3">
