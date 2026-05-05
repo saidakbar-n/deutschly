@@ -1,4 +1,5 @@
 import { Heart, MessageCircle, UserPlus, MoreVertical, Trash2 } from 'lucide-react'
+import { getImageUrl } from '../hooks/useApi'
 
 export type PostCardProps = {
   id: number
@@ -55,7 +56,7 @@ export function PostCard({
   onDelete,
   timestamp,
 }: PostCardProps) {
-  const safeImage = image_url || undefined
+  const safeImage = getImageUrl(image_url)
   const isMine = currentUserId !== undefined && author.id === currentUserId
   
   return (

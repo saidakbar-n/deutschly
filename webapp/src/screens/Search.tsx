@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { searchUsers } from '../hooks/useApi'
+import { searchUsers, getImageUrl } from '../hooks/useApi'
 import type { User } from '../hooks/useApi'
 
 interface SearchProps {
@@ -76,7 +76,7 @@ export function Search({ onViewUser }: SearchProps) {
             <div className="flex items-center gap-3">
               {u.profile_photo ? (
                 <img
-                  src={u.profile_photo}
+                  src={getImageUrl(u.profile_photo)}
                   alt={u.username}
                   className="w-10 h-10 rounded-full object-cover"
                 />

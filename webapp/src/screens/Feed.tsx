@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, followUser, likePost, commentPost, listComments, getUser, User } from '../hooks/useApi'
+import { fetchFeed, followUser, likePost, commentPost, listComments, getUser, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
 
@@ -166,7 +166,7 @@ export function Feed({ user }: { user: User }) {
                   </div>
                   <p className="text-sm text-slate-600">{peekUser.city || '—'} · {peekUser.level}</p>
                   {peekUser.age && <p className="text-sm text-slate-600">{peekUser.age} years old</p>}
-                  {peekUser.profile_photo && <img src={peekUser.profile_photo} alt="" className="w-full rounded-xl" />}
+                  {peekUser.profile_photo && <img src={getImageUrl(peekUser.profile_photo)} alt="" className="w-full rounded-xl" />}
                   <p className="text-xs text-slate-500">Words: {peekUser.words_count}</p>
                 </div>
               </div>

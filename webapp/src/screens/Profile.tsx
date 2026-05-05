@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
@@ -260,7 +260,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
             ) : (
               user.profile_photo ? (
                 <img
-                  src={user.profile_photo}
+                  src={getImageUrl(user.profile_photo)}
                   alt={user.username}
                   className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-lg"
                 />

@@ -7,6 +7,14 @@ const api = axios.create({
   withCredentials: false,
 })
 
+export const backendUrl = apiUrl.replace('/api/v1', '')
+
+export function getImageUrl(path?: string | null): string | undefined {
+  if (!path) return undefined
+  if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) return path
+  return `${backendUrl}${path}`
+}
+
 export const useApi = () => api
 
 export type User = {
