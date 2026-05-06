@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
@@ -55,7 +55,7 @@ def create_post(payload: PostCreate, db: Session = Depends(get_db)):
     # auto-expire stories
     if post.type == "story":
         hours = payload.expires_in_hours or 24
-        post.expires_at = datetime.now(datetime.UTC) + timedelta(hours=hours)
+        post.expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
     post.ensure_expiry()
     db.add(post)
     update_streak(user, db)
@@ -70,7 +70,7 @@ def get_post(post_id: int, viewer_id: int | None = None, db: Session = Depends(g
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     # Hide expired stories
-    if post.type == "story" and post.expires_at and post.expires_at < datetime.now(datetime.UTC):
+    if post.type == "story" and post.expires_at and post.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=404, detail="Post expired")
     return _decorate_post(db, post, viewer_id=viewer_id or 0)
 

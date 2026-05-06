@@ -14,7 +14,7 @@ import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
 import { fetchNotifications } from './hooks/useApi'
-import { Home, Compass, User as UserIcon, BookOpen, Bell, PenTool } from 'lucide-react'
+import { Home, Compass, User as UserIcon, BookOpen, PenTool } from 'lucide-react'
 
 export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar'
 
@@ -119,7 +119,7 @@ function App() {
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
               {screen === 'grammar' && <GrammarPracticer user={user} />}
-              {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
+              {screen === 'profile' && <Profile user={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} />}
               {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
               {screen === 'notifications' && <Notifications user={user} />}
             </div>
@@ -183,20 +183,19 @@ function App() {
       {/* Mobile Bottom Navigation - Only on small screens */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
         <div className="flex justify-around items-center py-2 px-4">
-           {[
-             { key: 'feed' as Screen, icon: Home, label: 'Feed' },
-             { key: 'search' as Screen, icon: Compass, label: 'Discover' },
-             { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
-             { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
-             { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
-             { key: 'notifications' as Screen, icon: Bell, label: 'Alerts', badge: unreadCount },
-           ].map((item) => {
+            {[
+              { key: 'feed' as Screen, icon: Home, label: 'Feed' },
+              { key: 'search' as Screen, icon: Compass, label: 'Discover' },
+              { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
+              { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+              { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
+            ].map((item) => {
             const Icon = item.icon
             const isActive = screen === item.key
             return (
               <button
                 key={item.key}
-                onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0) }}
+                onClick={() => { setScreen(item.key) }}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
@@ -205,11 +204,6 @@ function App() {
               >
                 <div className="relative">
                   <Icon size={22} />
-                  {item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </span>
-                  )}
                 </div>
                 <span className="text-xs font-semibold">{item.label}</span>
               </button>

@@ -71,29 +71,69 @@ Focus on German cases (Nominativ, Akkusativ, Dativ). Example for cloze: prompt_t
             "llm_prompt_used": prompt
         }
 
-def analyze_grammar_feedback(user_input: str, expected_answer: str, context_rule: str) -> dict:
-    prompt = f"""Analyze this German grammar exercise attempt:
-User input: {user_input}
-Expected answer: {expected_answer}
-Grammar rule being tested: {context_rule}
+LEVEL_GUIDANCE = {
+    "A1": "Use very simple English. Explain in 1 short sentence. Focus on the single grammar point being tested (e.g., 'der = masculine subject').",
+    "A2": "Use simple English. Explain in 1-2 sentences. Include a brief hint about the rule.",
+    "B1": "Use clear English. Explain the grammar pattern. Show why the wrong form doesn't work.",
+    "B2": "Use natural English. Give a thorough explanation with the underlying grammar pattern.",
+}
 
-Return ONLY a JSON object with:
-- "is_correct": boolean (true if user_input matches expected_answer semantically)
-- "correction": the corrected sentence if incorrect
-- "explanation": linguistic explanation in English (e.g., "You used Akkusativ, but 'geben' requires Dativ for the indirect object.")
-- "rule_missed_id": null or 1 if mistake made
+def analyze_grammar_feedback(
+    user_input: str,
+    expected_answer: str,
+    context_rule: str,
+    user_level: str = "A1",
+    exercise_type: str = "cloze",
+    rule_description: str = "",
+    infinitive_verb: str = ""
+) -> dict:
+    level_guidance = LEVEL_GUIDANCE.get(user_level, LEVEL_GUIDANCE["A1"])
 
-Consider minor spelling differences as correct if the grammar is right.
+    context_parts = []
+    if infinitive_verb:
+        context_parts.append(f"Key verb: '{infinitive_verb}' (this verb governs a specific case)")
+    if rule_description:
+        context_parts.append(f"Rule: {rule_description}")
+    context_extra = "\n".join(context_parts)
+
+    prompt = f"""You are an expert German (Deutsch) grammar tutor helping a {user_level} level student.
+
+Exercise type: {exercise_type}
+Grammar rule: {context_rule}
+{context_extra}
+
+Student's answer: "{user_input}"
+Correct answer: "{expected_answer}"
+
+Analyze the student's answer and return ONLY a JSON object with:
+- "is_correct": boolean — true if the grammar (case, gender, number) is correct. Minor spelling differences should be forgiven.
+- "explanation": a personalized teaching explanation in English. If correct, briefly confirm WHY it's right so they learn the pattern. If wrong, explain exactly what they got wrong, WHY the correct form is right, and give a memorable hint. Adapt to their level: {level_guidance}
+- "rule_missed_id": integer or null — set to 1 if they made a case/gender/number mistake, null if correct.
+
+Focus on helping them understand the grammar pattern, not just the answer. Use bold for German words. Keep the tone encouraging.
 """
 
     response = _call_ollama(prompt)
     try:
-        return json.loads(response)
+        data = json.loads(response)
+        if "is_correct" in data and "explanation" in data:
+            data["rule_missed_id"] = data.get("rule_missed_id")
+            return data
     except:
-        is_correct = user_input.strip().lower() == expected_answer.strip().lower()
-        return {
-            "is_correct": is_correct,
-            "correction": expected_answer if not is_correct else user_input,
-            "explanation": "Correct!" if is_correct else f"Compare your answer with the correct form. The rule: {context_rule}",
-            "rule_missed_id": None if is_correct else 1
-        }
+        pass
+
+    is_correct = user_input.strip().lower() == expected_answer.strip().lower()
+    if is_correct:
+        explanation = f"Correct! That's the right form for {context_rule}."
+    else:
+        explanation = (
+            f"Not quite. The correct answer is **{expected_answer}**. "
+            f"This is because {context_rule} requires this specific form. "
+            f"Try to notice the pattern — it'll help you next time!"
+        )
+
+    return {
+        "is_correct": is_correct,
+        "explanation": explanation,
+        "rule_missed_id": None if is_correct else 1
+    }

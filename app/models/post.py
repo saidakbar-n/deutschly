@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
@@ -26,4 +26,4 @@ class Post(Base):
 
     def ensure_expiry(self):
         if self.type == "story" and not self.expires_at:
-            self.expires_at = datetime.now(datetime.UTC) + timedelta(hours=24)
+            self.expires_at = datetime.now(timezone.utc) + timedelta(hours=24)

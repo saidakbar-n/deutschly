@@ -19,6 +19,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
   const [progress, setProgress] = useState<{ rule_id: number; correct_attempts: number; total_attempts: number }[]>([])
   const [score, setScore] = useState({ correct: 0, total: 0 })
   const [generating, setGenerating] = useState(false)
+  const [readyToAdvance, setReadyToAdvance] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -35,6 +36,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
     setQuizComplete(false)
     setCurrentIndex(0)
     setScore({ correct: 0, total: 0 })
+    setReadyToAdvance(false)
 
     try {
       let data: GrammarExercise[]
@@ -72,20 +74,21 @@ export default function GrammarPracticer({ user }: { user: User }) {
         correct: prev.correct + (attempt.is_correct ? 1 : 0),
         total: prev.total + 1
       }))
-
-      setTimeout(() => {
-        if (currentIndex < exercises.length - 1) {
-          setCurrentIndex(currentIndex + 1)
-          setFeedback(null)
-          setLoading(false)
-        } else {
-          setQuizComplete(true)
-          setLoading(false)
-        }
-      }, 2000)
+      setReadyToAdvance(true)
     } catch (error) {
       console.error('Failed to submit answer:', error)
+    } finally {
       setLoading(false)
+    }
+  }
+
+  const handleNext = () => {
+    setReadyToAdvance(false)
+    setFeedback(null)
+    if (currentIndex < exercises.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+    } else {
+      setQuizComplete(true)
     }
   }
 
@@ -121,6 +124,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
       case 'blurting':
         return (
           <BlurtingExercise
+            key={currentIndex}
             scenario={exercise.prompt_text}
             onAnswerSubmit={handleAnswerSubmit}
             feedback={feedbackComponent}
@@ -131,6 +135,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
         const sentenceWithBlank = exercise.prompt_text.replace('_', '___')
         return (
           <ClozeExercise
+            key={currentIndex}
             sentenceWithBlank={sentenceWithBlank}
             infinitiveVerb={exercise.infinitive_verb || undefined}
             onAnswerSubmit={handleAnswerSubmit}
@@ -141,6 +146,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
       case 'reverse_translation':
         return (
           <ReverseTranslationExercise
+            key={currentIndex}
             nativeSentence={exercise.native_sentence || exercise.prompt_text}
             onAnswerSubmit={handleAnswerSubmit}
             feedback={feedbackComponent}
@@ -241,6 +247,15 @@ export default function GrammarPracticer({ user }: { user: User }) {
           <p className="text-gray-600 mb-4">No exercises available yet.</p>
           <p className="text-sm text-gray-500">Exercises will be generated based on your level and progress.</p>
         </div>
+      )}
+
+      {readyToAdvance && (
+        <button
+          className="btn-primary w-full mt-4 text-lg py-3"
+          onClick={handleNext}
+        >
+          {currentIndex < exercises.length - 1 ? 'Next Question →' : 'See Results →'}
+        </button>
       )}
     </div>
   )

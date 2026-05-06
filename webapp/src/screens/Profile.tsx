@@ -13,9 +13,10 @@ interface ProfileProps {
   currentUser?: User
   onUpdated?: (user: User) => void
   onBack?: () => void
+  onNavigate?: (screen: string) => void
 }
 
-export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack }: ProfileProps) {
+export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate }: ProfileProps) {
   const [status, setStatus] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [postsLoading, setPostsLoading] = useState(false)
@@ -594,6 +595,11 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                 <p className="text-slate-400 text-sm">
                   Start practicing in the Grammar section to track your progress here
                 </p>
+                {onNavigate && (
+                  <button className="btn-primary mt-2" onClick={() => onNavigate('grammar')}>
+                    Start practicing →
+                  </button>
+                )}
               </div>
             )}
 

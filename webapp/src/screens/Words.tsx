@@ -11,7 +11,7 @@ function getArticleColor(term: string, isSingular: boolean): string {
   if (trimmedTerm.startsWith('die ')) {
     return isSingular ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
   }
-  return 'bg-slate-100 text-black' // Default black label when no article
+  return 'bg-yellow-100 text-yellow-800' // Default yellow for words without articles
 }
 
 // Function to get article info for display
@@ -26,7 +26,7 @@ function getWordArticleInfo(term: string, isSingular: boolean = true): { color: 
       ? { color: 'bg-red-100 text-red-700', article: 'die (singular)' }
       : { color: 'bg-gray-100 text-gray-700', article: 'die (plural)' }
   }
-  return { color: 'bg-slate-100 text-black', article: '—' } // Default black when no article
+  return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', article: '' } // Default yellow when no article
 }
 
 type Word = {
@@ -423,18 +423,23 @@ function WordCard({
                 {(() => {
                   const { article, color } = getWordArticleInfo(word.term, word.is_singular !== false)
                   return article ? (
-                    <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold border ${color}`}>
-                      {article}
-                    </span>
+                    <>
+                      <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold border ${color}`}>
+                        {article}
+                      </span>
+                      <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
+                    </>
                   ) : (
-                    <span className="inline-block px-2 py-1 rounded-lg text-xs font-bold border border-slate-300 text-slate-700">
-                      —
-                    </span>
+                    <>
+                      <span className="inline-block px-2 py-1 rounded-lg text-xs font-bold border bg-yellow-100 text-yellow-800 border-yellow-200">
+                        {word.term.split(' ')[0]}
+                      </span>
+                      <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
+                    </>
                   )
                 })()}
-                <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
               </p>
-              {word.note && <p className="text-xs text-slate-400 mt-0.5 truncate">{word.note}</p>}
+              <p className="text-xs text-slate-400 mt-0.5 truncate">Tap to see translation</p>
             </>
           ) : (
             <>

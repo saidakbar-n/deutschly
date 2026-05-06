@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.notification import Notification
@@ -8,8 +8,8 @@ from app.models.user import User
 def generate_grammar_notifications(db: Session) -> int:
     """Generate smart notifications for users who haven't practiced grammar recently"""
     count = 0
-    today = datetime.now(datetime.UTC).date()
-    three_days_ago = (datetime.now(datetime.UTC) - timedelta(days=3)).date()
+    today = datetime.now(timezone.utc).date()
+    three_days_ago = (datetime.now(timezone.utc) - timedelta(days=3)).date()
     
     # Find users with low grammar activity
     users_with_progress = db.query(UserGrammarProgress.user_id).distinct().all()

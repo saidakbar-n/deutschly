@@ -95,8 +95,18 @@ def submit_answer(
 
     rule = db.query(GrammarRule).filter(GrammarRule.id == exercise.rule_id).first()
     rule_name = rule.name if rule else "Unknown"
+    rule_description = rule.description if rule else ""
 
-    feedback = analyze_grammar_feedback(user_input, exercise.expected_answer, rule_name)
+    user = db.query(User).filter(User.id == user_id).first()
+    user_level = user.level if user and user.level else "A1"
+
+    feedback = analyze_grammar_feedback(
+        user_input, exercise.expected_answer, rule_name,
+        user_level=user_level,
+        exercise_type=exercise.type,
+        rule_description=rule_description,
+        infinitive_verb=exercise.infinitive_verb or ""
+    )
 
     attempt = UserGrammarAttempt(
         user_id=user_id,
@@ -130,7 +140,6 @@ def submit_answer(
     db.commit()
     db.refresh(attempt)
 
-    user = db.query(User).filter(User.id == user_id).first()
     if user:
         update_streak(user, db)
         db.commit()
@@ -193,20 +202,18 @@ def shadowing_feedback(
 
     rule = db.query(GrammarRule).filter(GrammarRule.id == exercise.rule_id).first()
     rule_name = rule.name if rule else "Unknown"
+    rule_description = rule.description if rule else ""
 
-    # Enhanced feedback for shadowing - includes word order analysis
-    prompt = f"""As a German grammar expert, analyze this spoken German:
-User said: {user_input}
-Expected: {exercise.expected_answer}
-Grammar rule: {rule_name}
+    user = db.query(User).filter(User.id == user_id).first()
+    user_level = user.level if user and user.level else "A1"
 
-Return ONLY a JSON object:
-- "is_correct": boolean
-- "correction": corrected sentence if wrong
-- "explanation": English explanation focusing on word order and case usage
-- "rule_missed_id": null or 1
-"""
-    feedback = analyze_grammar_feedback(user_input, exercise.expected_answer, rule_name)
+    feedback = analyze_grammar_feedback(
+        user_input, exercise.expected_answer, rule_name,
+        user_level=user_level,
+        exercise_type=exercise.type,
+        rule_description=rule_description,
+        infinitive_verb=exercise.infinitive_verb or ""
+    )
 
     attempt = UserGrammarAttempt(
         user_id=user_id,

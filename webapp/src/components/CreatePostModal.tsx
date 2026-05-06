@@ -72,7 +72,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-20 sm:pt-24 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl p-4 sm:p-6 animate-qaw-fade-in-up" style={{ animationDelay: '0.1s' }}>
+      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl p-4 sm:p-6 animate-qaw-fade-in-up max-h-[90vh] overflow-y-auto" style={{ animationDelay: '0.1s' }}>
         {/* Header */}
         <div className="flex justify-between items-center mb-4 sm:mb-6 pt-2">
           <h2 className="text-xl sm:text-2xl font-bold text-gradient-indigo">New Post</h2>

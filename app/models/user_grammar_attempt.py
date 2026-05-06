@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.database import Base
-import datetime
+from datetime import datetime, timezone
 
 class UserGrammarAttempt(Base):
     __tablename__ = "user_grammar_attempts"
@@ -12,7 +12,7 @@ class UserGrammarAttempt(Base):
     user_input = Column(Text, nullable=False)
     is_correct = Column(Boolean, nullable=False)
     feedback_explanation = Column(Text)
-    attempt_timestamp = Column(Text, default=str(datetime.datetime.now(datetime.UTC)))
+    attempt_timestamp = Column(Text, default=str(datetime.now(timezone.utc)))
     rule_missed_id = Column(Integer, ForeignKey("grammar_rules.id", ondelete="SET NULL"))
 
     user = relationship("User", backref="grammar_attempts")
