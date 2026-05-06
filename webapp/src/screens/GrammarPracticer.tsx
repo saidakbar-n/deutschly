@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress } from '../hooks/useApi'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress, fetchChapterProgress } from '../hooks/useApi'
 import BlurtingExercise from '../components/GrammarExercises/BlurtingExercise'
 import ClozeExercise from '../components/GrammarExercises/ClozeExercise'
 import ReverseTranslationExercise from '../components/GrammarExercises/ReverseTranslationExercise'
 import GrammarFeedback from '../components/GrammarFeedback'
 import type { GrammarExercise, GrammarRule, UserGrammarAttempt, User } from '../hooks/useApi'
 
+const CHAPTER_EXERCISE_COUNT = 25
+
 type QuizType = 'regular' | 'mistake-replay'
 
-export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit }: { user: User; chapterId?: number; chapterTitle?: string; onExit?: () => void }) {
+export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit, onUserUpdated, onChapterCompleted }: { user: User; chapterId?: number; chapterTitle?: string; onExit?: () => void; onUserUpdated?: () => void; onChapterCompleted?: () => void }) {
   const [exercises, setExercises] = useState<GrammarExercise[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -20,6 +22,18 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   const [score, setScore] = useState({ correct: 0, total: 0 })
   const [generating, setGenerating] = useState(false)
   const [readyToAdvance, setReadyToAdvance] = useState(false)
+  const [chapterJustCompleted, setChapterJustCompleted] = useState(false)
+
+  const currentIndexRef = useRef(0)
+  const exercisesRef = useRef<GrammarExercise[]>([])
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex
+  }, [currentIndex])
+
+  useEffect(() => {
+    exercisesRef.current = exercises
+  }, [exercises])
 
   useEffect(() => {
     if (user) {
@@ -34,6 +48,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
     setLoading(true)
     setFeedback(null)
     setQuizComplete(false)
+    setChapterJustCompleted(false)
     setCurrentIndex(0)
     setScore({ correct: 0, total: 0 })
     setReadyToAdvance(false)
@@ -43,11 +58,11 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
       if (quizType === 'mistake-replay') {
         data = await fetchMistakeReplayQuiz(user.id)
       } else if (chapterId) {
-        data = await fetchChapterExercises(chapterId, user.id, 5)
+        data = await fetchChapterExercises(chapterId, user.id, CHAPTER_EXERCISE_COUNT)
       } else {
-        data = await fetchGrammarExercises(user.id, { limit: 5 })
+        data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
         if (data.length === 0) {
-          data = await fetchGrammarExercises(user.id, { limit: 5 })
+          data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
         }
       }
       setExercises(data)
@@ -68,11 +83,11 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   }, [user, loadExercises, chapterId])
 
   const handleAnswerSubmit = async (userInput: string) => {
-    if (!user || exercises.length === 0) return
+    if (!user || exercisesRef.current.length === 0) return
     setLoading(true)
 
     try {
-      const attempt = await submitGrammarAnswer(exercises[currentIndex].id, user.id, userInput)
+      const attempt = await submitGrammarAnswer(exercisesRef.current[currentIndexRef.current].id, user.id, userInput)
       setFeedback(attempt)
       setScore(prev => ({
         correct: prev.correct + (attempt.is_correct ? 1 : 0),
@@ -86,15 +101,29 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
     }
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (readyToAdvance === false && feedback === null) return
+
+    const idx = currentIndexRef.current
+    const total = exercisesRef.current.length
+
     setReadyToAdvance(false)
     setFeedback(null)
-    if (currentIndex < exercises.length - 1) {
-      setCurrentIndex(currentIndex + 1)
+
+    if (idx < total - 1) {
+      setCurrentIndex(idx + 1)
     } else {
       if (chapterId) {
-        syncChapterProgress(chapterId, user.id).catch(console.error)
+        await syncChapterProgress(chapterId, user.id).catch(console.error)
+        try {
+          const prog = await fetchChapterProgress(chapterId, user.id)
+          if (prog.status === 'completed') {
+            setChapterJustCompleted(true)
+            onChapterCompleted?.()
+          }
+        } catch { /* ignore */ }
       }
+      onUserUpdated?.()
       setQuizComplete(true)
     }
   }
@@ -197,6 +226,13 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
           <div className="w-full max-w-xs bg-gray-200 rounded-full h-3 mx-auto mb-4 overflow-hidden">
             <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
           </div>
+          {chapterJustCompleted && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
+              <p className="text-2xl mb-1">🎉</p>
+              <p className="font-bold text-green-700">Chapter Complete!</p>
+              <p className="text-sm text-green-600 mt-1">The next chapter is now unlocked</p>
+            </div>
+          )}
           <button className="btn-primary" onClick={loadExercises}>
             Practice Again
           </button>

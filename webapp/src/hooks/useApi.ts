@@ -552,7 +552,7 @@ export async function quickStartGrammar(userId: number, level?: string): Promise
 
 export async function transcribeVoice(audioBlob: Blob, language = 'de'): Promise<{ text: string; confidence: number }> {
   const formData = new FormData()
-  formData.append('audio', audioBlob, 'recording.webm')
+  formData.append('audio', audioBlob, 'recording.wav')
   const res = await api.post('/grammar/transcribe', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     params: { language }

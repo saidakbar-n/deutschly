@@ -6,6 +6,14 @@ type GrammarFeedbackProps = {
   explanation?: string
 }
 
+function renderMarkdown(text: string) {
+  let result = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/\n/g, '<br />')
+  return <span dangerouslySetInnerHTML={{ __html: result }} />
+}
+
 export default function GrammarFeedback({ isCorrect, correction, explanation }: GrammarFeedbackProps) {
   const [showExplanation, setShowExplanation] = React.useState(false)
 
@@ -39,9 +47,9 @@ export default function GrammarFeedback({ isCorrect, correction, explanation }: 
             {showExplanation ? 'Hide Explanation' : 'Why?'}
           </button>
           {showExplanation && (
-            <p className="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded">
-              {explanation}
-            </p>
+            <div className="text-sm text-gray-700 mt-2 p-3 bg-gray-50 rounded-lg leading-relaxed space-y-1">
+              {renderMarkdown(explanation)}
+            </div>
           )}
         </div>
       )}

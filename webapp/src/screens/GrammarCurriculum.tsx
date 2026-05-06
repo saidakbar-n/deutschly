@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchGrammarBooks, fetchChapters, fetchChapterExercises, quickStartGrammar, type GrammarBook, type GrammarChapter, type User, type QuickStartResult } from '../hooks/useApi'
+import { fetchGrammarBooks, fetchChapters, fetchChapterExercises, quickStartGrammar, type GrammarBook, type GrammarChapter, type User, type QuickStartResult, fetchChapterProgress } from '../hooks/useApi'
 import GrammarPracticer from './GrammarPracticer'
 import { BookOpen, Lock, CheckCircle, Play, ChevronRight, ArrowLeft, Trophy, Zap } from 'lucide-react'
 
 type View = 'curriculum' | 'practicing'
 
-export default function GrammarCurriculum({ user }: { user: User }) {
+export default function GrammarCurriculum({ user, onUserUpdated }: { user: User; onUserUpdated?: () => void }) {
   const [view, setView] = useState<View>('curriculum')
   const [books, setBooks] = useState<GrammarBook[]>([])
   const [activeLevel, setActiveLevel] = useState<string>('A1')
@@ -13,6 +13,7 @@ export default function GrammarCurriculum({ user }: { user: User }) {
   const [loading, setLoading] = useState(true)
   const [activeChapter, setActiveChapter] = useState<GrammarChapter | null>(null)
   const [quickStartLoading, setQuickStartLoading] = useState(false)
+  const [chapterJustCompleted, setChapterJustCompleted] = useState(false)
 
   const handleQuickStart = async () => {
     setQuickStartLoading(true)
@@ -78,6 +79,7 @@ export default function GrammarCurriculum({ user }: { user: User }) {
 
   const openChapter = async (chapter: GrammarChapter) => {
     if (chapter.progress.status === 'locked') return
+    setChapterJustCompleted(false)
     setActiveChapter(chapter)
     setView('practicing')
   }
@@ -97,7 +99,7 @@ export default function GrammarCurriculum({ user }: { user: User }) {
         >
           <ArrowLeft size={16} /> Back to Curriculum
         </button>
-        <GrammarPracticer user={user} chapterId={activeChapter.id} chapterTitle={activeChapter.title} onExit={backToCurriculum} />
+        <GrammarPracticer user={user} chapterId={activeChapter.id} chapterTitle={activeChapter.title} onExit={backToCurriculum} onUserUpdated={onUserUpdated} onChapterCompleted={() => setChapterJustCompleted(true)} />
       </div>
     )
   }
@@ -156,6 +158,27 @@ export default function GrammarCurriculum({ user }: { user: User }) {
           </div>
         </div>
       ))}
+
+      {/* Level Progress Summary */}
+      {(() => {
+        const completed = chapters.filter(c => c.progress.status === 'completed').length
+        const inProgress = chapters.filter(c => c.progress.status === 'in_progress').length
+        if (chapters.length === 0) return null
+        return (
+          <div className="mb-4 flex items-center gap-3 text-sm text-slate-600">
+            <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 rounded-full transition-all"
+                style={{ width: `${Math.round((completed / chapters.length) * 100)}%` }}
+              />
+            </div>
+            <span className="shrink-0 font-medium">
+              {completed}/{chapters.length} complete
+              {inProgress > 0 && <span className="text-indigo-500"> · {inProgress} in progress</span>}
+            </span>
+          </div>
+        )
+      })()}
 
       {/* Chapter List */}
       {loading ? (

@@ -12,6 +12,7 @@ type Word = {
 
 export function CreatePostModal({ userId, onCreated }: { userId: number; onCreated?: () => void }) {
   const [open, setOpen] = useState(false)
+  const [visible, setVisible] = useState(false)
   const [text, setText] = useState('')
   const [type, setType] = useState<PostPayload['type']>('story')
   const [level, setLevel] = useState('A1')
@@ -23,9 +24,45 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   const [wordDropdownOpen, setWordDropdownOpen] = useState(false)
 
   useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)))
+    } else {
+      setVisible(false)
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  useEffect(() => {
     if (!open) return
     listWords(userId, 100).then((data) => setWords(data || [])).catch(() => setWords([]))
   }, [open, userId])
+
+  useEffect(() => {
+    if (!open) return
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal()
+    }
+    document.addEventListener('keydown', handleEsc)
+    return () => document.removeEventListener('keydown', handleEsc)
+  }, [open])
+
+  const closeModal = () => {
+    setVisible(false)
+    document.body.style.overflow = ''
+    setTimeout(() => {
+      setOpen(false)
+      setText('')
+      setImageFile(null)
+      setPreviewUrl('')
+      setLevel('A1')
+      setType('story')
+      setSelectedWordId(null)
+      setWordDropdownOpen(false)
+    }, 200)
+  }
 
   const submit = async () => {
     if (!text.trim()) return
@@ -44,14 +81,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
         image_url: finalImageUrl || undefined,
         word_id: selectedWordId || undefined,
       })
-      setOpen(false)
-      setText('')
-      setImageFile(null)
-      setPreviewUrl('')
-      setLevel('A1')
-      setType('story')
-      setSelectedWordId(null)
-      setWordDropdownOpen(false)
+      closeModal()
       onCreated?.()
     } finally {
       setLoading(false)
@@ -60,7 +90,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
 
   if (!open) {
     return (
-      <button 
+      <button
         className="btn-primary w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3"
         onClick={() => setOpen(true)}
       >
@@ -71,23 +101,29 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-20 sm:pt-24 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl p-4 sm:p-6 animate-qaw-fade-in-up max-h-[90vh] overflow-y-auto" style={{ animationDelay: '0.1s' }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={closeModal}
+    >
+      <div
+        className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${
+          visible ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+
+      <div
+        ref={(el) => { if (el && visible) el.scrollTop = 0 }}
+        className={`relative bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col p-4 sm:p-6 max-h-[85vh] overflow-y-auto overscroll-contain transition-all duration-200 ease-out ${
+          visible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.97] translate-y-4'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-4 sm:mb-6 pt-2">
           <h2 className="text-xl sm:text-2xl font-bold text-gradient-indigo">New Post</h2>
-          <button 
+          <button
             className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
-            onClick={() => {
-              setOpen(false)
-              setText('')
-              setImageFile(null)
-              setPreviewUrl('')
-              setLevel('A1')
-              setType('story')
-              setSelectedWordId(null)
-              setWordDropdownOpen(false)
-            }}
+            onClick={closeModal}
           >
             <X size={20} />
           </button>
@@ -167,7 +203,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               <option value="question">Question</option>
             </select>
           </div>
-          
+
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-slate-700 ml-1 flex items-center gap-1.5">
               <Tag size={16} className="text-indigo-500" />
@@ -234,19 +270,10 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 sm:gap-4">
+        <div className="flex gap-2 sm:gap-4 sticky bottom-0 bg-white pt-3 pb-1 border-t border-slate-100 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <button
             className="flex-1 btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
-            onClick={() => {
-              setOpen(false)
-              setText('')
-              setImageFile(null)
-              setPreviewUrl('')
-              setLevel('A1')
-              setType('story')
-              setSelectedWordId(null)
-              setWordDropdownOpen(false)
-            }}
+            onClick={closeModal}
             disabled={loading}
           >
             <X size={16} className="sm:size-[18]" />

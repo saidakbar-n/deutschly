@@ -139,3 +139,56 @@ async def delete_profile_photo(
         status_code=200,
         content={"message": "Profile photo deleted successfully"}
     )
+
+
+@router.post("/upload/post-image")
+async def upload_post_image(
+    user_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not is_allowed_extension(file.filename):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+        )
+
+    file_size = 0
+    chunk = file.file.read(1024)
+    while chunk:
+        file_size += len(chunk)
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large. Maximum size: {MAX_FILE_SIZE // 1024 // 1024}MB"
+            )
+        chunk = file.file.read(1024)
+
+    file.file.seek(0)
+
+    extension = get_file_extension(file.filename)
+    unique_filename = generate_unique_filename(extension)
+    file_path = UPLOAD_DIR / unique_filename
+
+    try:
+        with file_path.open("wb") as buffer:
+            buffer.write(file.file.read())
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save file: {str(e)}"
+        )
+
+    file_url = f"/uploads/{unique_filename}"
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "url": file_url,
+            "filename": unique_filename,
+        }
+    )

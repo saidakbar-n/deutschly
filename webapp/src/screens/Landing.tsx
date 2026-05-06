@@ -309,15 +309,15 @@ export function Landing({
                 Learn German.
                 <br />
                 <span className="inline-block animate-qaw-pulse">
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0s' }}> Share </span>
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0.1s' }}>your </span>
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0.2s' }}>journey.</span>
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0s' }}>The </span>
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0.1s' }}>social </span>
+                  <span className="text-gradient-indigo" style={{ animationDelay: '0.2s' }}>way.</span>
                 </span>
               </h1>
               <p className="text-xl text-slate-600 max-w-lg">
-                Connect with fellow learners. Share stories, achievements, and tips.
+                Social feed. Vocabulary builder. Structured grammar curriculum.
                 <br />
-                Track your progress together — <span className="text-indigo-600 font-medium">fast and fearlessly.</span>
+                Built for German learners — <span className="text-indigo-600 font-medium">especially Uzbeks heading to Germany.</span>
               </p>
             </div>
 
@@ -344,10 +344,10 @@ export function Landing({
             {/* Features List */}
             <div className="space-y-4 pt-4">
               {[
-                { text: 'Post your learning wins', icon: <Sparkles size={16} /> },
-                { text: 'Follow other learners', icon: <FeatureCheck className="w-5 h-5" /> },
-                { text: 'Keep your streak alive', icon: <FeatureCheck className="w-5 h-5" /> },
-                { text: 'Sync across devices', icon: <FeatureCheck className="w-5 h-5" /> },
+                { text: 'Share your learning journey with posts', icon: <Sparkles size={16} /> },
+                { text: 'Build vocabulary — add words, quiz yourself', icon: <ArrowRight size={16} /> },
+                { text: 'Grammar curriculum from Netzwerk Neu A1–C1', icon: <ArrowRight size={16} /> },
+                { text: 'Follow other learners, grow together', icon: <FeatureCheck className="w-5 h-5" /> },
               ].map((item, i) => (
                 <div
                   key={item.text}
@@ -388,6 +388,55 @@ export function Landing({
             {/* Decorative elements */}
             <div className="absolute -top-8 -right-8 w-24 h-24 bg-indigo-100 rounded-full blur-2xl opacity-50" />
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-sky-100 rounded-full blur-2xl opacity-40" />
+          </div>
+        </div>
+
+        {/* ============================================
+            How It Works - 3 Steps
+        ============================================ */}
+        <div className="mt-16 lg:mt-24">
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-10">How it works</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                step: '1',
+                title: 'Share your life',
+                desc: 'Post with an attached vocab word. Your learning moments become social.',
+                gradient: 'from-indigo-50 to-indigo-100',
+                borderColor: 'border-indigo-200',
+                textColor: 'text-indigo-600',
+              },
+              {
+                step: '2',
+                title: 'Learn words',
+                desc: 'Build your vocabulary list, quiz yourself, save words from the community feed.',
+                gradient: 'from-purple-50 to-purple-100',
+                borderColor: 'border-purple-200',
+                textColor: 'text-purple-600',
+              },
+              {
+                step: '3',
+                title: 'Practice grammar',
+                desc: 'Work through the Netzwerk Neu curriculum, chapter by chapter, with AI feedback.',
+                gradient: 'from-sky-50 to-sky-100',
+                borderColor: 'border-sky-200',
+                textColor: 'text-sky-600',
+              },
+            ].map((item, i) => (
+              <div
+                key={item.step}
+                className={`card bg-gradient-to-br ${item.gradient} border ${item.borderColor} opacity-0 animate-qaw-fade-in-up`}
+                style={{ animationDelay: `${0.8 + i * 0.15}s` }}
+              >
+                <div className="text-center space-y-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto bg-white shadow-sm`}>
+                    <span className={`text-xl font-bold ${item.textColor}`}>{item.step}</span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-lg">{item.title}</h3>
+                  <p className="text-sm text-slate-600">{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

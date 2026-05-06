@@ -116,11 +116,11 @@ function App() {
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
-              {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
+              {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
-              {screen === 'grammar' && <GrammarCurriculum user={user} />}
+              {screen === 'grammar' && <GrammarCurriculum user={user} onUserUpdated={refresh} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} />}
-              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
+              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'notifications' && <Notifications user={user} />}
             </div>
           </div>
@@ -195,7 +195,7 @@ function App() {
             return (
               <button
                 key={item.key}
-                onClick={() => { setScreen(item.key) }}
+                onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0) }}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'

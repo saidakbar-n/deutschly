@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, unfollowUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
@@ -14,9 +14,10 @@ interface ProfileProps {
   onUpdated?: (user: User) => void
   onBack?: () => void
   onNavigate?: (screen: string) => void
+  onViewUser?: (userId: number) => void
 }
 
-export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate }: ProfileProps) {
+export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate, onViewUser }: ProfileProps) {
   const [status, setStatus] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [postsLoading, setPostsLoading] = useState(false)
@@ -36,6 +37,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const [folders, setFolders] = useState<WordFolder[]>([])
   const [grammarProgress, setGrammarProgress] = useState<UserGrammarProgressRich[]>([])
   const [grammarLoading, setGrammarLoading] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
 
   const [form, setForm] = useState({
     username: '',
@@ -48,6 +50,27 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
 
   // Determine if we're viewing our own profile
   const isOwnProfile = !userId || (currentUser && user && user.id === currentUser.id)
+
+  // State to track if currentUser is following the viewed profile
+  const [isFollowing, setIsFollowing] = useState(false)
+
+  // Load follow status when viewing another user's profile
+  useEffect(() => {
+    if (user && currentUser && !isOwnProfile) {
+      const checkFollowStatus = async () => {
+        try {
+          const data = await listFollowing(currentUser.id)
+          const followingList = data.following || []
+          setIsFollowing(followingList.some((f: User) => f.id === user.id))
+        } catch (error) {
+          console.error('Failed to check follow status:', error)
+        }
+      }
+      checkFollowStatus()
+    } else {
+      setIsFollowing(false)
+    }
+  }, [user, currentUser, isOwnProfile])
 
   // Load user data if userId is provided
   const loadUser = useCallback(async () => {
@@ -210,21 +233,41 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const handleFollow = async (targetUserId: number) => {
     if (!currentUser) return
     try {
-      await followUser(targetUserId, currentUser.id)
-      await loadFollowers()
-      await loadFollowing()
-      // Update the user's follower count
-      if (user) {
-        const isNowFollowing = following.some(f => f.id === targetUserId)
-        if (isNowFollowing) {
-          setUser({ ...user, followers_count: (user.followers_count || 0) + 1 })
+      if (following.some(f => f.id === targetUserId)) {
+        await unfollowUser(targetUserId, currentUser.id)
+        await loadFollowing()
+        if (targetUserId === user?.id) {
+          setIsFollowing(false)
+        }
+      } else {
+        await followUser(targetUserId, currentUser.id)
+        await loadFollowing()
+        if (targetUserId === user?.id) {
+          setIsFollowing(true)
         }
       }
-      if (targetUserId === user?.id) {
-        onUpdated?.({ ...user })
+    } catch (error) {
+      console.error('Failed to follow/unfollow user:', error)
+    }
+  }
+
+  const handleFollowButton = async () => {
+    if (!user || !currentUser) return
+    setFollowLoading(true)
+    try {
+      if (isFollowing) {
+        await unfollowUser(user.id, currentUser.id)
+        setUser({ ...user, followers_count: Math.max(0, (user.followers_count || 0) - 1) })
+        setIsFollowing(false)
+      } else {
+        await followUser(user.id, currentUser.id)
+        setUser({ ...user, followers_count: (user.followers_count || 0) + 1 })
+        setIsFollowing(true)
       }
     } catch (error) {
-      console.error('Failed to follow user:', error)
+      console.error('Failed to follow/unfollow:', error)
+    } finally {
+      setFollowLoading(false)
     }
   }
 
@@ -363,9 +406,23 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                     <p className="text-sm text-slate-700 mt-1 leading-relaxed">{user.about}</p>
                   </div>
                 )}
-                {isOwnProfile && (
+                {isOwnProfile ? (
                   <div className="flex justify-center md:justify-end pt-1">
                     <button className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all duration-200 text-sm" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  </div>
+                ) : (
+                  <div className="flex justify-center md:justify-end pt-1">
+                    <button
+                      className={`px-6 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm ${
+                        isFollowing
+                          ? 'bg-slate-200 text-slate-600 hover:bg-slate-300 shadow-slate-200'
+                          : 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 shadow-indigo-200'
+                      }`}
+                      onClick={handleFollowButton}
+                      disabled={followLoading}
+                    >
+                      {followLoading ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -670,6 +727,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         followersLoading={followersLoading}
         followingLoading={followingLoading}
         onFollow={handleFollow}
+        onViewUser={onViewUser}
       />
     </div>
   )

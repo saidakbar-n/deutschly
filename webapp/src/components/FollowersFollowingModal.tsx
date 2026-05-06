@@ -14,6 +14,7 @@ interface FollowersFollowingModalProps {
   followersLoading: boolean
   followingLoading: boolean
   onFollow: (targetUserId: number) => Promise<void>
+  onViewUser?: (userId: number) => void
 }
 
 export function FollowersFollowingModal({
@@ -26,6 +27,7 @@ export function FollowersFollowingModal({
   followersLoading,
   followingLoading,
   onFollow,
+  onViewUser,
 }: FollowersFollowingModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
 
@@ -107,33 +109,42 @@ export function FollowersFollowingModal({
                   key={u.id}
                   className="flex items-center justify-between p-3 bg-slate-50 rounded-xl"
                 >
-                  <div className="flex items-center gap-3">
+                  <button
+                    className="flex items-center gap-3 flex-1 text-left min-w-0"
+                    onClick={() => {
+                      if (u.id === user.id) {
+                        onClose()
+                      } else {
+                        onClose()
+                        onViewUser?.(u.id)
+                      }
+                    }}
+                  >
                     {u.profile_photo ? (
                       <img
                         src={u.profile_photo}
                         alt={u.username}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-indigo-600 font-bold text-sm">
                           {u.username.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-semibold text-slate-900">{u.username}</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-slate-500 truncate">
                         {u.full_name || u.city || 'German Learner'}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`level-badge level-${u.level.toLowerCase()}`}>
+                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    <span className={`level-badge level-${u.level?.toLowerCase() || ''}`}>
                       {u.level}
                     </span>
-                    {/* Follow button - only show for non-owner users in Followers tab */}
-                    {activeTab === 'followers' && !isProfileOwner(u.id) && (
+                    {u.id !== user.id && (
                       <button
                         className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                           isFollowingUser(u.id)
