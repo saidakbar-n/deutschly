@@ -24,15 +24,18 @@ from pathlib import Path
 from app.api import api_router
 from app.core.database import Base
 from app import models  # noqa: F401 ensures models are registered
+from app.core.seed_grammar import seed_grammar
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    from app.core.database import get_engine, DATABASE_URL
+    from app.core.database import get_engine, DATABASE_URL, get_db
     db_url = os.getenv("DATABASE_URL", DATABASE_URL)
     if db_url.startswith("sqlite"):
         engine = get_engine()
         Base.metadata.create_all(bind=engine)
+    db = next(get_db())
+    seed_grammar(db)
     print("Application started successfully")
     yield
     # Shutdown

@@ -6,6 +6,24 @@ from typing import Optional
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "llama3.1:8b"
 
+FALLBACK_EXERCISES = {
+    "Nominativ Case": {
+        "cloze": {"prompt_text": "_ Hund bellt laut.", "expected_answer": "Der", "native_sentence": "", "infinitive_verb": ""},
+        "blurting": {"prompt_text": "Describe who is running in German.", "expected_answer": "Der Mann läuft schnell.", "native_sentence": "", "infinitive_verb": ""},
+        "reverse_translation": {"prompt_text": "", "expected_answer": "Die Katze schläft.", "native_sentence": "The cat is sleeping.", "infinitive_verb": ""},
+    },
+    "Akkusativ Case": {
+        "cloze": {"prompt_text": "Ich kaufe _ Apfel.", "expected_answer": "einen", "native_sentence": "", "infinitive_verb": "kaufen"},
+        "blurting": {"prompt_text": "You are buying something at a store. Say what you buy.", "expected_answer": "Ich kaufe den Apfel.", "native_sentence": "", "infinitive_verb": ""},
+        "reverse_translation": {"prompt_text": "", "expected_answer": "Er trinkt den Kaffee.", "native_sentence": "He drinks the coffee.", "infinitive_verb": ""},
+    },
+    "Dativ Case": {
+        "cloze": {"prompt_text": "Ich helfe _ alten Mann.", "expected_answer": "dem", "native_sentence": "", "infinitive_verb": "helfen"},
+        "blurting": {"prompt_text": "You're giving something to your mother. Describe it in German.", "expected_answer": "Ich gebe meiner Mutter eine Blume.", "native_sentence": "", "infinitive_verb": ""},
+        "reverse_translation": {"prompt_text": "", "expected_answer": "Er gibt der Frau den Schlüssel.", "native_sentence": "He gives the woman the key.", "infinitive_verb": ""},
+    },
+}
+
 def _call_ollama(prompt: str) -> str:
     """Call local Ollama instance with performance monitoring"""
     start_time = time.time()
@@ -44,11 +62,12 @@ Focus on German cases (Nominativ, Akkusativ, Dativ). Example for cloze: prompt_t
         data["llm_prompt_used"] = prompt
         return data
     except:
+        fallback = FALLBACK_EXERCISES.get(rule_name, {}).get(exercise_type, {})
         return {
-            "prompt_text": f"Practice {rule_name} - {exercise_type}",
-            "expected_answer": "Der Mann gibt dem Kind das Buch.",
-            "native_sentence": "The man gives the child the book.",
-            "infinitive_verb": "geben",
+            "prompt_text": fallback.get("prompt_text", f"Practice {rule_name}"),
+            "expected_answer": fallback.get("expected_answer", ""),
+            "native_sentence": fallback.get("native_sentence", ""),
+            "infinitive_verb": fallback.get("infinitive_verb", ""),
             "llm_prompt_used": prompt
         }
 

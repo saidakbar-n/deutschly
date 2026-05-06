@@ -118,7 +118,7 @@ function App() {
               {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
-              {screen === 'grammar' && <GrammarPracticer />}
+              {screen === 'grammar' && <GrammarPracticer user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
               {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
               {screen === 'notifications' && <Notifications user={user} />}
@@ -144,7 +144,7 @@ function App() {
                    { label: 'Words', value: user.words_count || 0 },
                    { label: 'Posts', value: user.posts_count || 0 },
                    { label: 'Streak', value: user.streak || 0 },
-                   { label: 'Grammar', value: user.streak || 0 },
+                   { label: 'Streak 🔥', value: user.streak || 0 },
                  ].map((stat, i) => (
                   <div 
                     key={stat.label} 

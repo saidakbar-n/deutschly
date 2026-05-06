@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
@@ -31,8 +31,10 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const [userWords, setUserWords] = useState<any[]>([])
   const [wordsByFolder, setWordsByFolder] = useState<{ uncategorized: any[]; folders: Record<number, { folder: WordFolder; words: any[] }> } | null>(null)
   const [wordsLoading, setWordsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<'posts' | 'words'>('posts')
+  const [activeTab, setActiveTab] = useState<'posts' | 'words' | 'grammar'>('posts')
   const [folders, setFolders] = useState<WordFolder[]>([])
+  const [grammarProgress, setGrammarProgress] = useState<UserGrammarProgressRich[]>([])
+  const [grammarLoading, setGrammarLoading] = useState(false)
 
   const [form, setForm] = useState({
     username: '',
@@ -135,6 +137,19 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
     }
   }, [user])
 
+  const loadGrammarProgress = useCallback(async () => {
+    if (!user) return
+    setGrammarLoading(true)
+    try {
+      const data = await fetchGrammarProgress(user.id)
+      setGrammarProgress(data)
+    } catch (err) {
+      console.error('Failed to load grammar progress', err)
+    } finally {
+      setGrammarLoading(false)
+    }
+  }, [user])
+
   useEffect(() => {
     loadUser()
   }, [loadUser])
@@ -160,6 +175,10 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
       loadWordsByFolder()
     }
   }, [user, activeTab, loadWordsByFolder])
+
+  useEffect(() => {
+    if (activeTab === 'grammar') loadGrammarProgress()
+  }, [activeTab, loadGrammarProgress])
 
   const save = async () => {
     if (!user) return
@@ -400,6 +419,18 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           >
             Words ({user.words_count || 0})
           </button>
+          {isOwnProfile && (
+            <button
+              className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
+                activeTab === 'grammar'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+              onClick={() => setActiveTab('grammar')}
+            >
+              Grammar
+            </button>
+          )}
           {(user.streak || 0) > 0 && (
             <div className="flex items-center gap-1.5 text-orange-600 font-semibold text-sm px-4 py-2">
               <span>🔥</span>
@@ -547,6 +578,78 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'grammar' && isOwnProfile && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">Grammar Progress</h2>
+              {grammarLoading && <span className="text-sm text-slate-500">Loading...</span>}
+            </div>
+
+            {!grammarLoading && grammarProgress.length === 0 && (
+              <div className="text-center py-12 space-y-3">
+                <p className="text-4xl">🧠</p>
+                <p className="text-slate-600 font-medium">No grammar practice yet</p>
+                <p className="text-slate-400 text-sm">
+                  Start practicing in the Grammar section to track your progress here
+                </p>
+              </div>
+            )}
+
+            {grammarProgress.map((p) => {
+              const isWeak = p.accuracy < 60
+              const isStrong = p.accuracy >= 80
+
+              return (
+                <div key={p.id} className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-100">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-900 text-sm">{p.rule_name}</span>
+                      {p.rule_level && (
+                        <span className={`level-badge level-${p.rule_level.toLowerCase()} text-xs`}>
+                          {p.rule_level}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      isStrong
+                        ? 'bg-green-100 text-green-700'
+                        : isWeak
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {isStrong ? '✓ Strong' : isWeak ? '⚠ Needs work' : '~ Learning'}
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        isStrong ? 'bg-green-500' : isWeak ? 'bg-red-400' : 'bg-yellow-400'
+                      }`}
+                      style={{ width: `${p.accuracy}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>{p.correct_attempts} correct / {p.total_attempts} total</span>
+                    <span className="font-semibold text-slate-700">{p.accuracy}% accuracy</span>
+                  </div>
+                </div>
+              )
+            })}
+
+            {grammarProgress.length > 0 && (
+              <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+                <p className="text-sm font-semibold text-indigo-700 mb-1">Overall</p>
+                <p className="text-xs text-indigo-600">
+                  {grammarProgress.reduce((sum, p) => sum + p.total_attempts, 0)} exercises attempted across{' '}
+                  {grammarProgress.length} grammar rule{grammarProgress.length > 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

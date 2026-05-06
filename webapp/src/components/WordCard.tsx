@@ -7,7 +7,7 @@ interface WordCardProps {
 }
 
 // Helper function to extract German article and return appropriate styling
-function getArticleInfo(term: string): { article: string; colorClass: string; termWithoutArticle: string } {
+function getArticleInfo(term: string, is_singular?: boolean): { article: string; colorClass: string; termWithoutArticle: string } {
   const trimmed = term.trim()
   const lower = trimmed.toLowerCase()
   
@@ -16,7 +16,7 @@ function getArticleInfo(term: string): { article: string; colorClass: string; te
     return { article: 'der', colorClass: 'bg-blue-100 text-blue-700 border-blue-300', termWithoutArticle: trimmed.substring(4) }
   }
   if (lower.startsWith('die ')) {
-    return is_singular 
+    return is_singular !== false
       ? { article: 'die', colorClass: 'bg-red-100 text-red-700 border-red-300', termWithoutArticle: trimmed.substring(4) }
       : { article: 'die', colorClass: 'bg-gray-100 text-gray-700 border-gray-300', termWithoutArticle: trimmed.substring(4) }
   }
@@ -29,7 +29,7 @@ function getArticleInfo(term: string): { article: string; colorClass: string; te
 }
 
 export function WordCard({ term, meaning, note, is_singular, created_at }: WordCardProps) {
-  const { article, colorClass, termWithoutArticle } = getArticleInfo(term)
+  const { article, colorClass, termWithoutArticle } = getArticleInfo(term, is_singular)
   
   return (
     <div className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">

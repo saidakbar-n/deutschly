@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 from typing import Optional
 
 from app.core.deps import get_db
@@ -31,7 +33,21 @@ def fetch_exercises(
     limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    query = db.query(GrammarExercise)
+    LEVEL_ORDER = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5}
+    LEVEL_FROM_INT = {1: "A1", 2: "A2", 3: "B1", 4: "B2", 5: "C1"}
+
+    user = db.get(User, user_id)
+    user_level_int = LEVEL_ORDER.get(user.level if user else "A1", 1)
+
+    allowed_levels = [LEVEL_FROM_INT[i] for i in range(1, user_level_int + 1)]
+
+    allowed_rule_ids = db.scalars(
+        select(GrammarRule.id).where(GrammarRule.level.in_(allowed_levels))
+    ).all()
+
+    query = db.query(GrammarExercise).filter(
+        GrammarExercise.rule_id.in_(allowed_rule_ids)
+    )
 
     if rule_id:
         query = query.filter(GrammarExercise.rule_id == rule_id)
@@ -40,7 +56,30 @@ def fetch_exercises(
     if difficulty:
         query = query.filter(GrammarExercise.difficulty == difficulty)
 
-    return query.limit(limit).all()
+    struggled_rule_ids = db.scalars(
+        select(UserGrammarProgress.rule_id)
+        .where(
+            UserGrammarProgress.user_id == user_id,
+            UserGrammarProgress.total_attempts > 0,
+            (UserGrammarProgress.correct_attempts * 1.0 / UserGrammarProgress.total_attempts) < 0.6
+        )
+    ).all()
+
+    if struggled_rule_ids:
+        priority_exercises = query.filter(
+            GrammarExercise.rule_id.in_(struggled_rule_ids)
+        ).order_by(func.random()).limit(limit // 2 + 1).all()
+
+        remaining_limit = max(0, limit - len(priority_exercises))
+        other_exercises = query.filter(
+            GrammarExercise.rule_id.notin_(struggled_rule_ids)
+        ).order_by(func.random()).limit(remaining_limit).all()
+
+        results = priority_exercises + other_exercises
+    else:
+        results = query.order_by(func.random()).limit(limit).all()
+
+    return results
 
 @router.post("/grammar/submit/{exercise_id}", response_model=UserGrammarAttemptOut)
 def submit_answer(
@@ -86,7 +125,7 @@ def submit_answer(
         progress.total_attempts += 1
         if feedback["is_correct"]:
             progress.correct_attempts += 1
-        progress.last_practiced_at = str(__import__('datetime').datetime.now(__import__('datetime').UTC))
+        progress.last_practiced_at = str(datetime.now(timezone.utc))
 
     db.commit()
     db.refresh(attempt)
@@ -98,14 +137,34 @@ def submit_answer(
 
     return attempt
 
-@router.get("/grammar/progress/{user_id}", response_model=list[UserGrammarProgressOut])
+@router.get("/grammar/progress/{user_id}")
 def fetch_progress(user_id: int, db: Session = Depends(get_db)):
-    return db.query(UserGrammarProgress).filter(UserGrammarProgress.user_id == user_id).all()
+    progress_rows = db.query(UserGrammarProgress).filter(
+        UserGrammarProgress.user_id == user_id
+    ).all()
+
+    result = []
+    for p in progress_rows:
+        rule = db.get(GrammarRule, p.rule_id)
+        accuracy = round((p.correct_attempts / p.total_attempts) * 100) if p.total_attempts > 0 else 0
+        result.append({
+            "id": p.id,
+            "rule_id": p.rule_id,
+            "rule_name": rule.name if rule else "Unknown",
+            "rule_category": rule.category if rule else None,
+            "rule_level": rule.level if rule else None,
+            "correct_attempts": p.correct_attempts,
+            "total_attempts": p.total_attempts,
+            "accuracy": accuracy,
+            "last_practiced_at": p.last_practiced_at,
+            "streak_eligible_today": p.streak_eligible_today,
+        })
+
+    return sorted(result, key=lambda x: x["accuracy"])
 
 @router.get("/grammar/mistake-replay/{user_id}", response_model=list[GrammarExerciseOut])
 def mistake_replay(user_id: int, db: Session = Depends(get_db)):
-    from datetime import datetime, timedelta
-    five_days_ago = str(datetime.now(datetime.UTC) - timedelta(days=5))
+    five_days_ago = str(datetime.now(timezone.utc) - timedelta(days=5))
 
     missed_attempts = db.query(UserGrammarAttempt).filter(
         UserGrammarAttempt.user_id == user_id,
@@ -178,7 +237,7 @@ Return ONLY a JSON object:
         progress.total_attempts += 1
         if feedback["is_correct"]:
             progress.correct_attempts += 1
-        progress.last_practiced_at = str(datetime.now(datetime.UTC))
+        progress.last_practiced_at = str(datetime.now(timezone.utc))
 
     db.commit()
     db.refresh(attempt)
@@ -189,3 +248,43 @@ Return ONLY a JSON object:
         db.commit()
 
     return attempt
+
+@router.post("/grammar/generate-exercise", response_model=GrammarExerciseOut)
+def generate_exercise(
+    rule_id: int,
+    exercise_type: str,
+    db: Session = Depends(get_db)
+):
+    rule = db.get(GrammarRule, rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+    valid_types = ["cloze", "blurting", "reverse_translation"]
+    if exercise_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid exercise type. Must be one of: {valid_types}"
+        )
+
+    content = generate_exercise_content(rule.name, exercise_type, rule.level or "A1")
+
+    if not content.get("prompt_text") or not content.get("expected_answer"):
+        raise HTTPException(
+            status_code=422,
+            detail="LLM returned incomplete exercise content. Try again."
+        )
+
+    exercise = GrammarExercise(
+        rule_id=rule_id,
+        type=exercise_type,
+        prompt_text=content["prompt_text"],
+        expected_answer=content["expected_answer"],
+        native_sentence=content.get("native_sentence"),
+        infinitive_verb=content.get("infinitive_verb"),
+        difficulty=2,
+        llm_prompt_used=content.get("llm_prompt_used"),
+    )
+    db.add(exercise)
+    db.commit()
+    db.refresh(exercise)
+    return exercise

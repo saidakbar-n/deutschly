@@ -410,6 +410,19 @@ export type UserGrammarProgress = {
   streak_eligible_today: boolean
 }
 
+export type UserGrammarProgressRich = {
+  id: number
+  rule_id: number
+  rule_name: string
+  rule_category: string | null
+  rule_level: string | null
+  correct_attempts: number
+  total_attempts: number
+  accuracy: number
+  last_practiced_at: string
+  streak_eligible_today: boolean
+}
+
 export async function fetchGrammarRules(): Promise<GrammarRule[]> {
   const res = await api.get('/grammar/rules')
   return res.data
@@ -452,8 +465,18 @@ export async function submitShadowingAnswer(
   return res.data
 }
 
-export async function fetchGrammarProgress(userId: number): Promise<UserGrammarProgress[]> {
+export async function fetchGrammarProgress(userId: number): Promise<UserGrammarProgressRich[]> {
   const res = await api.get(`/grammar/progress/${userId}`)
+  return res.data
+}
+
+export async function generateGrammarExercise(
+  ruleId: number,
+  exerciseType: string
+): Promise<GrammarExercise> {
+  const res = await api.post('/grammar/generate-exercise', null, {
+    params: { rule_id: ruleId, exercise_type: exerciseType }
+  })
   return res.data
 }
 

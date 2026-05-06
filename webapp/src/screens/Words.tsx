@@ -421,9 +421,9 @@ function WordCard({
             <>
               <p className="font-semibold text-slate-900 text-lg truncate">
                 {(() => {
-                  const { article, colorClass } = getWordArticleInfo(word.term, word.is_singular !== false)
+                  const { article, color } = getWordArticleInfo(word.term, word.is_singular !== false)
                   return article ? (
-                    <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold border ${colorClass}`}>
+                    <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold border ${color}`}>
                       {article}
                     </span>
                   ) : (
