@@ -316,9 +316,9 @@ def list_books(db: Session = Depends(get_db)):
     } for b in books]
 
 @router.get("/grammar/quick-start/{user_id}")
-def quick_start(user_id: int, db: Session = Depends(get_db)):
+def quick_start(user_id: int, level: Optional[str] = None, db: Session = Depends(get_db)):
     user = db.get(User, user_id)
-    user_level = user.level if user else "A1"
+    user_level = level or (user.level if user else "A1")
     book = db.query(GrammarBook).filter_by(level=user_level).first()
     if not book:
         book = db.query(GrammarBook).order_by(GrammarBook.sort_order).first()
@@ -384,7 +384,7 @@ def list_chapters(book_id: int, user_id: int, db: Session = Depends(get_db)):
             p = {
                 "status": progress.status,
                 "exercises_done": progress.exercises_done,
-                "exercises_total": progress.exercises_total or ex_count,
+                "exercises_total": ex_count,
                 "score_pct": progress.score_pct or 0,
             }
         result.append({

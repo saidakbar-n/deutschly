@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db
 from app.models import User, Word, Post, Follow
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserList
+from app.core.chapter_unlock import ensure_user_level_progress
+from app.models.grammar_book import GrammarBook
 from passlib.hash import pbkdf2_sha256
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
@@ -106,4 +108,10 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
             user.password_hash = pbkdf2_sha256.hash(value)
         else:
             setattr(user, field, value)
+
+    if payload.level:
+        book = db.query(GrammarBook).filter_by(level=payload.level).first()
+        if book:
+            ensure_user_level_progress(user.id, book.id, db)
+
     return _attach_counts(user, db)

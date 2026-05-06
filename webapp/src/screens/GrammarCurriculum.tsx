@@ -17,7 +17,7 @@ export default function GrammarCurriculum({ user }: { user: User }) {
   const handleQuickStart = async () => {
     setQuickStartLoading(true)
     try {
-      const result = await quickStartGrammar(user.id)
+      const result = await quickStartGrammar(user.id, activeLevel)
       if (result) {
         setActiveChapter({
           id: result.chapter.id,

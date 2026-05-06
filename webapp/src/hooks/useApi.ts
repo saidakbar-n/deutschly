@@ -543,8 +543,10 @@ export type QuickStartResult = {
   progress: ChapterProgress
 } | null
 
-export async function quickStartGrammar(userId: number): Promise<QuickStartResult> {
-  const res = await api.get(`/grammar/quick-start/${userId}`)
+export async function quickStartGrammar(userId: number, level?: string): Promise<QuickStartResult> {
+  const res = await api.get(`/grammar/quick-start/${userId}`, {
+    params: level ? { level } : {}
+  })
   return res.data
 }
 

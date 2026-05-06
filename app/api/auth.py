@@ -8,6 +8,8 @@ from passlib.hash import pbkdf2_sha256
 from app.core.deps import get_db
 from app.models import User
 from app.schemas.user import UserOut, WebSignup, LoginRequest
+from app.core.chapter_unlock import ensure_user_level_progress
+from app.models.grammar_book import GrammarBook
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -42,6 +44,11 @@ def signup(payload: WebSignup, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    book = db.query(GrammarBook).filter_by(level=user.level or "A1").first()
+    if book:
+        ensure_user_level_progress(user.id, book.id, db)
+
     return user
 
 

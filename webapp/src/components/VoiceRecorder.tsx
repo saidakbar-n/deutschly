@@ -43,9 +43,13 @@ export default function VoiceRecorder({ onTranscriptionComplete, disabled = fals
           } else {
             setError('Could not understand speech. Try again.')
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('Transcription failed:', err)
-          setError('Voice service unavailable. Please type your answer.')
+          if (err?.response?.status === 503) {
+            setError('Voice transcription is not available right now. Type your answer instead.')
+          } else {
+            setError('Transcription failed. Please try again or type your answer.')
+          }
         } finally {
           setIsProcessing(false)
         }
