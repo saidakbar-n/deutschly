@@ -29,7 +29,8 @@ from app.core.seed_grammar import seed_grammar
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    from app.core.database import get_engine, DATABASE_URL, get_db
+    from app.core.database import get_engine, DATABASE_URL
+    from app.core.deps import get_db
     db_url = os.getenv("DATABASE_URL", DATABASE_URL)
     if db_url.startswith("sqlite"):
         engine = get_engine()

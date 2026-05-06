@@ -142,9 +142,8 @@ function App() {
               <div className="space-y-3">
                {[
                    { label: 'Words', value: user.words_count || 0 },
-                   { label: 'Posts', value: user.posts_count || 0 },
-                   { label: 'Streak', value: user.streak || 0 },
-                   { label: 'Streak 🔥', value: user.streak || 0 },
+                    { label: 'Posts', value: user.posts_count || 0 },
+                    { label: 'Streak 🔥', value: user.streak || 0 },
                  ].map((stat, i) => (
                   <div 
                     key={stat.label} 

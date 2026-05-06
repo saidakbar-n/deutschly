@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, select
@@ -131,7 +131,7 @@ def submit_answer(
     db.refresh(attempt)
 
     user = db.query(User).filter(User.id == user_id).first()
-    if user and feedback["is_correct"]:
+    if user:
         update_streak(user, db)
         db.commit()
 
@@ -164,19 +164,18 @@ def fetch_progress(user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/grammar/mistake-replay/{user_id}", response_model=list[GrammarExerciseOut])
 def mistake_replay(user_id: int, db: Session = Depends(get_db)):
-    five_days_ago = str(datetime.now(timezone.utc) - timedelta(days=5))
-
     missed_attempts = db.query(UserGrammarAttempt).filter(
         UserGrammarAttempt.user_id == user_id,
         UserGrammarAttempt.is_correct.is_(False),
-        UserGrammarAttempt.attempt_timestamp >= five_days_ago
-    ).all()
+    ).order_by(UserGrammarAttempt.attempt_timestamp.desc()).limit(50).all()
 
-    rule_ids = set(a.rule_missed_id for a in missed_attempts if a.rule_missed_id)
+    rule_ids = list(set(a.rule_missed_id for a in missed_attempts if a.rule_missed_id))
     if not rule_ids:
         return []
 
-    return db.query(GrammarExercise).filter(GrammarExercise.rule_id.in_(rule_ids)).limit(10).all()
+    return db.query(GrammarExercise).filter(
+        GrammarExercise.rule_id.in_(rule_ids)
+    ).order_by(func.random()).limit(10).all()
 
 @router.post("/grammar/shadowing-feedback/{exercise_id}", response_model=UserGrammarAttemptOut)
 def shadowing_feedback(
@@ -243,7 +242,7 @@ Return ONLY a JSON object:
     db.refresh(attempt)
 
     user = db.query(User).filter(User.id == user_id).first()
-    if user and feedback["is_correct"]:
+    if user:
         update_streak(user, db)
         db.commit()
 

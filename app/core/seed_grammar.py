@@ -4,7 +4,7 @@ from app.models.grammar_exercise import GrammarExercise
 
 RULES = [
     {"name": "Nominativ Case", "description": "Subject of the sentence", "level": "A1", "category": "Cases"},
-    {"name": "Akkusativ Case", "description": "Direct object of the sentence", "level": "A1", "category": "Cases"},
+    {"name": "Akkusativ Case", "description": "Direct object of the sentence", "level": "A2", "category": "Cases"},
     {"name": "Dativ Case", "description": "Indirect object of the sentence", "level": "A2", "category": "Cases"},
 ]
 
@@ -34,8 +34,9 @@ def seed_grammar(db: Session):
         rule_map[r["name"]] = rule.id
 
     for e in EXERCISES:
-        rule_name = e.pop("rule_name")
-        exercise = GrammarExercise(rule_id=rule_map[rule_name], **e)
+        e_copy = e.copy()
+        rule_name = e_copy.pop("rule_name")
+        exercise = GrammarExercise(rule_id=rule_map[rule_name], **e_copy)
         db.add(exercise)
 
     db.commit()
