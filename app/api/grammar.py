@@ -1,14 +1,17 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import func, select
 from typing import Optional
 
 from app.core.deps import get_db
+from app.models.grammar_book import GrammarBook
+from app.models.grammar_chapter import GrammarChapter
 from app.models.grammar_rule import GrammarRule
 from app.models.grammar_exercise import GrammarExercise
 from app.models.user_grammar_attempt import UserGrammarAttempt
 from app.models.user_grammar_progress import UserGrammarProgress
+from app.models.user_chapter_progress import UserChapterProgress
 from app.models.user import User
 from app.schemas.grammar_rule import GrammarRuleOut
 from app.schemas.grammar_exercise import GrammarExerciseOut
@@ -17,6 +20,8 @@ from app.schemas.user_grammar_progress import UserGrammarProgressOut
 from app.schemas.grammar_submit import GrammarSubmitPayload
 from app.core.llm_client import generate_exercise_content, analyze_grammar_feedback
 from app.core.streak import update_streak
+from app.core.chapter_unlock import update_chapter_progress, get_or_create_user_chapter_progress, unlock_chapters_for_level, ensure_user_level_progress
+from app.core.whisper_stt import transcribe_audio, WHISPER_AVAILABLE
 
 router = APIRouter(prefix="/api/v1", tags=["grammar"])
 
@@ -143,6 +148,9 @@ def submit_answer(
     if user:
         update_streak(user, db)
         db.commit()
+
+    if rule and rule.chapter_id:
+        update_chapter_progress(user_id, rule.chapter_id, db)
 
     return attempt
 
@@ -294,3 +302,160 @@ def generate_exercise(
     db.commit()
     db.refresh(exercise)
     return exercise
+
+@router.get("/grammar/books")
+def list_books(db: Session = Depends(get_db)):
+    books = db.query(GrammarBook).order_by(GrammarBook.sort_order).all()
+    return [{
+        "id": b.id,
+        "level": b.level,
+        "title": b.title,
+        "description": b.description,
+        "sort_order": b.sort_order,
+        "chapter_count": len(b.chapters) if b.chapters else 0,
+    } for b in books]
+
+@router.get("/grammar/quick-start/{user_id}")
+def quick_start(user_id: int, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    user_level = user.level if user else "A1"
+    book = db.query(GrammarBook).filter_by(level=user_level).first()
+    if not book:
+        book = db.query(GrammarBook).order_by(GrammarBook.sort_order).first()
+    if not book:
+        return None
+    ensure_user_level_progress(user_id, book.id, db)
+    chapters = db.query(GrammarChapter).filter_by(book_id=book.id).order_by(GrammarChapter.sort_order).all()
+    for ch in chapters:
+        progress = db.query(UserChapterProgress).filter_by(
+            user_id=user_id, chapter_id=ch.id
+        ).first()
+        if progress and progress.status in ("unlocked", "in_progress"):
+            ex_count = 0
+            if ch.rules:
+                rule_ids = [r.id for r in ch.rules]
+                ex_count = db.query(GrammarExercise).filter(
+                    GrammarExercise.rule_id.in_(rule_ids)
+                ).count()
+            return {
+                "book": {
+                    "id": book.id,
+                    "level": book.level,
+                    "title": book.title,
+                },
+                "chapter": {
+                    "id": ch.id,
+                    "number": ch.number,
+                    "title": ch.title,
+                    "topic": ch.topic,
+                    "exercise_count": ex_count,
+                },
+                "progress": {
+                    "status": progress.status,
+                    "exercises_done": progress.exercises_done,
+                    "exercises_total": progress.exercises_total or ex_count,
+                    "score_pct": progress.score_pct or 0,
+                },
+            }
+    return None
+
+@router.get("/grammar/books/{book_id}/chapters")
+def list_chapters(book_id: int, user_id: int, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    user_level = user.level if user else "A1"
+    ensure_user_level_progress(user_id, book_id, db)
+    chapters = db.query(GrammarChapter).filter_by(book_id=book_id).order_by(GrammarChapter.sort_order).all()
+    result = []
+    for ch in chapters:
+        progress = db.query(UserChapterProgress).filter_by(
+            user_id=user_id, chapter_id=ch.id
+        ).first()
+        rule_ids = [r.id for r in ch.rules]
+        ex_count = db.query(GrammarExercise).filter(
+            GrammarExercise.rule_id.in_(rule_ids)
+        ).count() if ch.rules else 0
+        p = {
+            "status": "locked",
+            "exercises_done": 0,
+            "exercises_total": ex_count,
+            "score_pct": 0,
+        }
+        if progress:
+            p = {
+                "status": progress.status,
+                "exercises_done": progress.exercises_done,
+                "exercises_total": progress.exercises_total or ex_count,
+                "score_pct": progress.score_pct or 0,
+            }
+        result.append({
+            "id": ch.id,
+            "book_id": ch.book_id,
+            "number": ch.number,
+            "title": ch.title,
+            "topic": ch.topic,
+            "sort_order": ch.sort_order,
+            "exercise_count": ex_count,
+            "progress": p,
+        })
+    return result
+
+@router.get("/grammar/chapters/{chapter_id}/exercises")
+def chapter_exercises(chapter_id: int, user_id: int, limit: int = 5, db: Session = Depends(get_db)):
+    rules = db.query(GrammarRule).filter_by(chapter_id=chapter_id).all()
+    if not rules:
+        return []
+    rule_ids = [r.id for r in rules]
+    return db.query(GrammarExercise).filter(
+        GrammarExercise.rule_id.in_(rule_ids)
+    ).order_by(func.random()).limit(limit).all()
+
+@router.get("/grammar/chapters/{chapter_id}/progress/{user_id}")
+def chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):
+    progress = get_or_create_user_chapter_progress(user_id, chapter_id, db)
+    chapter = db.get(GrammarChapter, chapter_id)
+    ex_count = 0
+    if chapter:
+        rule_ids = [r.id for r in chapter.rules]
+        ex_count = db.query(GrammarExercise).filter(
+            GrammarExercise.rule_id.in_(rule_ids)
+        ).count()
+    return {
+        "id": progress.id,
+        "user_id": progress.user_id,
+        "chapter_id": progress.chapter_id,
+        "status": progress.status,
+        "exercises_done": progress.exercises_done,
+        "exercises_total": progress.exercises_total or ex_count,
+        "score_pct": progress.score_pct or 0,
+        "unlocked_at": progress.unlocked_at,
+        "completed_at": progress.completed_at,
+    }
+
+@router.post("/grammar/chapters/{chapter_id}/sync-progress/{user_id}")
+def sync_chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):
+    update_chapter_progress(user_id, chapter_id, db)
+    progress = db.query(UserChapterProgress).filter_by(
+        user_id=user_id, chapter_id=chapter_id
+    ).first()
+    return {
+        "status": progress.status if progress else "unlocked",
+        "exercises_done": progress.exercises_done if progress else 0,
+        "score_pct": progress.score_pct if progress else 0,
+    }
+
+@router.post("/grammar/transcribe")
+async def transcribe_voice(audio: UploadFile = File(...), language: str = "de"):
+    if not WHISPER_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Whisper not installed. Run: pip install openai-whisper")
+    
+    audio_bytes = await audio.read()
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="No audio data received")
+    
+    try:
+        text = transcribe_audio(audio_bytes, language=language)
+        if not text:
+            return {"text": "", "confidence": 0}
+        return {"text": text, "confidence": 1}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")

@@ -6,7 +6,7 @@ import { Search } from './screens/Search'
 import { Words } from './screens/Words'
 import { Onboarding } from './screens/Onboarding'
 import { Notifications } from './components/Notifications'
-import GrammarPracticer from './screens/GrammarPracticer'
+import GrammarCurriculum from './screens/GrammarCurriculum'
 
 import { useSession } from './hooks/useSession'
 import { Header } from './components/Header'
@@ -118,7 +118,7 @@ function App() {
               {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
-              {screen === 'grammar' && <GrammarPracticer user={user} />}
+              {screen === 'grammar' && <GrammarCurriculum user={user} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} />}
               {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
               {screen === 'notifications' && <Notifications user={user} />}

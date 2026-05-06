@@ -484,3 +484,76 @@ export async function fetchMistakeReplayQuiz(userId: number): Promise<GrammarExe
   const res = await api.get(`/grammar/mistake-replay/${userId}`)
   return res.data
 }
+
+export type GrammarBook = {
+  id: number
+  level: string
+  title: string
+  description: string | null
+  sort_order: number
+  chapter_count: number
+}
+
+export type ChapterProgress = {
+  status: 'locked' | 'unlocked' | 'in_progress' | 'completed'
+  exercises_done: number
+  exercises_total: number
+  score_pct: number
+}
+
+export type GrammarChapter = {
+  id: number
+  book_id: number
+  number: number
+  title: string
+  topic: string | null
+  sort_order: number
+  exercise_count: number
+  progress: ChapterProgress
+}
+
+export async function fetchGrammarBooks(): Promise<GrammarBook[]> {
+  const res = await api.get('/grammar/books')
+  return res.data
+}
+
+export async function fetchChapters(bookId: number, userId: number): Promise<GrammarChapter[]> {
+  const res = await api.get(`/grammar/books/${bookId}/chapters`, { params: { user_id: userId } })
+  return res.data
+}
+
+export async function fetchChapterExercises(chapterId: number, userId: number, limit = 5): Promise<GrammarExercise[]> {
+  const res = await api.get(`/grammar/chapters/${chapterId}/exercises`, { params: { user_id: userId, limit } })
+  return res.data
+}
+
+export async function fetchChapterProgress(chapterId: number, userId: number): Promise<ChapterProgress & { id: number }> {
+  const res = await api.get(`/grammar/chapters/${chapterId}/progress/${userId}`)
+  return res.data
+}
+
+export async function syncChapterProgress(chapterId: number, userId: number): Promise<ChapterProgress> {
+  const res = await api.post(`/grammar/chapters/${chapterId}/sync-progress/${userId}`)
+  return res.data
+}
+
+export type QuickStartResult = {
+  book: { id: number; level: string; title: string }
+  chapter: { id: number; number: number; title: string; topic: string | null; exercise_count: number }
+  progress: ChapterProgress
+} | null
+
+export async function quickStartGrammar(userId: number): Promise<QuickStartResult> {
+  const res = await api.get(`/grammar/quick-start/${userId}`)
+  return res.data
+}
+
+export async function transcribeVoice(audioBlob: Blob, language = 'de'): Promise<{ text: string; confidence: number }> {
+  const formData = new FormData()
+  formData.append('audio', audioBlob, 'recording.webm')
+  const res = await api.post('/grammar/transcribe', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    params: { language }
+  })
+  return res.data
+}

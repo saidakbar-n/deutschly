@@ -16,7 +16,7 @@ class Post(Base):
     level_tag = Column(String(10))
     word_id = Column(Integer, ForeignKey("words.id"), nullable=True)
     likes = Column(Integer, default=0)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="posts")

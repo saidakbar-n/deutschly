@@ -55,7 +55,7 @@ def get_feed(
     user_id: int,
     limit: int = 20,
     offset: int = 0,
-    variant: str | None = Query(None, regex="^(control|recency)$"),
+    variant: str | None = Query(None, pattern="^(control|recency)$"),
     db: Session = Depends(get_db),
 ):
     user = db.get(User, user_id)

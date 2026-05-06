@@ -1,4 +1,5 @@
 import React from 'react'
+import VoiceRecorder from '../VoiceRecorder'
 
 type ClozeExerciseProps = {
   sentenceWithBlank: string
@@ -35,6 +36,12 @@ export default function ClozeExercise({ sentenceWithBlank, infinitiveVerb, onAns
         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
         disabled={loading}
       />
+      <div className="flex items-center justify-between mt-4">
+        <VoiceRecorder
+          onTranscriptionComplete={(text) => setAnswer(text)}
+          disabled={loading}
+        />
+      </div>
       <button
         className="btn-primary mt-4 w-full"
         onClick={handleSubmit}

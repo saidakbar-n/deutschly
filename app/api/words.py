@@ -105,6 +105,23 @@ def delete_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     return {"detail": "deleted"}
 
 
+@router.get("/words/word-of-the-day")
+def word_of_the_day(db: Session = Depends(get_db)):
+    words = db.scalars(select(Word).options(joinedload(Word.user))).all()
+    if not words:
+        return None
+    seed = int(hashlib.md5(str(date.today()).encode()).hexdigest(), 16)
+    word = words[seed % len(words)]
+    return {
+        "id": word.id,
+        "term": word.term,
+        "meaning": word.meaning,
+        "note": word.note,
+        "user_id": word.user_id,
+        "user": {"id": word.user.id, "username": word.user.username} if word.user else None,
+    }
+
+
 @router.get("/words/{user_id}", response_model=list[WordOut])
 def list_words(user_id: int, limit: int = 50, offset: int = 0, folder_id: int | None = None, db: Session = Depends(get_db)):
     """List words for a user, optionally filtered by folder."""
@@ -186,22 +203,4 @@ def list_words_by_folder(user_id: int, db: Session = Depends(get_db)):
     return {
         "uncategorized": uncategorized,
         "folders": words_by_folder
-    }
-
-
-@router.get("/words/word-of-the-day")
-def word_of_the_day(db: Session = Depends(get_db)):
-    words = db.scalars(select(Word).options(joinedload(Word.user))).all()
-    if not words:
-        return None
-    # Deterministic daily pick — same word all day, changes at midnight
-    seed = int(hashlib.md5(str(date.today()).encode()).hexdigest(), 16)
-    word = words[seed % len(words)]
-    return {
-        "id": word.id,
-        "term": word.term,
-        "meaning": word.meaning,
-        "note": word.note,
-        "user_id": word.user_id,
-        "user": {"id": word.user.id, "username": word.user.username} if word.user else None,
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise } from '../hooks/useApi'
+import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress } from '../hooks/useApi'
 import BlurtingExercise from '../components/GrammarExercises/BlurtingExercise'
 import ClozeExercise from '../components/GrammarExercises/ClozeExercise'
 import ReverseTranslationExercise from '../components/GrammarExercises/ReverseTranslationExercise'
@@ -8,7 +8,7 @@ import type { GrammarExercise, GrammarRule, UserGrammarAttempt, User } from '../
 
 type QuizType = 'regular' | 'mistake-replay'
 
-export default function GrammarPracticer({ user }: { user: User }) {
+export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit }: { user: User; chapterId?: number; chapterTitle?: string; onExit?: () => void }) {
   const [exercises, setExercises] = useState<GrammarExercise[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -42,6 +42,8 @@ export default function GrammarPracticer({ user }: { user: User }) {
       let data: GrammarExercise[]
       if (quizType === 'mistake-replay') {
         data = await fetchMistakeReplayQuiz(user.id)
+      } else if (chapterId) {
+        data = await fetchChapterExercises(chapterId, user.id, 5)
       } else {
         data = await fetchGrammarExercises(user.id, { limit: 5 })
         if (data.length === 0) {
@@ -54,14 +56,16 @@ export default function GrammarPracticer({ user }: { user: User }) {
     } finally {
       setLoading(false)
     }
-  }, [user, quizType])
+  }, [user, quizType, chapterId])
 
   useEffect(() => {
     if (user) {
       loadExercises()
-      fetchGrammarRules().then(setRules).catch(console.error)
+      if (!chapterId) {
+        fetchGrammarRules().then(setRules).catch(console.error)
+      }
     }
-  }, [user, loadExercises])
+  }, [user, loadExercises, chapterId])
 
   const handleAnswerSubmit = async (userInput: string) => {
     if (!user || exercises.length === 0) return
@@ -88,6 +92,9 @@ export default function GrammarPracticer({ user }: { user: User }) {
     if (currentIndex < exercises.length - 1) {
       setCurrentIndex(currentIndex + 1)
     } else {
+      if (chapterId) {
+        syncChapterProgress(chapterId, user.id).catch(console.error)
+      }
       setQuizComplete(true)
     }
   }
@@ -185,7 +192,7 @@ export default function GrammarPracticer({ user }: { user: User }) {
           <h2 className="text-2xl font-bold mb-2">Session Complete!</h2>
           <p className="text-4xl font-bold text-indigo-600 mb-2">{score.correct}/{score.total}</p>
           <p className="text-gray-600 mb-6">
-            {score.correct === score.total ? '🎉 Perfect session!' : score.correct >= score.total / 2 ? '💪 Good work!' : '📚 Keep practicing!'}
+            {score.correct === score.total ? 'Perfect session!' : score.correct >= score.total / 2 ? 'Good work!' : 'Keep practicing!'}
           </p>
           <div className="w-full max-w-xs bg-gray-200 rounded-full h-3 mx-auto mb-4 overflow-hidden">
             <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
@@ -193,16 +200,25 @@ export default function GrammarPracticer({ user }: { user: User }) {
           <button className="btn-primary" onClick={loadExercises}>
             Practice Again
           </button>
-          <button
-            className="btn-secondary mt-2 flex items-center gap-2 mx-auto"
-            onClick={handleGenerate}
-            disabled={generating}
-          >
-            {generating ? 'Generating...' : '✨ Generate new exercises'}
-          </button>
-          <p className="text-xs text-slate-400 mt-2">
-            Uses AI to create fresh exercises for your level
-          </p>
+          {onExit && (
+            <button className="btn-secondary mt-2 mx-auto" onClick={onExit}>
+              Back to Curriculum
+            </button>
+          )}
+          {!chapterId && (
+            <>
+              <button
+                className="btn-secondary mt-2 flex items-center gap-2 mx-auto"
+                onClick={handleGenerate}
+                disabled={generating}
+              >
+                {generating ? 'Generating...' : 'Generate new exercises'}
+              </button>
+              <p className="text-xs text-slate-400 mt-2">
+                Uses AI to create fresh exercises for your level
+              </p>
+            </>
+          )}
         </div>
       </div>
     )
@@ -213,24 +229,28 @@ export default function GrammarPracticer({ user }: { user: User }) {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">Grammar Practice</h1>
-            <span className={`level-badge level-${user.level.toLowerCase()}`}>
-              {user.level}
-            </span>
+            <h1 className="text-2xl font-bold">{chapterTitle || 'Grammar Practice'}</h1>
+            {!chapterId && (
+              <span className={`level-badge level-${user.level.toLowerCase()}`}>
+                {user.level}
+              </span>
+            )}
           </div>
-          <button
-            className="text-sm text-red-600 hover:underline"
-            onClick={() => {
-              setQuizType('mistake-replay')
-              loadExercises()
-            }}
-          >
-            Mistake Replay
-          </button>
+          {!chapterId && (
+            <button
+              className="text-sm text-red-600 hover:underline"
+              onClick={() => {
+                setQuizType('mistake-replay')
+                loadExercises()
+              }}
+            >
+              Mistake Replay
+            </button>
+          )}
         </div>
         <p className="text-gray-600 mt-1">
           {quizType === 'mistake-replay' ? 'Reviewing missed patterns' : `Exercise ${currentIndex + 1} of ${exercises.length}`}
-          {' · '}Exercises matched to your level
+          {chapterId ? ' — Chapter exercises' : ' — Exercises matched to your level'}
         </p>
         {quizType !== 'mistake-replay' && (
           <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
