@@ -28,6 +28,10 @@ function getNotificationText(notif: NotificationType, fromUserUsername?: string)
       return `${fromUserUsername || 'Someone'} commented on your post`
     case 'story':
       return `New story from ${fromUserUsername || 'someone'}`
+    case 'grammar_reminder':
+      return notif.text || 'Ready for your grammar check?'
+    case 'grammar_review':
+      return notif.text || 'Let\'s review those tricky German cases!'
     default:
       return notif.text || `New notification: ${notif.type}`
   }

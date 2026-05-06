@@ -29,9 +29,9 @@ export function ProfilePhotoUploader({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const sizeClasses = {
-    sm: 'w-20 h-20 text-xs',
-    md: 'w-32 h-32 text-sm',
-    lg: 'w-48 h-48 text-base',
+    sm: 'w-16 h-16 md:w-20 md:h-20 text-xs',
+    md: 'w-24 h-24 md:w-32 md:h-32 text-sm',
+    lg: 'w-20 h-20 md:w-28 md:h-28 text-base',
   }
 
   const handleFileChange = useCallback(
@@ -122,8 +122,7 @@ export function ProfilePhotoUploader({
   const displayImage = preview || currentPhoto
 
   return (
-    <div className={`relative ${sizeClasses[size]} ${className}`}>
-      {/* Upload input (hidden) */}
+    <div className={`flex flex-col items-center ${className}`}>
       <input
         type="file"
         ref={fileInputRef}
@@ -132,42 +131,33 @@ export function ProfilePhotoUploader({
         className="hidden"
       />
 
-      {/* Photo container */}
       <div
-        className={`relative w-full h-full rounded-full overflow-hidden border-4 border-slate-200  
+        className={`relative ${sizeClasses[size]} rounded-full overflow-hidden border-4 border-slate-200
           ${isDragging ? 'border-indigo-500 bg-indigo-50' : ''}
           ${error ? 'border-red-500' : ''}
           ${success ? 'border-green-500' : ''}
           transition-all duration-300 shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-indigo-100
-          ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-        onClick={handleClickUpload}
+          ${!displayImage && !disabled ? 'cursor-pointer' : disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+        onClick={displayImage ? undefined : handleClickUpload}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        {/* Image display */}
         {displayImage ? (
-          <img
-            src={displayImage}
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
+          <img src={displayImage} alt="Profile" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center">
-            <div className="text-center text-slate-400">
-              <Camera className={`w-${size === 'sm' ? '8' : size === 'md' ? '12' : '16'} h-${size === 'sm' ? '8' : size === 'md' ? '12' : '16'} mx-auto mb-2`} />
-              <p className="font-medium text-slate-500">
-                {size === 'lg' ? 'Upload Photo' : 'Add'}
-              </p>
-            </div>
+            <svg viewBox="0 0 24 24" fill="none" className={`${size === 'sm' ? 'w-8 h-8' : size === 'md' ? 'w-12 h-12 md:w-16 md:h-16' : 'w-12 h-12 md:w-16 md:h-16'} text-indigo-300`}>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
         )}
 
-        {/* Overlay for hover/drag state */}
         {(isDragging || !displayImage) && (
           <div
-            className={`absolute inset-0 bg-black/50 flex items-center justify-center 
-              ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+            className={`absolute inset-0 bg-black/50 flex items-center justify-center
+              ${isDragging ? 'opacity-100' : 'opacity-0 hover:opacity-100'}
               transition-opacity duration-300`}
           >
             <div className="text-center text-white">
@@ -186,43 +176,6 @@ export function ProfilePhotoUploader({
           </div>
         )}
 
-        {/* Delete button (when photo exists) */}
-        {displayImage && !isDragging && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete()
-            }}
-            disabled={disabled}
-            className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full 
-                      flex items-center justify-center shadow-lg hover:bg-white 
-                      transition-colors text-slate-600 hover:text-red-500
-                      disabled:opacity-40 disabled:cursor-not-allowed"
-            title="Remove photo"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* Upload button overlay (when photo exists) */}
-        {displayImage && !isDragging && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              if (!disabled) fileInputRef.current?.click()
-            }}
-            disabled={disabled}
-            className="absolute bottom-2 right-2 w-8 h-8 bg-indigo-600 rounded-full 
-                      flex items-center justify-center shadow-lg hover:bg-indigo-700 
-                      transition-colors text-white
-                      disabled:opacity-40 disabled:cursor-not-allowed"
-            title="Change photo"
-          >
-            <Camera className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* Loading indicator */}
         {isUploading && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
@@ -230,16 +183,38 @@ export function ProfilePhotoUploader({
         )}
       </div>
 
-      {/* Status messages */}
+      {displayImage && !isUploading && (
+        <div className="flex items-center gap-1.5 mt-2">
+          <button
+            onClick={() => { if (!disabled) fileInputRef.current?.click() }}
+            disabled={disabled}
+            className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full
+                       hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Camera className="w-3 h-3" />
+            Change
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={disabled}
+            className="flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-500 text-xs font-medium rounded-full
+                       hover:bg-red-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <X className="w-3 h-3" />
+            Remove
+          </button>
+        </div>
+      )}
+
       {error && (
-        <div className="mt-2 flex items-center gap-2 text-red-500 text-sm">
-          <AlertCircle className="w-4 h-4" />
+        <div className="mt-2 flex items-center gap-1.5 text-red-500 text-xs">
+          <AlertCircle className="w-3.5 h-3.5" />
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="mt-2 flex items-center gap-2 text-green-600 text-sm">
-          <CheckCircle className="w-4 h-4" />
+        <div className="mt-2 flex items-center gap-1.5 text-green-600 text-xs">
+          <CheckCircle className="w-3.5 h-3.5" />
           <span>{success}</span>
         </div>
       )}

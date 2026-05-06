@@ -1,4 +1,4 @@
-import { LogOut, Home, Compass, BookOpen, Bell, User } from 'lucide-react'
+import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool } from 'lucide-react'
 import { User as UserType } from '../hooks/useApi'
 import { Screen } from '../App'
 
@@ -17,6 +17,8 @@ const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) =>
       return <User className={iconClass} />
     case 'words':
       return <BookOpen className={iconClass} />
+    case 'grammar':
+      return <PenTool className={iconClass} />
     case 'notifications':
       return <Bell className={iconClass} />
     default:
@@ -37,12 +39,14 @@ export function Header({
   active,
   onNav,
   onLogout,
+  unreadCount,
 }: {
   user: UserType
   nav: NavItem[]
   active: Screen
   onNav: (key: Screen) => void
   onLogout: () => void
+  unreadCount?: number
 }) {
   return (
     <div className="flex items-center gap-4">
@@ -58,7 +62,14 @@ export function Header({
                 : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
               }`}
           >
-            <NavIcon screen={item.key} isActive={active === item.key} />
+            <div className="relative">
+              <NavIcon screen={item.key} isActive={active === item.key} />
+              {item.key === 'notifications' && (unreadCount || 0) > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount! > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </div>
             {item.label}
           </button>
         ))}
@@ -70,7 +81,7 @@ export function Header({
           <button
             key={item.key}
             onClick={() => onNav(item.key)}
-            className={`p-2 rounded-xl transition-all duration-200
+            className={`p-2 rounded-xl transition-all duration-200 relative
               ${active === item.key 
                 ? 'bg-indigo-100 text-indigo-600' 
                 : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
@@ -78,6 +89,11 @@ export function Header({
             title={item.label}
           >
             <NavIcon screen={item.key} isActive={active === item.key} />
+            {item.key === 'notifications' && (unreadCount || 0) > 0 && (
+              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {unreadCount! > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
         ))}
       </div>

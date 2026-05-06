@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.core.streak import update_streak
-from app.models import Post, User, Like, Comment
+from app.models import Post, User, Like, Comment, Word
 from app.schemas.post import PostCreate, PostOut
 from app.schemas.comment import CommentCreate, CommentOut
 from sqlalchemy.orm import joinedload
@@ -21,7 +21,18 @@ def _decorate_post(db: Session, post: Post, viewer_id: int | None = None) -> Pos
         ) is not None
     comments_count = db.scalar(select(func.count()).where(Comment.post_id == post.id)) or 0
     sanitized = _sanitize_image(post.image_url)
-    return PostOut.from_orm(post).copy(update={"comments_count": comments_count, "liked_by_me": liked, "image_url": sanitized})
+    out = PostOut.from_orm(post).copy(update={"comments_count": comments_count, "liked_by_me": liked, "image_url": sanitized})
+    if post.word_id:
+        word = db.get(Word, post.word_id)
+        if word:
+            out.word = {
+                "id": word.id,
+                "term": word.term,
+                "meaning": word.meaning,
+                "note": word.note,
+                "is_singular": word.is_singular,
+            }
+    return out
 
 
 def _sanitize_image(url: str | None) -> str | None:
@@ -44,7 +55,7 @@ def create_post(payload: PostCreate, db: Session = Depends(get_db)):
     # auto-expire stories
     if post.type == "story":
         hours = payload.expires_in_hours or 24
-        post.expires_at = datetime.utcnow() + timedelta(hours=hours)
+        post.expires_at = datetime.now(datetime.UTC) + timedelta(hours=hours)
     post.ensure_expiry()
     db.add(post)
     update_streak(user, db)
@@ -59,7 +70,7 @@ def get_post(post_id: int, viewer_id: int | None = None, db: Session = Depends(g
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     # Hide expired stories
-    if post.type == "story" and post.expires_at and post.expires_at < datetime.utcnow():
+    if post.type == "story" and post.expires_at and post.expires_at < datetime.now(datetime.UTC):
         raise HTTPException(status_code=404, detail="Post expired")
     return _decorate_post(db, post, viewer_id=viewer_id or 0)
 

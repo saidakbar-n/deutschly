@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Landing } from './screens/Landing'
 import { Profile } from './screens/Profile'
 import { Feed } from './screens/Feed'
@@ -6,15 +6,17 @@ import { Search } from './screens/Search'
 import { Words } from './screens/Words'
 import { Onboarding } from './screens/Onboarding'
 import { Notifications } from './components/Notifications'
+import GrammarPracticer from './screens/GrammarPracticer'
 
 import { useSession } from './hooks/useSession'
 import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
-import { Home, Compass, User as UserIcon, BookOpen, Bell } from 'lucide-react'
+import { fetchNotifications } from './hooks/useApi'
+import { Home, Compass, User as UserIcon, BookOpen, Bell, PenTool } from 'lucide-react'
 
-export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile'
+export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar'
 
 function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
@@ -23,13 +25,20 @@ function App() {
   const [onboarded, setOnboarded] = useState(() => {
     return localStorage.getItem('deutschly:onboarded') === 'true'
   })
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    fetchNotifications(user.id, 1, 0).then((d) => setUnreadCount(d.unread_count || 0))
+  }, [user, screen])
 
   const nav = useMemo(
     () => [
       { key: 'feed' as Screen, label: 'Feed' },
       { key: 'search' as Screen, label: 'Discover' },
-      { key: 'profile' as Screen, label: 'Profile' },
       { key: 'words' as Screen, label: 'Words' },
+      { key: 'grammar' as Screen, label: 'Grammar' },
+      { key: 'profile' as Screen, label: 'Profile' },
       { key: 'notifications' as Screen, label: 'Alerts' },
     ],
     []
@@ -92,7 +101,8 @@ function App() {
               nav={nav} 
               active={screen} 
               onNav={setScreen} 
-              onLogout={signOut} 
+              onLogout={signOut}
+              unreadCount={unreadCount}
             />
           </div>
         </header>
@@ -107,7 +117,8 @@ function App() {
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
               {screen === 'search' && <Search onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
-              {screen === 'words' && <Words user={user} />}
+              {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
+              {screen === 'grammar' && <GrammarPracticer />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} />}
               {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} />}
               {screen === 'notifications' && <Notifications user={user} />}
@@ -120,44 +131,8 @@ function App() {
           ============================================ */}
           <div className="space-y-4 hidden md:block">
             
-            {/* User Progress Card */}
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-sky-100 rounded-2xl flex items-center justify-center">
-                  <WolfLogo className="w-10 h-10" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-lg">@{user.username}</p>
-                  <p className="text-sm text-slate-600">
-                    {user.city || 'City TBD'} · <span className={`level-badge level-${user.level.toLowerCase()}`}>{user.level}</span>
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-indigo-700">{user.words_count}</p>
-                  <p className="text-sm text-indigo-600 font-medium">words learned</p>
-                </div>
-                
-                {(user.streak || 0) > 0 ? (
-                  <div className="flex items-center justify-center gap-2 bg-orange-50 rounded-xl p-3">
-                    <span className="text-2xl">🔥</span>
-                    <div>
-                      <p className="font-bold text-orange-700 text-lg leading-none">{user.streak} day streak</p>
-                      <p className="text-xs text-orange-500">Keep it going!</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 text-center">
-                    Post or add a word to start your streak 🔥
-                  </p>
-                )}
-              </div>
-            </div>
-
             {/* Quick Stats */}
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
                 <svg className="w-5 h-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 3 L15 9 L21 12 L15 15 L12 21 L9 15 L3 12 L9 9 L12 3" />
@@ -165,12 +140,12 @@ function App() {
                 Learning Stats
               </h3>
               <div className="space-y-3">
-                {[
-                  { label: 'Words', value: user.words_count || 0 },
-                  { label: 'Posts', value: user.posts_count || 0 },
-                  { label: 'Followers', value: user.followers_count || 0 },
-                  { label: 'Following', value: user.following_count || 0 },
-                ].map((stat, i) => (
+               {[
+                   { label: 'Words', value: user.words_count || 0 },
+                   { label: 'Posts', value: user.posts_count || 0 },
+                   { label: 'Streak', value: user.streak || 0 },
+                   { label: 'Grammar', value: user.streak || 0 },
+                 ].map((stat, i) => (
                   <div 
                     key={stat.label} 
                     className="flex justify-between items-center p-2 bg-slate-50 rounded-xl opacity-0 animate-qaw-fade-in-up stagger-1"
@@ -184,7 +159,7 @@ function App() {
             </div>
 
             {/* Feature Highlight Card */}
-            <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 border-0 animate-qaw-fade-in-up" style={{ animationDelay: '0.8s' }}>
+            <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 border-0 animate-qaw-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <div className="text-center space-y-3">
                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto">
                   <svg className="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -209,26 +184,34 @@ function App() {
       {/* Mobile Bottom Navigation - Only on small screens */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
         <div className="flex justify-around items-center py-2 px-4">
-          {[
-            { key: 'feed' as Screen, icon: Home, label: 'Feed' },
-            { key: 'search' as Screen, icon: Compass, label: 'Discover' },
-            { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
-            { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
-            { key: 'notifications' as Screen, icon: Bell, label: 'Alerts' },
-          ].map((item) => {
+           {[
+             { key: 'feed' as Screen, icon: Home, label: 'Feed' },
+             { key: 'search' as Screen, icon: Compass, label: 'Discover' },
+             { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
+             { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+             { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
+             { key: 'notifications' as Screen, icon: Bell, label: 'Alerts', badge: unreadCount },
+           ].map((item) => {
             const Icon = item.icon
             const isActive = screen === item.key
             return (
               <button
                 key={item.key}
-                onClick={() => setScreen(item.key)}
+                onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0) }}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
-                <Icon size={22} />
+                <div className="relative">
+                  <Icon size={22} />
+                  {item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs font-semibold">{item.label}</span>
               </button>
             )

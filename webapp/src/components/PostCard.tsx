@@ -1,5 +1,14 @@
+import { useState } from 'react'
 import { Heart, MessageCircle, UserPlus, MoreVertical, Trash2 } from 'lucide-react'
 import { getImageUrl } from '../hooks/useApi'
+
+export type PostWord = {
+  id: number
+  term: string
+  meaning: string
+  note?: string
+  is_singular?: boolean
+}
 
 export type PostCardProps = {
   id: number
@@ -16,6 +25,15 @@ export type PostCardProps = {
   commentsOpen?: boolean
   currentUserId?: number
   onDelete?: () => void
+  word?: PostWord | null
+}
+
+function getArticleColor(term: string, isSingular: boolean): string {
+  const trimmedTerm = term.trim().toLowerCase()
+  if (trimmedTerm.startsWith('der ')) return 'bg-blue-100 text-blue-700'
+  if (trimmedTerm.startsWith('das ')) return 'bg-green-100 text-green-700'
+  if (trimmedTerm.startsWith('die ')) return isSingular ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+  return ''
 }
 
 // QA Wolf-style type badge
@@ -55,9 +73,11 @@ export function PostCard({
   currentUserId,
   onDelete,
   timestamp,
+  word,
 }: PostCardProps) {
   const safeImage = getImageUrl(image_url)
   const isMine = currentUserId !== undefined && author.id === currentUserId
+  const [wordFlipped, setWordFlipped] = useState(false)
   
   return (
     <div className="card group hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 w-full">
@@ -110,6 +130,36 @@ export function PostCard({
         <p className="text-slate-700 mb-3 sm:mb-4 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
           {text}
         </p>
+      )}
+
+      {word && (
+        <div
+          className="relative cursor-pointer select-none"
+          onClick={() => setWordFlipped((f) => !f)}
+        >
+          <div className="bg-gradient-to-br from-indigo-50 to-sky-50 border border-indigo-100 rounded-xl p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-md">
+            {!wordFlipped ? (
+              <>
+                <p className="text-xs text-indigo-400 font-medium mb-1">Vocabulary</p>
+                <p className="text-base sm:text-lg font-bold text-slate-900">
+                  {word.term.split(' ')[0] && (
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${getArticleColor(word.term, word.is_singular !== false)}`}>
+                      {word.term.split(' ')[0]}
+                    </span>
+                  )}
+                  <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
+                </p>
+                <p className="text-[10px] text-indigo-400 mt-1">Tap to reveal meaning</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-indigo-400 font-medium mb-1">Meaning</p>
+                <p className="text-base sm:text-lg font-semibold text-indigo-700">{word.meaning}</p>
+                {word.note && <p className="text-xs text-slate-500 mt-1">{word.note}</p>}
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Post Actions */}

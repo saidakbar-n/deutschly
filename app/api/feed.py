@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -26,7 +26,7 @@ def _score_post(post: Post, user: User, followed_ids: set[int], variant: str) ->
         if any(t in text for t in topics):
             score += 2
     # recency (newer is better)
-    age_hours = (datetime.utcnow() - post.timestamp).total_seconds() / 3600
+    age_hours = (datetime.now(timezone.utc) - post.timestamp).total_seconds() / 3600
     score += max(0, 3 - (age_hours / 6))  # decay over time
 
     if variant == "recency":
@@ -72,7 +72,7 @@ def get_feed(
     stmt = select(Post).where(
         (Post.type != "story")
         | (Post.expires_at.is_(None))
-        | (Post.expires_at > datetime.utcnow())
+        | (Post.expires_at > datetime.now(timezone.utc))
     )
 
     candidates = db.scalars(stmt).all()
@@ -109,7 +109,7 @@ def get_discover_feed(user_id: int, limit: int = 20, offset: int = 0, db: Sessio
     
     stmt = select(Post).where(
         Post.user_id.not_in(followed_ids),
-        (Post.type != "story") | (Post.expires_at.is_(None)) | (Post.expires_at > datetime.utcnow())
+        (Post.type != "story") | (Post.expires_at.is_(None)) | (Post.expires_at > datetime.now(timezone.utc))
     )
     if user.level:
         stmt = stmt.where(Post.level_tag == user.level)

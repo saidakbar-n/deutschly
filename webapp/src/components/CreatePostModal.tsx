@@ -1,6 +1,14 @@
-import { useState } from 'react'
-import { createPost, PostPayload, uploadPostImage } from '../hooks/useApi'
-import { Image, X, Type, Tag, Send } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createPost, PostPayload, uploadPostImage, listWords } from '../hooks/useApi'
+import { Image, X, Type, Tag, Send, BookOpen, ChevronDown } from 'lucide-react'
+
+type Word = {
+  id: number
+  term: string
+  meaning: string
+  note?: string
+  is_singular?: boolean
+}
 
 export function CreatePostModal({ userId, onCreated }: { userId: number; onCreated?: () => void }) {
   const [open, setOpen] = useState(false)
@@ -10,6 +18,14 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const [words, setWords] = useState<Word[]>([])
+  const [selectedWordId, setSelectedWordId] = useState<number | null>(null)
+  const [wordDropdownOpen, setWordDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    listWords(userId, 100).then((data) => setWords(data || [])).catch(() => setWords([]))
+  }, [open, userId])
 
   const submit = async () => {
     if (!text.trim()) return
@@ -26,6 +42,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
         text,
         level_tag: level,
         image_url: finalImageUrl || undefined,
+        word_id: selectedWordId || undefined,
       })
       setOpen(false)
       setText('')
@@ -33,6 +50,8 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
       setPreviewUrl('')
       setLevel('A1')
       setType('story')
+      setSelectedWordId(null)
+      setWordDropdownOpen(false)
       onCreated?.()
     } finally {
       setLoading(false)
@@ -66,6 +85,8 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               setPreviewUrl('')
               setLevel('A1')
               setType('story')
+              setSelectedWordId(null)
+              setWordDropdownOpen(false)
             }}
           >
             <X size={20} />
@@ -164,6 +185,54 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
           </div>
         </div>
 
+        {/* Attach a Word */}
+        <div className="mb-4 sm:mb-6">
+          <label className="block text-sm font-medium text-slate-700 ml-1 flex items-center gap-1.5 mb-1.5">
+            <BookOpen size={16} className="text-indigo-500" />
+            Attach a Word (optional)
+          </label>
+          <div className="relative">
+            <button
+              className="w-full flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-slate-50 text-left hover:border-indigo-300 transition-colors"
+              onClick={() => setWordDropdownOpen(!wordDropdownOpen)}
+            >
+              <span className="text-sm text-slate-700">
+                {selectedWordId
+                  ? words.find(w => w.id === selectedWordId)?.term || 'Selected word'
+                  : 'Pick one of your words…'}
+              </span>
+              <ChevronDown size={16} className="text-slate-400 shrink-0" />
+            </button>
+            {wordDropdownOpen && words.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden animate-qaw-fade-in-up max-h-48 overflow-y-auto">
+                {words.map((w) => (
+                  <button
+                    key={w.id}
+                    className="w-full flex flex-col items-start px-4 py-2 text-sm hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0"
+                    onClick={() => { setSelectedWordId(w.id); setWordDropdownOpen(false) }}
+                  >
+                    <span className="font-medium text-slate-900">{w.term}</span>
+                    <span className="text-xs text-slate-500">{w.meaning}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {wordDropdownOpen && words.length === 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 p-4 text-center">
+                <p className="text-sm text-slate-500">No words yet. Add some on the Words tab first!</p>
+              </div>
+            )}
+          </div>
+          {selectedWordId && (
+            <button
+              className="text-xs text-indigo-500 hover:text-indigo-700 mt-1.5 ml-1 font-medium"
+              onClick={() => setSelectedWordId(null)}
+            >
+              Remove attached word
+            </button>
+          )}
+        </div>
+
         {/* Action Buttons */}
         <div className="flex gap-2 sm:gap-4">
           <button
@@ -175,6 +244,8 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               setPreviewUrl('')
               setLevel('A1')
               setType('story')
+              setSelectedWordId(null)
+              setWordDropdownOpen(false)
             }}
             disabled={loading}
           >

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -28,11 +28,12 @@ def get_notifications(
     notifications = db.scalars(stmt).all()
 
     # Count unread notifications
-    unread_stmt = select(Notification).where(
-        Notification.user_id == user_id,
-        Notification.is_read == 0,
-    )
-    unread_count = db.scalars(select([unread_stmt.subquery().c.id])).count()
+    unread_count = db.scalar(
+        select(func.count(Notification.id)).where(
+            Notification.user_id == user_id,
+            Notification.is_read == 0
+        )
+    ) or 0
 
     return NotificationListResponse(
         notifications=notifications,

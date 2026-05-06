@@ -341,10 +341,20 @@ export const WolfAvatar = ({
 // Wolf Logo (For header)
 // ============================================
 
+export const PixelD = ({ className = '', color = 'text-indigo-500' }: WolfIllustrationProps) => (
+  <svg className={`${className} ${color}`} viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 2 H10 V4 H12 V6 H14 V10 H12 V12 H10 V14 H2 Z" />
+  </svg>
+)
+
+// ============================================
+// Wolf Logo (For header)
+// ============================================
+
 export const WolfLogo = ({ className = '', showText = false }: { className?: string; showText?: boolean }) => (
   <div className={`flex items-center gap-3 ${className}`}>
     <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-      <PixelWolfHead className="w-5 h-5 text-white" />
+      <PixelD className="w-6 h-6 text-white" />
     </div>
     {showText && (
       <span className="text-xl font-bold text-gradient-indigo">Deutschly</span>

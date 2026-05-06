@@ -70,6 +70,30 @@ export type PostPayload = {
   text?: string
   image_url?: string
   level_tag?: string
+  word_id?: number
+}
+
+export type PostWord = {
+  id: number
+  term: string
+  meaning: string
+  note?: string
+  is_singular?: boolean
+}
+
+export type PostOut = {
+  id: number
+  user_id: number
+  type: string
+  text?: string
+  image_url?: string
+  level_tag?: string
+  likes: number
+  timestamp: string
+  comments_count: number
+  liked_by_me: boolean
+  word_id?: number
+  word?: PostWord
 }
 
 export async function signup(data: WebSignupPayload): Promise<User> {
@@ -241,7 +265,7 @@ export async function uploadPostImage(userId: number, file: File): Promise<{ url
   const formData = new FormData()
   formData.append('user_id', String(userId))
   formData.append('file', file)
-  const res = await api.post('/upload/profile-photo', formData, {
+  const res = await api.post('/upload/post-image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
   return res.data
@@ -340,5 +364,100 @@ export async function deleteWordFolder(folderId: number, userId: number): Promis
 
 export async function reorderWordFolders(folders: { id: number; sort_order: number }[]): Promise<{ detail: string }> {
   const res = await api.post('/folders/reorder', folders)
+  return res.data
+}
+
+// Grammar Practicer types and API functions
+export type GrammarRule = {
+  id: number
+  name: string
+  description: string | null
+  level: string | null
+  category: string | null
+}
+
+export type GrammarExercise = {
+  id: number
+  rule_id: number
+  type: string
+  prompt_text: string
+  expected_answer: string
+  native_sentence: string | null
+  infinitive_verb: string | null
+  difficulty: number | null
+  llm_prompt_used: string | null
+  created_at: string
+}
+
+export type UserGrammarAttempt = {
+  id: number
+  user_id: number
+  exercise_id: number
+  user_input: string
+  is_correct: boolean
+  feedback_explanation: string | null
+  rule_missed_id: number | null
+  attempt_timestamp: string
+}
+
+export type UserGrammarProgress = {
+  id: number
+  user_id: number
+  rule_id: number
+  correct_attempts: number
+  total_attempts: number
+  last_practiced_at: string
+  streak_eligible_today: boolean
+}
+
+export async function fetchGrammarRules(): Promise<GrammarRule[]> {
+  const res = await api.get('/grammar/rules')
+  return res.data
+}
+
+export async function fetchGrammarExercises(
+  userId: number,
+  options?: {
+    rule_id?: number
+    type?: string
+    difficulty?: number
+    limit?: number
+  }
+): Promise<GrammarExercise[]> {
+  const res = await api.get(`/grammar/exercises/${userId}`, { params: options })
+  return res.data
+}
+
+export async function submitGrammarAnswer(
+  exerciseId: number,
+  userId: number,
+  userInput: string
+): Promise<UserGrammarAttempt> {
+  const res = await api.post(`/grammar/submit/${exerciseId}`, {
+    user_id: userId,
+    user_input: userInput
+  })
+  return res.data
+}
+
+export async function submitShadowingAnswer(
+  exerciseId: number,
+  userId: number,
+  userInput: string
+): Promise<UserGrammarAttempt> {
+  const res = await api.post(`/grammar/shadowing-feedback/${exerciseId}`, {
+    user_id: userId,
+    user_input: userInput
+  })
+  return res.data
+}
+
+export async function fetchGrammarProgress(userId: number): Promise<UserGrammarProgress[]> {
+  const res = await api.get(`/grammar/progress/${userId}`)
+  return res.data
+}
+
+export async function fetchMistakeReplayQuiz(userId: number): Promise<GrammarExercise[]> {
+  const res = await api.get(`/grammar/mistake-replay/${userId}`)
   return res.data
 }

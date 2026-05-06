@@ -564,7 +564,7 @@ export function Landing({
 
       {/* Footer */}
       <div className="relative z-10 mt-16 text-center text-sm text-slate-400">
-        <p>© 2025 Deutschly. All rights reserved.</p>
+        <p>© 2026 Deutschly. All rights reserved.</p>
       </div>
     </div>
   )

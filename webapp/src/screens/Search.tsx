@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { searchUsers, getImageUrl } from '../hooks/useApi'
 import type { User } from '../hooks/useApi'
 
@@ -22,6 +22,10 @@ export function Search({ onViewUser }: SearchProps) {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (level) run()
+  }, [level])
 
   return (
     <div className="card space-y-3">

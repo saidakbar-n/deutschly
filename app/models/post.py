@@ -14,6 +14,7 @@ class Post(Base):
     text = Column(Text)
     image_url = Column(Text)
     level_tag = Column(String(10))
+    word_id = Column(Integer, ForeignKey("words.id"), nullable=True)
     likes = Column(Integer, default=0)
     timestamp = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=True)
@@ -21,7 +22,8 @@ class Post(Base):
     user = relationship("User", back_populates="posts")
     likes_rel = relationship("Like", back_populates="post", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    word = relationship("Word", backref="posts")
 
     def ensure_expiry(self):
         if self.type == "story" and not self.expires_at:
-            self.expires_at = datetime.utcnow() + timedelta(hours=24)
+            self.expires_at = datetime.now(datetime.UTC) + timedelta(hours=24)

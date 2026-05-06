@@ -3,6 +3,7 @@ import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowi
 import { PostCard } from '../components/PostCard'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
+import { WordCard } from '../components/WordCard'
 import type { TabType } from '../components/FollowersFollowingModal'
 import { ArrowLeft, Loader2, Folder, FolderOpen } from 'lucide-react'
 
@@ -243,11 +244,11 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         </button>
       )}
 
-      {/* Profile Header - Responsive Grid */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start">
-          {/* Profile Photo Section - Centered on mobile, left on desktop */}
-          <div className="flex flex-col items-center md:items-start gap-3 md:gap-4">
+      {/* Profile Header - Responsive */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-5 md:p-8">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+          {/* Profile Photo */}
+          <div className="shrink-0">
             {isOwnProfile ? (
               <ProfilePhotoUploader
                 userId={user.id}
@@ -262,201 +263,92 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                 <img
                   src={getImageUrl(user.profile_photo)}
                   alt={user.username}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-lg"
+                  className="w-20 h-20 md:w-28 md:h-28 rounded-full object-cover ring-4 ring-white shadow-lg"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center ring-4 ring-white shadow-lg">
-                  <span className="text-indigo-600 font-bold text-2xl">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-indigo-100 to-sky-100 flex items-center justify-center ring-4 ring-white shadow-lg">
+                  <span className="text-indigo-600 font-bold text-2xl md:text-3xl">
                     {user.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )
             )}
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl font-bold text-slate-900">{user.username}</h1>
-              <p className="text-sm text-slate-500 capitalize">{user.full_name}</p>
-              {user.age && <p className="text-sm text-slate-500">{user.age} years old</p>}
-            </div>
           </div>
 
-          {/* User Info Section */}
-          <div className="md:col-span-2 space-y-4">
+          {/* User Info */}
+          <div className="flex-1 min-w-0 text-center md:text-left">
             {editMode ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                transition-all"
-                      placeholder="Enter your full name"
-                      value={form.full_name}
-                      onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                    />
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Full Name</label>
+                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">
-                      Username
-                    </label>
-                    <input
-                      className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                transition-all"
-                      placeholder="Choose a username"
-                      value={form.username}
-                      onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    />
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Username</label>
+                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">
-                      Age
-                    </label>
-                    <input
-                      className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                transition-all"
-                      type="number"
-                      placeholder="Your age"
-                      value={form.age}
-                      onChange={(e) => setForm({ ...form, age: e.target.value })}
-                    />
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Age</label>
+                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">
-                      City
-                    </label>
-                    <input
-                      className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                transition-all"
-                      placeholder="Where are you from?"
-                      value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    />
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">City</label>
+                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">
-                      German Level
-                    </label>
-                    <select
-                      className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                                transition-all"
-                      value={form.level}
-                      onChange={(e) => setForm({ ...form, level: e.target.value as User['level'] })}
-                    >
-                      {['A1', 'A2', 'B1', 'B2', 'C1'].map((l) => (
-                        <option key={l} value={l}>
-                          {l}
-                        </option>
-                      ))}
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">German Level</label>
+                    <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value as User['level'] })}>
+                      {['A1', 'A2', 'B1', 'B2', 'C1'].map((l) => (<option key={l} value={l}>{l}</option>))}
                     </select>
                   </div>
                 </div>
-
-                {/* About Section */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-1">
-                    About You
-                  </label>
-                  <textarea
-                    className="w-full border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white
-                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                              transition-all resize-none"
-                    placeholder="Tell us about yourself..."
-                    rows={4}
-                    value={form.about}
-                    onChange={(e) => setForm({ ...form, about: e.target.value })}
-                  />
+                <div className="text-left">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">About</label>
+                  <textarea className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none" rows={3} value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} />
                 </div>
-
-                {/* Save & Cancel Buttons */}
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200
-                              transition-all"
-                    onClick={() => {
-                      setEditMode(false)
-                      setForm({
-                        username: user.username,
-                        city: user.city || '',
-                        level: user.level,
-                        full_name: user.full_name || '',
-                        about: user.about || '',
-                        age: user.age ? String(user.age) : '',
-                      })
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold
-                              rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg shadow-indigo-200
-                              transition-all duration-200 hover:shadow-xl hover:shadow-indigo-300
-                              disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={save}
-                    disabled={status === 'Saving...'}
-                  >
-                    {status === 'Saving...' ? 'Saving...' : 'Save Profile'}
-                  </button>
-                  {status === 'Saved' && (
-                    <span className="ml-3 text-green-600 text-sm font-medium">Saved!</span>
-                  )}
+                <div className="flex justify-center md:justify-end gap-2 pt-1">
+                  <button className="px-5 py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-all text-sm" onClick={() => { setEditMode(false); setForm({ username: user.username, city: user.city || '', level: user.level, full_name: user.full_name || '', about: user.about || '', age: user.age ? String(user.age) : '' }); }}>Cancel</button>
+                  <button className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all text-sm disabled:opacity-50" onClick={save} disabled={status === 'Saving...'}>{status === 'Saving...' ? 'Saving...' : 'Save'}</button>
+                  {status === 'Saved' && <span className="ml-2 text-green-600 text-sm font-medium self-center">Saved!</span>}
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                {/* Display Mode - Show user info */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">Full Name</p>
-                      <p className="text-slate-900">{user.full_name || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">Username</p>
-                      <p className="text-slate-900">{user.username}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">Age</p>
-                      <p className="text-slate-900">{user.age || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">City</p>
-                      <p className="text-slate-900">{user.city || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">German Level</p>
-                      <p className="text-slate-900">
-                        <span className={`level-badge level-${user.level.toLowerCase()}`}>{user.level}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* About Section */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-left">
                   <div>
-                    <p className="text-sm font-semibold text-slate-600 mb-1">About You</p>
-                    <p className="text-slate-900">{user.about || 'No description yet.'}</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Full Name</p>
+                    <p className="text-sm text-slate-800 mt-0.5">{user.full_name || '—'}</p>
                   </div>
-
-                  {/* Edit Button - Only for own profile */}
-                  {isOwnProfile && (
-                    <div className="flex justify-end pt-2">
-                      <button
-                        className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold
-                                  rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg shadow-indigo-200
-                                  transition-all duration-200 hover:shadow-xl hover:shadow-indigo-300"
-                        onClick={() => setEditMode(true)}
-                      >
-                        Edit Profile
-                      </button>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Username</p>
+                    <p className="text-sm text-slate-800 mt-0.5">@{user.username}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Age</p>
+                    <p className="text-sm text-slate-800 mt-0.5">{user.age || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">City</p>
+                    <p className="text-sm text-slate-800 mt-0.5">{user.city || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Level</p>
+                    <p className="mt-0.5"><span className={`level-badge level-${user.level.toLowerCase()}`}>{user.level}</span></p>
+                  </div>
                 </div>
-              </>
+                {user.about && (
+                  <div className="text-left">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">About</p>
+                    <p className="text-sm text-slate-700 mt-1 leading-relaxed">{user.about}</p>
+                  </div>
+                )}
+                {isOwnProfile && (
+                  <div className="flex justify-center md:justify-end pt-1">
+                    <button className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all duration-200 text-sm" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -610,28 +502,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {wordsByFolder.uncategorized.map((w) => (
-                        <div
-                          key={w.id}
-                          className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900 text-base md:text-lg truncate">{w.term}</p>
-                            <p className="text-slate-600 text-xs md:text-sm mt-1 truncate">{w.meaning}</p>
-                            {w.note && <p className="text-slate-500 text-xs mt-1 italic truncate">{w.note}</p>}
-                          </div>
-                          <div className="flex gap-2 flex-shrink-0 ml-2">
-                            {w.is_singular !== undefined && (
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                              }`}>
-                                {w.is_singular ? 'Singular' : 'Plural'}
-                              </span>
-                            )}
-                            <span className="text-xs text-slate-400 hidden sm:inline">
-                              {new Date(w.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
+                        <WordCard key={w.id} term={w.term} meaning={w.meaning} note={w.note} is_singular={w.is_singular} created_at={w.created_at} />
                       ))}
                     </div>
                   </div>
@@ -656,28 +527,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {words.map((w) => (
-                          <div
-                            key={w.id}
-                            className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-slate-900 text-base md:text-lg truncate">{w.term}</p>
-                              <p className="text-slate-600 text-xs md:text-sm mt-1 truncate">{w.meaning}</p>
-                              {w.note && <p className="text-slate-500 text-xs mt-1 italic truncate">{w.note}</p>}
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0 ml-2">
-                              {w.is_singular !== undefined && (
-                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                  w.is_singular ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                }`}>
-                                  {w.is_singular ? 'Singular' : 'Plural'}
-                                </span>
-                              )}
-                              <span className="text-xs text-slate-400 hidden sm:inline">
-                                {new Date(w.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
+                          <WordCard key={w.id} term={w.term} meaning={w.meaning} note={w.note} is_singular={w.is_singular} created_at={w.created_at} />
                         ))}
                       </div>
                     </div>

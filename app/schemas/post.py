@@ -9,6 +9,7 @@ class PostBase(BaseModel):
     text: Optional[str] = None
     image_url: Optional[str] = None
     level_tag: Optional[str] = None
+    word_id: Optional[int] = None
     expires_in_hours: Optional[int] = Field(default=None, ge=1, le=72)
 
 
@@ -28,6 +29,8 @@ class PostOut(BaseModel):
     expires_at: Optional[datetime]
     comments_count: int = 0
     liked_by_me: bool = False
+    word_id: Optional[int] = None
+    word: Optional[dict] = None
 
     class Config:
         orm_mode = True

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder } from '../hooks/useApi'
+import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay } from '../hooks/useApi'
 import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen } from 'lucide-react'
 
 // Helper function to get article color based on term and singular/plural
@@ -11,11 +11,10 @@ function getArticleColor(term: string, isSingular: boolean): string {
   if (trimmedTerm.startsWith('die ')) {
     return isSingular ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
   }
-  return ''
+  return 'bg-slate-100 text-black' // Default black label when no article
 }
 
-// Function to determine if a word is singular (default true)
-// User can pass isSingular flag: true for singular, false for plural
+// Function to get article info for display
 function getWordArticleInfo(term: string, isSingular: boolean = true): { color: string; article: string } {
   const trimmedTerm = term.trim()
   const firstWord = trimmedTerm.split(' ')[0]?.toLowerCase() || ''
@@ -27,7 +26,7 @@ function getWordArticleInfo(term: string, isSingular: boolean = true): { color: 
       ? { color: 'bg-red-100 text-red-700', article: 'die (singular)' }
       : { color: 'bg-gray-100 text-gray-700', article: 'die (plural)' }
   }
-  return { color: '', article: '' }
+  return { color: 'bg-slate-100 text-black', article: '—' } // Default black when no article
 }
 
 type Word = {
@@ -125,20 +124,18 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder }: { userId: num
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
-      <div className="flex items-center gap-2 md:gap-3 py-2">
-        <label className="flex items-center gap-1.5 md:gap-2 cursor-pointer">
-          <span className={`text-xs md:text-sm font-medium ${isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Singular</span>
+      <div className="flex items-center gap-3 py-1">
+        <span className={`text-sm font-medium ${isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Singular</span>
+        <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
-            className="sr-only"
+            className="sr-only peer"
             checked={!isSingular}
             onChange={(e) => setIsSingular(!e.target.checked)}
           />
-          <span className={`w-8 md:w-10 h-4 md:h-5 rounded-full transition-colors ${isSingular ? 'bg-indigo-200' : 'bg-indigo-500'}`}>
-            <span className={`block w-3 md:w-4 h-3 md:h-4 rounded-full bg-white shadow-md transform transition-transform ${isSingular ? 'translate-x-1 md:translate-x-1.5' : 'translate-x-4 md:translate-x-5'}`} />
-          </span>
-          <span className={`text-xs md:text-sm font-medium ${!isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Plural</span>
+          <div className="w-11 h-6 bg-slate-200 peer-checked:bg-indigo-500 rounded-full transition-colors duration-200 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-md after:transition-transform after:duration-200 peer-checked:after:translate-x-full"></div>
         </label>
+        <span className={`text-sm font-medium ${!isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Plural</span>
       </div>
       <div className="relative">
         <button
@@ -400,74 +397,129 @@ function WordCard({
   onDelete,
   onSave,
   alreadySaved,
+  compact,
 }: {
   word: Word
   isMine: boolean
   onDelete?: () => void
   onSave?: () => void
   alreadySaved?: boolean
+  compact?: boolean
 }) {
   const [flipped, setFlipped] = useState(false)
+
+  if (compact) {
+    return (
+      <div
+        className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+      >
+        <div
+          className="flex-1 min-w-0 cursor-pointer"
+          onClick={() => setFlipped((f) => !f)}
+        >
+          {!flipped ? (
+            <>
+              <p className="font-semibold text-slate-900 text-lg truncate">
+                {(() => {
+                  const { article, colorClass } = getWordArticleInfo(word.term, word.is_singular !== false)
+                  return article ? (
+                    <span className={`inline-block px-2 py-1 rounded-lg text-xs font-bold border ${colorClass}`}>
+                      {article}
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2 py-1 rounded-lg text-xs font-bold border border-slate-300 text-slate-700">
+                      —
+                    </span>
+                  )
+                })()}
+                <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
+              </p>
+              {word.note && <p className="text-xs text-slate-400 mt-0.5 truncate">{word.note}</p>}
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-indigo-700">{word.meaning}</p>
+              {word.note && <p className="text-xs text-slate-400 mt-0.5 truncate">{word.note}</p>}
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-3" onClick={(e) => e.stopPropagation()}>
+          {isMine && onDelete && (
+            <button
+              className="p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              onClick={onDelete}
+              title="Delete word"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
       className="card group hover:shadow-lg hover:shadow-indigo-50 transition-all duration-200 cursor-pointer select-none touch-manipulation"
       onClick={() => setFlipped((f) => !f)}
     >
-      <div className="flex items-start justify-between gap-2 md:gap-3">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col py-2">
+        <div className="text-center">
           {!flipped ? (
             <>
-              <p className="text-base md:text-lg font-bold text-slate-900 truncate">
-                <span className={`inline-block px-1.5 md:px-2 py-0.5 rounded-md text-xs font-bold ${getArticleColor(word.term, word.is_singular !== false)}`}>
-                  {word.term.split(' ')[0]}
-                </span>
+              <p className="text-2xl font-bold text-slate-900">
+                {word.term.split(' ')[0] && (
+                  <span className={`inline-block px-2 py-1 rounded-lg text-base font-bold ${getArticleColor(word.term, word.is_singular !== false)}`}>
+                    {word.term.split(' ')[0]}
+                  </span>
+                )}
                 <span className="ml-1">{word.term.split(' ').slice(1).join(' ')}</span>
               </p>
-              <p className="text-xs text-indigo-400 mt-0.5 md:hidden">Tap to reveal</p>
+              <p className="text-xs text-indigo-400 mt-2 font-medium">Tap to reveal</p>
             </>
           ) : (
             <>
-              <p className="text-base md:text-lg font-semibold text-indigo-700">{word.meaning}</p>
-              {word.note && <p className="text-xs md:text-sm text-slate-500 mt-1 whitespace-pre-wrap">{word.note}</p>}
+              <p className="text-2xl font-semibold text-indigo-700">{word.meaning}</p>
+              {word.note && <p className="text-sm text-slate-500 mt-2 whitespace-pre-wrap">{word.note}</p>}
             </>
           )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-          {!isMine && onSave && (
-            <button
-              className={`p-2 md:p-2.5 rounded-xl transition-colors ${
-                alreadySaved
-                  ? 'text-indigo-400 bg-indigo-50 cursor-default'
-                  : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'
-              }`}
-              onClick={alreadySaved ? undefined : onSave}
-              title={alreadySaved ? 'Already saved' : 'Save to my words'}
-            >
-              <Bookmark size={16} className={alreadySaved ? 'fill-indigo-400' : ''} />
-            </button>
-          )}
-          {isMine && onDelete && (
-            <button
-              className="p-2 md:p-2.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-              onClick={onDelete}
-              title="Delete word"
-            >
-              <Trash2 size={15} className="md:size-16" />
-            </button>
-          )}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
+            {!isMine && word.user && (
+              <p className="text-xs text-slate-400">by {word.user.username}</p>
+            )}
+            {word.saved_from_id && (
+              <p className="text-xs text-indigo-300">Saved from community</p>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {!isMine && onSave && (
+              <button
+                className={`p-1.5 rounded-lg transition-colors ${
+                  alreadySaved
+                    ? 'text-indigo-400 bg-indigo-50 cursor-default'
+                    : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'
+                }`}
+                onClick={alreadySaved ? undefined : onSave}
+                title={alreadySaved ? 'Already saved' : 'Save to my words'}
+              >
+                <Bookmark size={14} className={alreadySaved ? 'fill-indigo-400' : ''} />
+              </button>
+            )}
+            {isMine && onDelete && (
+              <button
+                className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                onClick={onDelete}
+                title="Delete word"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {!isMine && word.user && (
-        <p className="text-[11px] text-slate-400 mt-2">
-          by {word.user.username} · {word.user.level}
-        </p>
-      )}
-      {word.saved_from_id && (
-        <p className="text-[11px] text-indigo-300 mt-1">Saved from community</p>
-      )}
     </div>
   )
 }
@@ -621,11 +673,12 @@ function QuizHistoryCard({ quiz }: { quiz: Quiz }) {
 }
 
 // ─── Main Words Screen ────────────────────────────────────────────
-export function Words({ user }: { user: User }) {
+export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () => void }) {
   const [tab, setTab] = useState<'mine' | 'community' | 'history'>('mine')
   const [myWords, setMyWords] = useState<Word[]>([])
   const [communityWords, setCommunityWords] = useState<Word[]>([])
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
+  const [wordOfDay, setWordOfDay] = useState<Word | null>(null)
   const [loading, setLoading] = useState(false)
   const [quizMode, setQuizMode] = useState(false)
   const [quizHistory, setQuizHistory] = useState<Quiz[]>([])
@@ -707,11 +760,17 @@ export function Words({ user }: { user: User }) {
   }, [loadWordsByFolder])
 
   useEffect(() => {
-    if (tab === 'community') loadCommunityWords()
+    if (tab === 'community') {
+      loadCommunityWords()
+      fetchWordOfTheDay().then(setWordOfDay).catch(() => {})
+    }
     if (tab === 'history') loadQuizHistory()
   }, [tab, loadCommunityWords, loadQuizHistory])
 
-  const handleAdded = (w: Word) => setMyWords((prev) => [w, ...prev])
+  const handleAdded = (w: Word) => {
+    setMyWords((prev) => [w, ...prev])
+    onUserUpdated?.()
+  }
 
   const handleDelete = async (wordId: number) => {
     await deleteWord(wordId, user.id)
@@ -808,6 +867,7 @@ export function Words({ user }: { user: User }) {
               word={w}
               isMine={true}
               onDelete={() => handleDelete(w.id)}
+              compact
             />
           ))}
         </div>
@@ -816,6 +876,23 @@ export function Words({ user }: { user: User }) {
       {/* Community Tab */}
       {tab === 'community' && (
         <div className="space-y-3">
+          {wordOfDay && wordOfDay.user_id !== user.id && (
+            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl p-4 text-white mb-2">
+              <p className="text-xs font-semibold opacity-75 mb-1 uppercase tracking-wide">⭐ Word of the Day</p>
+              <p className="text-2xl font-bold">{wordOfDay.term}</p>
+              <p className="text-indigo-200 mt-1">{wordOfDay.meaning}</p>
+              {!savedIds.has(wordOfDay.id) ? (
+                <button
+                  className="mt-3 bg-white/20 hover:bg-white/30 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  onClick={() => handleSave(wordOfDay)}
+                >
+                  + Save to my words
+                </button>
+              ) : (
+                <p className="mt-3 text-indigo-200 text-sm">✓ Saved</p>
+              )}
+            </div>
+          )}
           {communityWords.length === 0 && !loading && (
             <div className="text-center py-10 space-y-2">
               <p className="text-4xl">🌍</p>

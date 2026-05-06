@@ -26,6 +26,12 @@ export function Feed({ user, onDiscover, onUserUpdated }: { user: User; onDiscov
     const fetchFn = feedTab === 'following' ? fetchFeed : fetchDiscoverFeed
     const data = await fetchFn(userId, 20, 0)
     setItems(data.items || [])
+    const alreadyLiked = new Set<number>(
+      (data.items || [])
+        .filter((it: any) => it.post.liked_by_me)
+        .map((it: any) => it.post.id as number)
+    )
+    setLikedPosts(alreadyLiked)
     setLoading(false)
   }, [userId, feedTab])
 
@@ -158,6 +164,7 @@ export function Feed({ user, onDiscover, onUserUpdated }: { user: User; onDiscov
               onDelete={() => handleDelete(it.post.id)}
               commentsOpen={openPostId === it.post.id}
               currentUserId={userId}
+              word={it.post.word || null}
             />
             {openPostId === it.post.id && (
               <div className="border border-slate-200 rounded-xl p-2 sm:p-3 space-y-3 bg-slate-50">

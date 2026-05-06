@@ -9,5 +9,9 @@ from app.models.word import Word
 from app.models.word_folder import WordFolder
 from app.models.notification import Notification
 from app.models.quiz import Quiz
+from app.models.grammar_rule import GrammarRule
+from app.models.grammar_exercise import GrammarExercise
+from app.models.user_grammar_attempt import UserGrammarAttempt
+from app.models.user_grammar_progress import UserGrammarProgress
 
-__all__ = ["User", "Post", "Follow", "Game", "Like", "Comment", "ExperimentAssignment", "FeedEvent", "Word", "WordFolder", "Notification", "Quiz"]
+__all__ = ["User", "Post", "Follow", "Game", "Like", "Comment", "ExperimentAssignment", "FeedEvent", "Word", "WordFolder", "Notification", "Quiz", "GrammarRule", "GrammarExercise", "UserGrammarAttempt", "UserGrammarProgress"]
