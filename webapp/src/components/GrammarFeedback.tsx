@@ -18,7 +18,7 @@ export default function GrammarFeedback({ isCorrect, correction, explanation }: 
   const [showExplanation, setShowExplanation] = React.useState(false)
 
   return (
-    <div className={`mt-4 p-4 rounded-lg border ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+    <div className={`mt-4 mb-2 p-4 rounded-lg border ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
       <div className="flex items-center gap-2 mb-2">
         {isCorrect ? (
           <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -202,7 +202,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
 
   if (loading && exercises.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6">
         <div className="text-center py-12">
           <p className="text-gray-500">Loading exercises...</p>
         </div>
@@ -213,7 +213,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   if (quizComplete) {
     const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0
     return (
-      <div className="max-w-2xl mx-auto p-6">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6">
         <div className="card p-8 text-center">
           <svg className="w-16 h-16 text-green-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -261,7 +261,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-3 sm:p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -307,7 +307,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
 
       {readyToAdvance && (
         <button
-          className="btn-primary w-full mt-4 text-lg py-3"
+          className="btn-primary w-full mt-6 text-lg py-3"
           onClick={handleNext}
         >
           {currentIndex < exercises.length - 1 ? 'Next Question →' : 'See Results →'}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Sparkles, LogIn, ChevronLeft, UserPlus, Key } from 'lucide-react'
+import { ArrowRight, Sparkles, LogIn, ChevronLeft, UserPlus, Key, BookOpen, PenTool } from 'lucide-react'
 import { WebSignupPayload, checkUsername } from '../hooks/useApi'
 
 // ============================================
@@ -344,11 +344,11 @@ export function Landing({
             {/* Features List */}
             <div className="space-y-4 pt-4">
               {[
-                { text: 'Share your learning journey with posts', icon: <Sparkles size={16} /> },
-                { text: 'Build vocabulary — add words, quiz yourself', icon: <ArrowRight size={16} /> },
-                { text: 'Grammar curriculum from Netzwerk Neu A1–C1', icon: <ArrowRight size={16} /> },
-                { text: 'Follow other learners, grow together', icon: <FeatureCheck className="w-5 h-5" /> },
-              ].map((item, i) => (
+                 { text: 'Share your German learning journey', icon: <Sparkles size={16} /> },
+                 { text: 'Build vocabulary — add words & quiz yourself', icon: <BookOpen size={16} /> },
+                 { text: 'Grammar curriculum — Netzwerk Neu A1–C1', icon: <PenTool size={16} /> },
+                 { text: 'Follow learners, grow your streak together', icon: <FeatureCheck className="w-5 h-5" /> },
+               ].map((item, i) => (
                 <div
                   key={item.text}
                   className="flex items-center gap-3 text-slate-700 opacity-0 animate-qaw-fade-in-up"

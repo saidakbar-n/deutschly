@@ -3,7 +3,7 @@ import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listCo
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
 
-export function Feed({ user, onDiscover, onUserUpdated }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void }) {
+export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
   const [feedTab, setFeedTab] = useState<'following' | 'discover'>('following')
@@ -214,10 +214,21 @@ export function Feed({ user, onDiscover, onUserUpdated }: { user: User; onDiscov
                   <p className="text-sm text-slate-600">{peekUser.city || '—'} · {peekUser.level}</p>
                   {peekUser.age && <p className="text-sm text-slate-600">{peekUser.age} years old</p>}
                   {peekUser.profile_photo && <img src={getImageUrl(peekUser.profile_photo)} alt="" className="w-full rounded-xl" />}
-                  <p className="text-xs text-slate-500">Words: {peekUser.words_count}</p>
-                </div>
-              </div>
-            )}
+                <p className="text-xs text-slate-500">Words: {peekUser.words_count}</p>
+                   {onViewUser && (
+                     <button
+                       className="btn-primary w-full mt-2 text-sm"
+                       onClick={() => {
+                         setPeekUser(null)
+                         onViewUser(peekUser.id)
+                       }}
+                     >
+                       View Profile →
+                     </button>
+                   )}
+                 </div>
+               </div>
+             )}
       {peekLoading && <div className="fixed inset-0 pointer-events-none" />}
     </div>
   )

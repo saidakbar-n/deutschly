@@ -18,7 +18,7 @@ export default function BlurtingExercise({ scenario, onAnswerSubmit, feedback, l
   }
 
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       <h3 className="text-lg font-semibold mb-4">Blurting Exercise</h3>
       <div className="bg-blue-50 p-4 rounded-lg mb-4">
         <p className="text-gray-800">{scenario}</p>

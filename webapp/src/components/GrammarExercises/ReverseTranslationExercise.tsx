@@ -19,10 +19,10 @@ export default function ReverseTranslationExercise({ nativeSentence, onAnswerSub
   }
 
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       <h3 className="text-lg font-semibold mb-4">Reverse Translation</h3>
       <div className="bg-purple-50 p-4 rounded-lg mb-4">
-        <p className="text-gray-800 text-lg">{nativeSentence}</p>
+        <p className="text-gray-800 text-base sm:text-lg">{nativeSentence}</p>
         <p className="text-sm text-gray-600 mt-2">Translate this to German:</p>
       </div>
       <input

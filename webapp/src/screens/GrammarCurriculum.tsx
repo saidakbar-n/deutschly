@@ -92,13 +92,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
 
   if (view === 'practicing' && activeChapter) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <button
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 mb-4"
-          onClick={backToCurriculum}
-        >
-          <ArrowLeft size={16} /> Back to Curriculum
-        </button>
+      <div className="max-w-2xl mx-auto p-3 sm:p-6">
         <GrammarPracticer user={user} chapterId={activeChapter.id} chapterTitle={activeChapter.title} onExit={backToCurriculum} onUserUpdated={onUserUpdated} onChapterCompleted={() => setChapterJustCompleted(true)} />
       </div>
     )
@@ -107,7 +101,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
   const levels = ['A1', 'A2', 'B1', 'B2', 'C1']
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-3 sm:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Grammar Curriculum</h1>
         <p className="text-slate-600 mt-1">Netzwerk Neu — structured learning path</p>
@@ -227,8 +221,8 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
                   {/* Chapter Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-slate-900 truncate">
-                        Kapitel {chapter.number}
+                   <h3 className="font-semibold text-slate-900 line-clamp-2 leading-tight">
+                         Kapitel {chapter.number}
                       </h3>
                       {status !== 'locked' && (
                         <ChevronRight size={18} className="text-slate-400 flex-shrink-0 ml-2" />

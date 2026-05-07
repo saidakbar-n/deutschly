@@ -83,6 +83,9 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
       })
       closeModal()
       onCreated?.()
+    } catch (err) {
+      console.error('Post failed:', err)
+      alert('Failed to post. Please try again.')
     } finally {
       setLoading(false)
     }

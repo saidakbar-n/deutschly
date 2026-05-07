@@ -13,7 +13,7 @@ import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
-import { fetchNotifications } from './hooks/useApi'
+import { fetchNotifications, followUser } from './hooks/useApi'
 import { Home, Compass, User as UserIcon, BookOpen, PenTool } from 'lucide-react'
 
 export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar'
@@ -26,6 +26,7 @@ function App() {
     return localStorage.getItem('deutschly:onboarded') === 'true'
   })
   const [unreadCount, setUnreadCount] = useState(0)
+  const [followVersion, setFollowVersion] = useState(0)
 
   useEffect(() => {
     if (!user) return
@@ -100,7 +101,10 @@ function App() {
               user={user} 
               nav={nav} 
               active={screen} 
-              onNav={setScreen} 
+              onNav={(s) => {
+                setScreen(s)
+                if (s === 'notifications') setUnreadCount(0)
+              }} 
               onLogout={signOut}
               unreadCount={unreadCount}
             />
@@ -115,8 +119,8 @@ function App() {
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              {screen === 'feed' && <Feed user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} />}
-              {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
+              {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} />}
+              {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
               {screen === 'grammar' && <GrammarCurriculum user={user} onUserUpdated={refresh} />}
               {screen === 'profile' && <Profile user={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} />}
