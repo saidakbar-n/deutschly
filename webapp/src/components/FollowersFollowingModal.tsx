@@ -6,6 +6,7 @@ export type TabType = 'followers' | 'following'
 
 interface FollowersFollowingModalProps {
   user: User
+  currentUserId?: number
   isOpen: boolean
   onClose: () => void
   initialTab?: TabType
@@ -19,6 +20,7 @@ interface FollowersFollowingModalProps {
 
 export function FollowersFollowingModal({
   user,
+  currentUserId,
   isOpen,
   onClose,
   initialTab = 'followers',
@@ -112,7 +114,7 @@ export function FollowersFollowingModal({
                   <button
                     className="flex items-center gap-3 flex-1 text-left min-w-0"
                     onClick={() => {
-                      if (u.id === user.id) {
+                      if (u.id === user.id || u.id === currentUserId) {
                         onClose()
                       } else {
                         onClose()

@@ -717,18 +717,19 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
       </div>
 
       {/* Followers/Following Modal */}
-      <FollowersFollowingModal
-        user={user}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        initialTab={modalTab}
-        followers={followers}
-        following={following}
-        followersLoading={followersLoading}
-        followingLoading={followingLoading}
-        onFollow={handleFollow}
-        onViewUser={onViewUser}
-      />
+        <FollowersFollowingModal
+          user={user}
+          currentUserId={currentUser?.id}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          initialTab={modalTab}
+          followers={followers}
+          following={following}
+          followersLoading={followersLoading}
+          followingLoading={followingLoading}
+          onFollow={handleFollow}
+          onViewUser={onViewUser}
+        />
     </div>
   )
 }
