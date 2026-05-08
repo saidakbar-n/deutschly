@@ -18,6 +18,7 @@ class GrammarExerciseCreate(GrammarExerciseBase):
 class GrammarExerciseOut(GrammarExerciseBase):
     id: int
     created_at: str
+    voice_enabled: Optional[bool] = True
 
     class Config:
         orm_mode = True

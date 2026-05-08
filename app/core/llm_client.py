@@ -135,5 +135,5 @@ Focus on helping them understand the grammar pattern, not just the answer. Use b
     return {
         "is_correct": is_correct,
         "explanation": explanation,
-        "rule_missed_id": None if is_correct else 1
+        "rule_missed_id": None
     }

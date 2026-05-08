@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import type { User } from '../hooks/useApi'
+import { getImageUrl } from '../hooks/useApi'
 
 export type TabType = 'followers' | 'following'
 
@@ -14,13 +15,14 @@ interface FollowersFollowingModalProps {
   following: User[]
   followersLoading: boolean
   followingLoading: boolean
+  viewerFollowingIds?: Set<number>
   onFollow: (targetUserId: number) => Promise<void>
   onViewUser?: (userId: number) => void
 }
 
 export function FollowersFollowingModal({
   user,
-  currentUserId,
+  currentUserId: viewerId,
   isOpen,
   onClose,
   initialTab = 'followers',
@@ -28,6 +30,7 @@ export function FollowersFollowingModal({
   following,
   followersLoading,
   followingLoading,
+  viewerFollowingIds,
   onFollow,
   onViewUser,
 }: FollowersFollowingModalProps) {
@@ -40,21 +43,17 @@ export function FollowersFollowingModal({
   }, [isOpen, initialTab])
 
   if (!isOpen) return null
-
-  const currentUserId = user.id
   const displayUsers = activeTab === 'followers' ? followers : following
   const isLoading = activeTab === 'followers' ? followersLoading : followingLoading
   const count = activeTab === 'followers' ? user.followers_count || 0 : user.following_count || 0
   const title = activeTab === 'followers' ? 'Followers' : 'Following'
 
-  // Check if a user is already being followed (for Following tab)
   const isFollowingUser = (userId: number) => {
-    return following.some(u => u.id === userId)
+    return viewerFollowingIds ? viewerFollowingIds.has(userId) : following.some(u => u.id === userId)
   }
 
-  // Check if current user is the profile owner
   const isProfileOwner = (targetUserId: number) => {
-    return currentUserId === targetUserId
+    return viewerId === targetUserId
   }
 
   return (
@@ -114,7 +113,7 @@ export function FollowersFollowingModal({
                   <button
                     className="flex items-center gap-3 flex-1 text-left min-w-0"
                     onClick={() => {
-                      if (u.id === user.id || u.id === currentUserId) {
+                      if (u.id === user.id || u.id === viewerId) {
                         onClose()
                       } else {
                         onClose()
@@ -124,7 +123,7 @@ export function FollowersFollowingModal({
                   >
                     {u.profile_photo ? (
                       <img
-                        src={u.profile_photo}
+                        src={getImageUrl(u.profile_photo)}
                         alt={u.username}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       />

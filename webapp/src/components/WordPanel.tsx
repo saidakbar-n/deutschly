@@ -21,11 +21,15 @@ export function WordPanel({ user }: { user: User }) {
 
   const add = async () => {
     if (!term.trim() || !meaning.trim()) return
-    const w = await createWord({ user_id: user.id, term: term.trim(), meaning: meaning.trim(), note: note.trim() || undefined })
-    setWords([w, ...words])
-    setTerm('')
-    setMeaning('')
-    setNote('')
+    try {
+      const w = await createWord({ user_id: user.id, term: term.trim(), meaning: meaning.trim(), note: note.trim() || undefined })
+      setWords([w, ...words])
+      setTerm('')
+      setMeaning('')
+      setNote('')
+    } catch (err) {
+      console.error('Failed to create word:', err)
+    }
   }
 
   return (

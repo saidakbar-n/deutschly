@@ -6,7 +6,7 @@ router = APIRouter(prefix="/api/v1/game", tags=["game"])
 SAMPLE_WORDS = {
     "A1": ["hallo", "tschuss", "danke", "bitte", "ja", "nein", "schule", "haus"],
     "A2": ["reisen", "sprache", "freund", "familie", "arbeit"],
-    "B1": ["verstehen", "entwickeln", "universitat", "gesprach"],
+    "B1": ["verstehen", "entwickeln", "universitaet", "gesprach"],
     "B2": ["gesellschaft", "kultur", "diskussion", "politik"],
     "C1": ["philosophie", "wissenschaft", "innovation", "nachhaltigkeit"],
 }

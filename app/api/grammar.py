@@ -26,8 +26,8 @@ from app.core.whisper_stt import transcribe_audio, WHISPER_AVAILABLE
 router = APIRouter(prefix="/api/v1", tags=["grammar"])
 
 @router.get("/grammar/rules", response_model=list[GrammarRuleOut])
-def list_grammar_rules(db: Session = Depends(get_db)):
-    return db.query(GrammarRule).all()
+def list_grammar_rules(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
+    return db.query(GrammarRule).offset(offset).limit(limit).all()
 
 @router.get("/grammar/exercises/{user_id}", response_model=list[GrammarExerciseOut])
 def fetch_exercises(
@@ -128,19 +128,23 @@ def submit_answer(
         UserGrammarProgress.rule_id == exercise.rule_id
     ).first()
 
+    now = str(datetime.now(timezone.utc))
     if not progress:
         progress = UserGrammarProgress(
             user_id=user_id,
             rule_id=exercise.rule_id,
             correct_attempts=1 if feedback["is_correct"] else 0,
-            total_attempts=1
+            total_attempts=1,
+            last_practiced_at=now,
+            streak_eligible_today=True,
         )
         db.add(progress)
     else:
         progress.total_attempts += 1
         if feedback["is_correct"]:
             progress.correct_attempts += 1
-        progress.last_practiced_at = str(datetime.now(timezone.utc))
+        progress.last_practiced_at = now
+        progress.streak_eligible_today = True
 
     db.commit()
     db.refresh(attempt)
@@ -233,7 +237,7 @@ def shadowing_feedback(
     )
     db.add(attempt)
 
-    # Update progress
+    now = str(datetime.now(timezone.utc))
     progress = db.query(UserGrammarProgress).filter(
         UserGrammarProgress.user_id == user_id,
         UserGrammarProgress.rule_id == exercise.rule_id
@@ -244,14 +248,17 @@ def shadowing_feedback(
             user_id=user_id,
             rule_id=exercise.rule_id,
             correct_attempts=1 if feedback["is_correct"] else 0,
-            total_attempts=1
+            total_attempts=1,
+            last_practiced_at=now,
+            streak_eligible_today=True,
         )
         db.add(progress)
     else:
         progress.total_attempts += 1
         if feedback["is_correct"]:
             progress.correct_attempts += 1
-        progress.last_practiced_at = str(datetime.now(timezone.utc))
+        progress.last_practiced_at = now
+        progress.streak_eligible_today = True
 
     db.commit()
     db.refresh(attempt)

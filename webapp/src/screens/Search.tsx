@@ -17,22 +17,24 @@ export function Search({ user, onViewUser, onFollow }: SearchProps) {
   const [followLoading, setFollowLoading] = useState<number | null>(null)
   const [followingIds, setFollowingIds] = useState<Set<number>>(new Set())
 
-  // Load following list on mount
   useEffect(() => {
-    const loadFollowing = async () => {
+    const init = async () => {
       try {
-        const data = await listFollowing(user.id)
-        const followingList = data.following || []
-        setFollowingIds(new Set(followingList.map((u: User) => u.id)))
+        const [data, followData] = await Promise.all([
+          searchUsers('', ''),
+          listFollowing(user.id),
+        ])
+        const filtered = (data.results || []).filter((u: User) => u.id !== user.id)
+        setResults(filtered)
+        setFollowingIds(new Set((followData.following || []).map((u: User) => u.id)))
       } catch (err) {
-        console.error('Failed to load following:', err)
+        console.error('Failed to load data:', err)
       }
     }
-    loadFollowing()
+    init()
   }, [user.id])
 
   const run = async () => {
-    if (!q.trim() && !level) return
     setLoading(true)
     try {
       const data = await searchUsers(q, level)
@@ -48,22 +50,14 @@ export function Search({ user, onViewUser, onFollow }: SearchProps) {
     try {
       const isCurrentlyFollowing = followingIds.has(targetUserId)
       if (isCurrentlyFollowing) {
-        if (onFollow) {
-          await onFollow(targetUserId)
-        } else {
-          await unfollowUser(targetUserId, user.id)
-        }
+        await unfollowUser(targetUserId, user.id)
         setFollowingIds(prev => {
           const next = new Set(prev)
           next.delete(targetUserId)
           return next
         })
       } else {
-        if (onFollow) {
-          await onFollow(targetUserId)
-        } else {
-          await followUser(targetUserId, user.id)
-        }
+        await followUser(targetUserId, user.id)
         setFollowingIds(prev => new Set([...prev, targetUserId]))
       }
     } catch (err) {

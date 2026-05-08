@@ -13,7 +13,15 @@ export function useSession() {
       setLoading(false)
       return
     }
-    const { id } = JSON.parse(saved)
+    let id: number
+    try {
+      const parsed = JSON.parse(saved)
+      id = parsed.id
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+      setLoading(false)
+      return
+    }
     getUser(id)
       .then(setUser)
       .catch(() => setUser(null))

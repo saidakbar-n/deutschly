@@ -16,6 +16,7 @@ from app.models.grammar_exercise import GrammarExercise
 from app.models.user_grammar_attempt import UserGrammarAttempt
 from app.models.user_grammar_progress import UserGrammarProgress
 from app.models.user_chapter_progress import UserChapterProgress
+from app.models.conversation import Conversation, ConversationParticipant, Message
 
 __all__ = [
     "User", "Post", "Follow", "Game", "Like", "Comment",
@@ -23,4 +24,5 @@ __all__ = [
     "Notification", "Quiz", "GrammarBook", "GrammarChapter",
     "GrammarRule", "GrammarExercise", "UserGrammarAttempt",
     "UserGrammarProgress", "UserChapterProgress",
+    "Conversation", "ConversationParticipant", "Message",
 ]

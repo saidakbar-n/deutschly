@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Camera, X, CheckCircle, AlertCircle } from 'lucide-react'
 import { uploadProfilePhoto, deleteProfilePhoto } from '../hooks/useApi'
 
@@ -27,6 +27,13 @@ export function ProfilePhotoUploader({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const blobUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+    }
+  }, [])
 
   const sizeClasses = {
     sm: 'w-16 h-16 md:w-20 md:h-20 text-xs',
@@ -54,11 +61,11 @@ export function ProfilePhotoUploader({
       setError(null)
       setSuccess(null)
 
-      // Create preview
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
       const previewUrl = URL.createObjectURL(file)
+      blobUrlRef.current = previewUrl
       setPreview(previewUrl)
 
-      // Upload the file
       setIsUploading(true)
       try {
         const result = await uploadProfilePhoto(userId, file)

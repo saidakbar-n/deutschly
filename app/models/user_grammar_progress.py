@@ -12,7 +12,7 @@ class UserGrammarProgress(Base):
     rule_id = Column(Integer, ForeignKey("grammar_rules.id", ondelete="CASCADE"), nullable=False)
     correct_attempts = Column(Integer, default=0)
     total_attempts = Column(Integer, default=0)
-    last_practiced_at = Column(Text, default=str(datetime.now(timezone.utc)))
+    last_practiced_at = Column(Text, default=lambda: str(datetime.now(timezone.utc)))
     streak_eligible_today = Column(Boolean, default=False)
 
     __table_args__ = (UniqueConstraint('user_id', 'rule_id', name='uq_user_rule'),)

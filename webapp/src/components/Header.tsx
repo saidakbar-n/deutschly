@@ -1,4 +1,4 @@
-import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool } from 'lucide-react'
+import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool, MessageCircle } from 'lucide-react'
 import { User as UserType } from '../hooks/useApi'
 import { Screen } from '../App'
 
@@ -19,6 +19,8 @@ const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) =>
       return <BookOpen className={iconClass} />
     case 'grammar':
       return <PenTool className={iconClass} />
+    case 'chat':
+      return <MessageCircle className={iconClass} />
     case 'notifications':
       return <Bell className={iconClass} />
     default:
@@ -40,6 +42,7 @@ export function Header({
   onNav,
   onLogout,
   unreadCount,
+  chatUnreadCount,
 }: {
   user: UserType
   nav: NavItem[]
@@ -47,6 +50,7 @@ export function Header({
   onNav: (key: Screen) => void
   onLogout: () => void
   unreadCount?: number
+  chatUnreadCount?: number
 }) {
   return (
     <div className="flex items-center gap-4">
@@ -62,40 +66,50 @@ export function Header({
                 : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
               }`}
           >
-            <div className="relative">
+              <div className="relative">
+                <NavIcon screen={item.key} isActive={active === item.key} />
+                {item.key === 'notifications' && (unreadCount || 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount! > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+                {item.key === 'chat' && (chatUnreadCount || 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {chatUnreadCount! > 9 ? '9+' : chatUnreadCount}
+                  </span>
+                )}
+              </div>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tablet navigation icons only - visible on md to lg */}
+        <div className="hidden md:flex lg:hidden items-center gap-1">
+          {nav.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => onNav(item.key)}
+              className={`p-2 rounded-xl transition-all duration-200 relative
+                ${active === item.key 
+                  ? 'bg-indigo-100 text-indigo-600' 
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                }`}
+              title={item.label}
+            >
               <NavIcon screen={item.key} isActive={active === item.key} />
               {item.key === 'notifications' && (unreadCount || 0) > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount! > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </div>
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tablet navigation icons only - visible on md to lg */}
-      <div className="hidden md:flex lg:hidden items-center gap-1">
-        {nav.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onNav(item.key)}
-            className={`p-2 rounded-xl transition-all duration-200 relative
-              ${active === item.key 
-                ? 'bg-indigo-100 text-indigo-600' 
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-              }`}
-            title={item.label}
-          >
-            <NavIcon screen={item.key} isActive={active === item.key} />
-            {item.key === 'notifications' && (unreadCount || 0) > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                {unreadCount! > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
-        ))}
+              {item.key === 'chat' && (chatUnreadCount || 0) > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {chatUnreadCount! > 9 ? '9+' : chatUnreadCount}
+                </span>
+              )}
+            </button>
+          ))}
       </div>
 
       {/* Mobile navigation dropdown - hidden since we use bottom nav */}

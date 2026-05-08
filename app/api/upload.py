@@ -12,7 +12,8 @@ from app.models import User
 router = APIRouter(prefix="/api/v1", tags=["upload"])
 
 # Create uploads directory if it doesn't exist
-UPLOAD_DIR = Path("uploads")
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
@@ -122,7 +123,7 @@ async def delete_profile_photo(
     
     if user.profile_photo:
         # Remove the file from disk
-        file_path = Path(user.profile_photo)
+        file_path = UPLOAD_DIR / Path(user.profile_photo).name
         if file_path.exists():
             try:
                 file_path.unlink()

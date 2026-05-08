@@ -61,9 +61,6 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
         data = await fetchChapterExercises(chapterId, user.id, CHAPTER_EXERCISE_COUNT)
       } else {
         data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
-        if (data.length === 0) {
-          data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
-        }
       }
       setExercises(data)
     } catch (error) {

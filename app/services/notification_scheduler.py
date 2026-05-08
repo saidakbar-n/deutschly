@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 from app.models.notification import Notification
 from app.models.user_grammar_progress import UserGrammarProgress
 from app.models.user import User
@@ -30,7 +30,7 @@ def generate_grammar_notifications(db: Session) -> int:
             existing = db.query(Notification).filter(
                 Notification.user_id == user_id,
                 Notification.type == 'grammar_reminder',
-                func.date(Notification.created_at) == today
+                cast(Notification.created_at, Date) == today
             ).first()
             
             if not existing:
@@ -54,7 +54,7 @@ def generate_grammar_notifications(db: Session) -> int:
             existing = db.query(Notification).filter(
                 Notification.user_id == user_id,
                 Notification.type == 'grammar_review',
-                func.date(Notification.created_at) == today
+                cast(Notification.created_at, Date) == today
             ).first()
             
             if not existing:

@@ -12,7 +12,7 @@ class UserGrammarAttempt(Base):
     user_input = Column(Text, nullable=False)
     is_correct = Column(Boolean, nullable=False)
     feedback_explanation = Column(Text)
-    attempt_timestamp = Column(Text, default=str(datetime.now(timezone.utc)))
+    attempt_timestamp = Column(Text, default=lambda: str(datetime.now(timezone.utc)))
     rule_missed_id = Column(Integer, ForeignKey("grammar_rules.id", ondelete="SET NULL"))
 
     user = relationship("User", backref="grammar_attempts")

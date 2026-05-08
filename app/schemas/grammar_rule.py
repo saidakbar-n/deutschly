@@ -12,6 +12,7 @@ class GrammarRuleCreate(GrammarRuleBase):
 
 class GrammarRuleOut(GrammarRuleBase):
     id: int
+    chapter_id: int | None = None
 
     class Config:
         orm_mode = True

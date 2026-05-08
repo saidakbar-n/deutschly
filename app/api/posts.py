@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -89,15 +89,23 @@ def like_post(post_id: int, user_id: int, db: Session = Depends(get_db)):
     existing = db.scalar(select(Like).where(Like.post_id == post_id, Like.user_id == user_id))
     if existing:
         db.delete(existing)
-        post.likes = max(0, (post.likes or 0) - 1)
+        db.flush()
+        db.execute(
+            update(Post).where(Post.id == post_id).values(likes=Post.likes - 1)
+        )
         db.commit()
-        return {"detail": "unliked", "likes": post.likes}
+        db.refresh(post)
+        return {"detail": "unliked", "likes": max(0, post.likes or 0)}
 
     like = Like(post_id=post_id, user_id=user_id)
     db.add(like)
-    post.likes = (post.likes or 0) + 1
+    db.flush()
+    db.execute(
+        update(Post).where(Post.id == post_id).values(likes=Post.likes + 1)
+    )
     db.commit()
-    return {"detail": "liked", "likes": post.likes}
+    db.refresh(post)
+    return {"detail": "liked", "likes": post.likes or 0}
 
 
 @router.post("/posts/{post_id}/comment", response_model=CommentOut)

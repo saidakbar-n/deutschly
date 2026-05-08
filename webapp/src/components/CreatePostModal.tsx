@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createPost, PostPayload, uploadPostImage, listWords } from '../hooks/useApi'
 import { Image, X, Type, Tag, Send, BookOpen, ChevronDown } from 'lucide-react'
 
@@ -22,6 +22,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
   const [words, setWords] = useState<Word[]>([])
   const [selectedWordId, setSelectedWordId] = useState<number | null>(null)
   const [wordDropdownOpen, setWordDropdownOpen] = useState(false)
+  const blobUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -53,6 +54,8 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
     setVisible(false)
     document.body.style.overflow = ''
     setTimeout(() => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
       setOpen(false)
       setText('')
       setImageFile(null)
@@ -159,7 +162,10 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               const file = e.target.files?.[0] || null
               setImageFile(file)
               if (file) {
-                setPreviewUrl(URL.createObjectURL(file))
+                if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+                const url = URL.createObjectURL(file)
+                blobUrlRef.current = url
+                setPreviewUrl(url)
               } else {
                 setPreviewUrl('')
               }

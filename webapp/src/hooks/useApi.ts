@@ -30,6 +30,7 @@ export type User = {
   words_count: number
   streak?: number
   last_active_date?: string
+  is_online?: boolean
   posts_count?: number
   followers_count?: number
   following_count?: number
@@ -547,6 +548,60 @@ export async function quickStartGrammar(userId: number, level?: string): Promise
   const res = await api.get(`/grammar/quick-start/${userId}`, {
     params: level ? { level } : {}
   })
+  return res.data
+}
+
+export type Conversation = {
+  id: number
+  other_user: {
+    id: number
+    username: string
+    full_name?: string
+    profile_photo?: string
+    level?: string
+    last_active_date?: string
+    is_online?: boolean
+  }
+  last_message?: {
+    id: number
+    sender_id: number
+    text: string
+    created_at: string
+  }
+  unread_count: number
+  created_at: string
+}
+
+export type Message = {
+  id: number
+  conversation_id: number
+  sender_id: number
+  text: string
+  created_at: string
+}
+
+export async function listConversations(userId: number): Promise<Conversation[]> {
+  const res = await api.get('/conversations', { params: { user_id: userId } })
+  return res.data
+}
+
+export async function createConversation(userId: number, participantId: number): Promise<Conversation> {
+  const res = await api.post('/conversations', { user_id: userId, participant_id: participantId })
+  return res.data
+}
+
+export async function listMessages(conversationId: number, userId: number, limit = 50, offset = 0): Promise<Message[]> {
+  const res = await api.get(`/conversations/${conversationId}/messages`, { params: { user_id: userId, limit, offset } })
+  return res.data
+}
+
+export async function sendMessage(conversationId: number, senderId: number, text: string): Promise<Message> {
+  const res = await api.post(`/conversations/${conversationId}/messages`, { sender_id: senderId, text })
+  return res.data
+}
+
+export async function fetchUnreadChatCount(userId: number): Promise<{ unread_count: number }> {
+  const res = await api.get('/conversations/unread-count', { params: { user_id: userId } })
   return res.data
 }
 

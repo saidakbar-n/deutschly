@@ -1,7 +1,7 @@
 from datetime import date
 import hashlib
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_db
@@ -99,7 +99,7 @@ def delete_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
     db.delete(word)
     user = db.get(User, user_id)
     if user:
-        user.words_count = max(0, (user.words_count or 1) - 1)
+        user.words_count = max(0, (user.words_count or 0) - 1)
         db.add(user)
     db.commit()
     return {"detail": "deleted"}
@@ -107,11 +107,16 @@ def delete_word(word_id: int, user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/words/word-of-the-day")
 def word_of_the_day(db: Session = Depends(get_db)):
-    words = db.scalars(select(Word).options(joinedload(Word.user))).all()
-    if not words:
+    count = db.scalar(select(func.count(Word.id)))
+    if not count:
         return None
     seed = int(hashlib.md5(str(date.today()).encode()).hexdigest(), 16)
-    word = words[seed % len(words)]
+    offset = seed % count
+    word = db.scalars(
+        select(Word).options(joinedload(Word.user)).offset(offset).limit(1)
+    ).first()
+    if not word:
+        return None
     return {
         "id": word.id,
         "term": word.term,

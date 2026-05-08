@@ -5,7 +5,8 @@ import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
 import { WordCard } from '../components/WordCard'
 import type { TabType } from '../components/FollowersFollowingModal'
-import { ArrowLeft, Loader2, Folder, FolderOpen } from 'lucide-react'
+import { ArrowLeft, Loader2, Folder, FolderOpen, MessageCircle } from 'lucide-react'
+import { createConversation } from '../hooks/useApi'
 
 interface ProfileProps {
   user?: User
@@ -51,24 +52,27 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   // Determine if we're viewing our own profile
   const isOwnProfile = !userId || (currentUser && user && user.id === currentUser.id)
 
-  // State to track if currentUser is following the viewed profile
   const [isFollowing, setIsFollowing] = useState(false)
+  const [viewerFollowing, setViewerFollowing] = useState<User[]>([])
 
-  // Load follow status when viewing another user's profile
   useEffect(() => {
-    if (user && currentUser && !isOwnProfile) {
-      const checkFollowStatus = async () => {
+    if (user && currentUser) {
+      const loadViewerFollowing = async () => {
         try {
           const data = await listFollowing(currentUser.id)
           const followingList = data.following || []
-          setIsFollowing(followingList.some((f: User) => f.id === user.id))
+          setViewerFollowing(followingList)
+          if (!isOwnProfile) {
+            setIsFollowing(followingList.some((f: User) => f.id === user.id))
+          }
         } catch (error) {
-          console.error('Failed to check follow status:', error)
+          console.error('Failed to load following:', error)
         }
       }
-      checkFollowStatus()
+      loadViewerFollowing()
     } else {
       setIsFollowing(false)
+      setViewerFollowing([])
     }
   }, [user, currentUser, isOwnProfile])
 
@@ -207,13 +211,18 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const save = async () => {
     if (!user) return
     setStatus('Saving...')
-    const payload = { ...form, age: form.age ? Number(form.age) : undefined }
-    const updated = await updateUser(user.id, payload)
-    onUpdated?.(updated)
-    setUser(updated)
-    setEditMode(false)
-    setStatus('Saved')
-    setTimeout(() => setStatus(''), 1500)
+    try {
+      const payload = { ...form, age: form.age ? Number(form.age) : undefined }
+      const updated = await updateUser(user.id, payload)
+      onUpdated?.(updated)
+      setUser(updated)
+      setEditMode(false)
+      setStatus('Saved')
+      setTimeout(() => setStatus(''), 1500)
+    } catch {
+      setStatus('Failed to save')
+      setTimeout(() => setStatus(''), 3000)
+    }
   }
 
   const handlePhotoUpload = (url: string) => {
@@ -233,15 +242,22 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const handleFollow = async (targetUserId: number) => {
     if (!currentUser) return
     try {
-      if (following.some(f => f.id === targetUserId)) {
+      if (viewerFollowing.some(f => f.id === targetUserId)) {
         await unfollowUser(targetUserId, currentUser.id)
-        await loadFollowing()
+        setViewerFollowing(prev => prev.filter(f => f.id !== targetUserId))
+        if (isOwnProfile) {
+          setUser(prev => prev ? { ...prev, following_count: Math.max(0, (prev.following_count || 0) - 1) } : prev)
+        }
         if (targetUserId === user?.id) {
           setIsFollowing(false)
         }
       } else {
         await followUser(targetUserId, currentUser.id)
-        await loadFollowing()
+        const followedUser = await getUser(targetUserId)
+        setViewerFollowing(prev => [...prev, followedUser])
+        if (isOwnProfile) {
+          setUser(prev => prev ? { ...prev, following_count: (prev.following_count || 0) + 1 } : prev)
+        }
         if (targetUserId === user?.id) {
           setIsFollowing(true)
         }
@@ -411,7 +427,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                     <button className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all duration-200 text-sm" onClick={() => setEditMode(true)}>Edit Profile</button>
                   </div>
                 ) : (
-                  <div className="flex justify-center md:justify-end pt-1">
+                  <div className="flex justify-center md:justify-end pt-1 gap-2">
                     <button
                       className={`px-6 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm ${
                         isFollowing
@@ -422,6 +438,20 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                       disabled={followLoading}
                     >
                       {followLoading ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
+                    </button>
+                    <button
+                      className="px-4 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+                      onClick={async () => {
+                        try {
+                          await createConversation(currentUser!.id, user.id)
+                          onNavigate?.('chat')
+                        } catch (err) {
+                          console.error('Failed to start conversation:', err)
+                        }
+                      }}
+                    >
+                      <MessageCircle size={16} />
+                      Message
                     </button>
                   </div>
                 )}
@@ -727,6 +757,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           following={following}
           followersLoading={followersLoading}
           followingLoading={followingLoading}
+          viewerFollowingIds={new Set(viewerFollowing.map(f => f.id))}
           onFollow={handleFollow}
           onViewUser={onViewUser}
         />

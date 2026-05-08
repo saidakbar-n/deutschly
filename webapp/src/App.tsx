@@ -13,10 +13,11 @@ import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
-import { fetchNotifications, followUser } from './hooks/useApi'
-import { Home, Compass, User as UserIcon, BookOpen, PenTool } from 'lucide-react'
+import { fetchNotifications, followUser, fetchUnreadChatCount } from './hooks/useApi'
+import { Home, Compass, User as UserIcon, BookOpen, PenTool, MessageCircle } from 'lucide-react'
+import ChatScreen from './screens/ChatScreen'
 
-export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar'
+export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar' | 'chat'
 
 function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
@@ -26,12 +27,22 @@ function App() {
     return localStorage.getItem('deutschly:onboarded') === 'true'
   })
   const [unreadCount, setUnreadCount] = useState(0)
+  const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [followVersion, setFollowVersion] = useState(0)
 
   useEffect(() => {
     if (!user) return
-    fetchNotifications(user.id, 1, 0).then((d) => setUnreadCount(d.unread_count || 0))
+    fetchNotifications(user.id, 1, 0).then((d) => setUnreadCount(d.unread_count || 0)).catch(() => {})
   }, [user, screen])
+
+  useEffect(() => {
+    if (!user) return
+    fetchUnreadChatCount(user.id).then((d) => setChatUnreadCount(d.unread_count || 0)).catch(() => {})
+    const interval = setInterval(() => {
+      fetchUnreadChatCount(user.id).then((d) => setChatUnreadCount(d.unread_count || 0)).catch(() => {})
+    }, 15000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const nav = useMemo(
     () => [
@@ -40,6 +51,7 @@ function App() {
       { key: 'words' as Screen, label: 'Words' },
       { key: 'grammar' as Screen, label: 'Grammar' },
       { key: 'profile' as Screen, label: 'Profile' },
+      { key: 'chat' as Screen, label: 'Chat' },
       { key: 'notifications' as Screen, label: 'Alerts' },
     ],
     []
@@ -107,6 +119,7 @@ function App() {
               }} 
               onLogout={signOut}
               unreadCount={unreadCount}
+              chatUnreadCount={chatUnreadCount}
             />
           </div>
         </header>
@@ -123,8 +136,9 @@ function App() {
               {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
               {screen === 'grammar' && <GrammarCurriculum user={user} onUserUpdated={refresh} />}
-              {screen === 'profile' && <Profile user={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} />}
-              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} />}
+              {screen === 'profile' && <Profile user={user} currentUser={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} />}
+              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onNavigate={(s) => setScreen(s as Screen)} />}
+              {screen === 'chat' && <ChatScreen user={user} />}
               {screen === 'notifications' && <Notifications user={user} />}
             </div>
           </div>
@@ -191,7 +205,7 @@ function App() {
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
               { key: 'search' as Screen, icon: Compass, label: 'Discover' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
-              { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+              { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
             const Icon = item.icon
@@ -208,6 +222,11 @@ function App() {
               >
                 <div className="relative">
                   <Icon size={22} />
+                  {item.key === 'chat' && chatUnreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs font-semibold">{item.label}</span>
               </button>

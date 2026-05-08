@@ -26,6 +26,8 @@ from app.core.database import Base
 from app import models  # noqa: F401 ensures models are registered
 from app.core.seed_grammar import seed_grammar
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -36,7 +38,10 @@ async def lifespan(app: FastAPI):
         engine = get_engine()
         Base.metadata.create_all(bind=engine)
     db = next(get_db())
-    seed_grammar(db)
+    try:
+        seed_grammar(db)
+    finally:
+        db.close()
     print("Application started successfully")
     yield
     # Shutdown
@@ -70,8 +75,9 @@ async def handle_root_options(path: str):
     return {"status": "ok"}
 
 # Serve uploaded files
-Path("uploads").mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+UPLOADS_DIR = BASE_DIR / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 app.include_router(api_router)
 

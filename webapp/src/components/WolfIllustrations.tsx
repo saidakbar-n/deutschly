@@ -281,13 +281,14 @@ export const WolfRunningWithArrow = ({ className = '' }: WolfIllustrationProps) 
 // Multiple Wolves in Formation
 // ============================================
 
+const WOLF_COLORS = ['#6366f1', '#818cf8', '#a5b4fc']
 export const WolfPack = ({ className = '', count = 3 }: { className?: string; count?: number }) => (
   <div className={`flex items-center gap-2 ${className}`}>
     {Array.from({ length: count }).map((_, i) => (
       <PixelWolfRunning
         key={i}
         className="w-12 h-6"
-        color={`text-indigo-${500 - i * 100}` as string}
+        color={WOLF_COLORS[i] || '#6366f1'}
         style={{ animationDelay: `${i * 0.2}s` }}
       />
     ))}
@@ -332,8 +333,11 @@ export const WolfAvatar = ({
   size = 40,
   color = 'text-indigo-500'
 }: WolfIllustrationProps & { size?: number }) => (
-  <div className={`w-${size} h-${size} rounded-full bg-indigo-50 flex items-center justify-center ${className}`}>
-    <PixelWolfHead className={`w-${size / 2} h-${size / 2}`} color={color} />
+  <div
+    className={`rounded-full bg-indigo-50 flex items-center justify-center ${className}`}
+    style={{ width: size, height: size }}
+  >
+    <PixelWolfHead className={color} style={{ width: size * 0.5, height: size * 0.5 }} />
   </div>
 )
 

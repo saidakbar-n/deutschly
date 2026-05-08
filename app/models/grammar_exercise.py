@@ -16,6 +16,6 @@ class GrammarExercise(Base):
     difficulty = Column(Integer)
     voice_enabled = Column(Boolean, default=True)
     llm_prompt_used = Column(Text)
-    created_at = Column(Text, default=str(datetime.now(timezone.utc)))
+    created_at = Column(Text, default=lambda: str(datetime.now(timezone.utc)))
 
     rule = relationship("GrammarRule", backref="exercises")

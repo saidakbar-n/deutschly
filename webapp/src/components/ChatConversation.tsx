@@ -1,0 +1,156 @@
+import { useEffect, useState, useRef } from 'react'
+import { listMessages, sendMessage, getImageUrl, type User, type Message } from '../hooks/useApi'
+import { ArrowLeft, Send } from 'lucide-react'
+
+interface ChatConversationProps {
+  user: User
+  conversationId: number
+  otherUserId: number
+  otherUsername: string
+  otherProfilePhoto?: string
+  otherFullName?: string
+  otherIsOnline?: boolean
+  onBack: () => void
+}
+
+export function ChatConversation({ user, conversationId, otherUserId, otherUsername, otherProfilePhoto, otherFullName, otherIsOnline, onBack }: ChatConversationProps) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    loadMessages()
+    const interval = setInterval(loadMessages, 5000)
+    return () => clearInterval(interval)
+  }, [conversationId])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const loadMessages = async () => {
+    try {
+      const data = await listMessages(conversationId, user.id)
+      setMessages(data)
+    } catch (err) {
+      console.error('Failed to load messages:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    setSending(true)
+    try {
+      const msg = await sendMessage(conversationId, user.id, text.trim())
+      setMessages(prev => [...prev, msg])
+      setText('')
+    } catch (err) {
+      console.error('Failed to send message:', err)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  return (
+    <div className="card p-0 flex flex-col h-[600px] max-h-[80vh]">
+      <div className="flex items-center gap-3 p-4 border-b border-slate-200">
+        <button className="p-1 rounded-lg hover:bg-slate-100 transition-colors" onClick={onBack}>
+          <ArrowLeft size={20} className="text-slate-600" />
+        </button>
+        {otherProfilePhoto ? (
+          <img src={getImageUrl(otherProfilePhoto)} alt={otherUsername} className="w-10 h-10 rounded-full object-cover" />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+            <span className="text-indigo-600 font-bold">{otherUsername.charAt(0).toUpperCase()}</span>
+          </div>
+        )}
+        <div>
+          <p className="font-semibold text-slate-900">
+            {otherUsername}
+            {otherFullName && <span className="text-xs text-slate-400 font-normal ml-1.5">({otherFullName})</span>}
+          </p>
+          <p className="text-xs flex items-center gap-1 mt-0.5">
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${otherIsOnline ? 'bg-green-500' : 'bg-slate-300'}`} />
+            <span className={otherIsOnline ? 'text-green-600' : 'text-slate-400'}>
+              {otherIsOnline ? 'Online' : 'Offline'}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-qaw-spin mx-auto" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            <p className="text-sm">No messages yet. Say hello!</p>
+          </div>
+        ) : (
+          messages.map((msg) => {
+            const isMine = msg.sender_id === user.id
+            return (
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    isMine
+                      ? 'bg-indigo-600 text-white rounded-br-md'
+                      : 'bg-slate-100 text-slate-900 rounded-bl-md'
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-400'}`}>
+                    {formatTime(msg.created_at)}
+                  </p>
+                </div>
+              </div>
+            )
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="border-t border-slate-200 p-4">
+        <div className="flex items-center gap-2">
+          <input
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Type a message..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={sending}
+          />
+          <button
+            className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            onClick={handleSend}
+            disabled={!text.trim() || sending}
+          >
+            <Send size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
