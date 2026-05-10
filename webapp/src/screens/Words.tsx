@@ -862,8 +862,21 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   }
 
   const handleDelete = async (wordId: number) => {
+    if (!window.confirm('Delete this word? You can add it again later.')) return
     await deleteWord(wordId, user.id)
     setMyWords((prev) => prev.filter((w) => w.id !== wordId))
+    setWordsByFolder((prev) => {
+      if (!prev) return prev
+      return {
+        uncategorized: prev.uncategorized.filter((w) => w.id !== wordId),
+        folders: Object.fromEntries(
+          Object.entries(prev.folders).map(([key, f]) => [
+            key,
+            { ...f, words: f.words.filter((w) => w.id !== wordId) },
+          ])
+        ),
+      }
+    })
   }
 
   const handleSave = async (word: Word) => {

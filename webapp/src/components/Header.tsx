@@ -1,4 +1,4 @@
-import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool, MessageCircle } from 'lucide-react'
+import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool, MessageCircle, Languages, StickyNote } from 'lucide-react'
 import { User as UserType } from '../hooks/useApi'
 import { Screen } from '../App'
 
@@ -23,6 +23,10 @@ const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) =>
       return <MessageCircle className={iconClass} />
     case 'notifications':
       return <Bell className={iconClass} />
+    case 'translate':
+      return <Languages className={iconClass} />
+    case 'notes':
+      return <StickyNote className={iconClass} />
     default:
       return null
   }

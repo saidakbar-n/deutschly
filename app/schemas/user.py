@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
+    username: str = Field(min_length=3, max_length=30, regex=r"^[a-z0-9_]+$")
     level: str = Field(regex=r"^(A1|A2|B1|B2|C1)$")
     city: Optional[str] = None
     interests: Optional[dict] = None
@@ -17,7 +17,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(default=None, min_length=3, max_length=50)
+    username: Optional[str] = Field(default=None, min_length=3, max_length=30, regex=r"^[a-z0-9_]+$")
     level: Optional[str] = Field(default=None, regex=r"^(A1|A2|B1|B2|C1)$")
     city: Optional[str] = None
     interests: Optional[dict] = None
@@ -64,7 +64,7 @@ class UserList(BaseModel):
 
 
 class WebSignup(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
+    username: str = Field(min_length=3, max_length=30, regex=r"^[a-z0-9_]+$")
     level: str = Field(regex=r"^(A1|A2|B1|B2|C1)$")
     city: Optional[str] = None
     interests: Optional[dict] = None

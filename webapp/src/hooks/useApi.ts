@@ -649,6 +649,19 @@ export async function translateText(
   return res.data
 }
 
+export type ArticleDetectionResult = {
+  article: string | null
+  term_with_article: string | null
+  method: string | null
+}
+
+export async function detectArticle(word: string, englishHint?: string): Promise<ArticleDetectionResult> {
+  const res = await api.get('/translate/detect-article', {
+    params: { word, english_hint: englishHint }
+  })
+  return res.data
+}
+
 // ===== Sticky Notes =====
 
 export type StickyNote = {

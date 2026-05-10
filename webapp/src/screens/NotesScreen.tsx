@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { listStickyNotes, createStickyNote, updateStickyNote, deleteStickyNote, type StickyNote, type User } from '../hooks/useApi'
-import { Plus, Pin, Trash2, Bell, Check, X } from 'lucide-react'
+import { Plus, Pin, Trash2, Bell, Check, Edit3 } from 'lucide-react'
 
 const COLOR_CONFIG: Record<string, { bg: string; border: string; dot: string }> = {
   yellow: { bg: 'bg-yellow-50',  border: 'border-yellow-200', dot: 'bg-yellow-400' },
@@ -87,19 +87,14 @@ function NoteCard({ note, userId, onUpdate, onDelete }: NoteCardProps) {
           autoFocus
         />
       ) : (
-        <p
-          className="text-slate-800 text-sm whitespace-pre-wrap cursor-text"
-          onClick={() => setEditing(true)}
-        >
-          {note.content}
-        </p>
+        <p className="text-slate-800 text-sm whitespace-pre-wrap">{note.content}</p>
       )}
 
       <p className="text-[10px] text-slate-400 mt-auto">
         {new Date(note.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
       </p>
 
-      <div className={`flex items-center justify-between gap-2 mt-1 ${editing ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity'}`}>
+      <div className="flex items-center justify-between gap-2 mt-1">
         <div className="flex gap-1.5">
           {Object.entries(COLOR_CONFIG).map(([color, c]) => (
             <button
@@ -113,28 +108,46 @@ function NoteCard({ note, userId, onUpdate, onDelete }: NoteCardProps) {
 
         <div className="flex gap-1">
           {editing ? (
-            <button
-              className="p-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-              onClick={save}
-              disabled={saving}
-            >
-              <Check size={13} />
-            </button>
-          ) : null}
-          <button
-            className={`p-1.5 rounded-lg transition-colors ${note.is_pinned ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
-            onClick={togglePin}
-            title={note.is_pinned ? 'Unpin' : 'Pin'}
-          >
-            <Pin size={13} />
-          </button>
-          <button
-            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-            onClick={() => onDelete(note.id)}
-            title="Delete"
-          >
-            <Trash2 size={13} />
-          </button>
+            <>
+              <button
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                onClick={() => { setEditing(false); setContent(note.content); setTitle(note.title || '') }}
+              >
+                <Trash2 size={13} />
+              </button>
+              <button
+                className="p-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                onClick={save}
+                disabled={saving}
+              >
+                <Check size={13} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                onClick={() => setEditing(true)}
+                title="Edit"
+              >
+                <Edit3 size={13} />
+              </button>
+              <button
+                className={`p-1.5 rounded-lg transition-colors ${note.is_pinned ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                onClick={togglePin}
+                title={note.is_pinned ? 'Unpin' : 'Pin'}
+              >
+                <Pin size={13} />
+              </button>
+              <button
+                className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                onClick={() => onDelete(note.id)}
+                title="Delete"
+              >
+                <Trash2 size={13} />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -192,6 +205,7 @@ export default function NotesScreen({ user }: NotesScreenProps) {
   }
 
   const handleDelete = async (noteId: number) => {
+    if (!window.confirm('Delete this note? This cannot be undone.')) return
     await deleteStickyNote(noteId, user.id)
     setNotes(prev => prev.filter(n => n.id !== noteId))
   }

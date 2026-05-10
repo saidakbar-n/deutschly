@@ -500,7 +500,7 @@ export function Landing({
                         className="input-primary"
                         placeholder="e.g., deutschlerner"
                         value={form.username}
-                        onChange={(e) => setForm({ ...form, username: e.target.value })}
+                        onChange={(e) => setForm({ ...form, username: e.target.value.replace(/[^a-z0-9_]/g, '').slice(0, 30) })}
                         onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
                         autoFocus
                       />

@@ -380,7 +380,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Username</label>
-                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value.replace(/[^a-z0-9_]/g, '').slice(0, 30) })} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Age</label>
