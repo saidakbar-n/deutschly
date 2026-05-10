@@ -295,6 +295,21 @@ def accept_chat_request(conversation_id: int, user_id: int, db: Session = Depend
     return {"status": "accepted"}
 
 
+@router.post("/conversations/{conversation_id}/mark-read")
+def mark_read(conversation_id: int, user_id: int, db: Session = Depends(get_db)):
+    participant = db.scalar(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conversation_id,
+            ConversationParticipant.user_id == user_id,
+        )
+    )
+    if not participant:
+        raise HTTPException(status_code=404, detail="Not a participant")
+    participant.last_read_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"status": "ok"}
+
+
 @router.delete("/conversations/{conversation_id}")
 def decline_chat_request(conversation_id: int, user_id: int, db: Session = Depends(get_db)):
     participant = db.scalar(

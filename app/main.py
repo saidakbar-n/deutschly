@@ -27,7 +27,7 @@ from app.api.chat_ws import manager
 from app.core.database import Base, SessionLocal
 from app import models  # noqa: F401 ensures models are registered
 from app.core.seed_grammar import seed_grammar
-from app.services.notification_scheduler import generate_grammar_notifications
+from app.services.notification_scheduler import generate_grammar_notifications, check_reminders
 from sqlalchemy.orm import Session
 from app.core.deps import get_db
 from fastapi import WebSocket, WebSocketDisconnect
@@ -60,6 +60,15 @@ async def lifespan(app: FastAPI):
             db.close()
 
     scheduler.add_job(run_notifications, "cron", hour=9, minute=0)
+
+    def run_reminders():
+        db = SessionLocal()
+        try:
+            check_reminders(db)
+        finally:
+            db.close()
+
+    scheduler.add_job(run_reminders, "interval", minutes=15)
     scheduler.start()
 
     print("Application started successfully")

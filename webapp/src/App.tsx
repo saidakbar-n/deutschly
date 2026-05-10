@@ -14,10 +14,12 @@ import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
 import { fetchNotifications, followUser, fetchUnreadChatCount, createConversation, getUser, wsUrl } from './hooks/useApi'
-import { Home, Compass, User as UserIcon, BookOpen, PenTool, MessageCircle } from 'lucide-react'
+import { Home, Compass, User as UserIcon, BookOpen, PenTool, MessageCircle, Languages, StickyNote } from 'lucide-react'
 import ChatScreen from './screens/ChatScreen'
+import TranslateScreen from './screens/TranslateScreen'
+import NotesScreen from './screens/NotesScreen'
 
-export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar' | 'chat'
+export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar' | 'chat' | 'translate' | 'notes'
 
 function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
@@ -87,6 +89,8 @@ function App() {
       { key: 'search' as Screen, label: 'Discover' },
       { key: 'words' as Screen, label: 'Words' },
       { key: 'grammar' as Screen, label: 'Grammar' },
+      { key: 'translate' as Screen, label: 'Translate' },
+      { key: 'notes' as Screen, label: 'Notes' },
       { key: 'profile' as Screen, label: 'Profile' },
       { key: 'chat' as Screen, label: 'Chat' },
       { key: 'notifications' as Screen, label: 'Alerts' },
@@ -187,6 +191,8 @@ function App() {
                 />
               )}
               {screen === 'notifications' && <Notifications user={user} />}
+              {screen === 'translate' && <TranslateScreen user={user} onUserUpdated={refresh} />}
+              {screen === 'notes' && <NotesScreen user={user} />}
             </div>
           </div>
 
@@ -250,9 +256,11 @@ function App() {
         <div className="flex justify-around items-center py-2 px-4">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
+              { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
               { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+              { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
             const Icon = item.icon
@@ -261,7 +269,7 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
+                className={`flex flex-col items-center gap-1 py-2 px-1.5 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'

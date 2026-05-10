@@ -17,6 +17,7 @@ from app.models.user_grammar_attempt import UserGrammarAttempt
 from app.models.user_grammar_progress import UserGrammarProgress
 from app.models.user_chapter_progress import UserChapterProgress
 from app.models.conversation import Conversation, ConversationParticipant, Message
+from app.models.sticky_note import StickyNote
 
 __all__ = [
     "User", "Post", "Follow", "Game", "Like", "Comment",
@@ -25,4 +26,5 @@ __all__ = [
     "GrammarRule", "GrammarExercise", "UserGrammarAttempt",
     "UserGrammarProgress", "UserChapterProgress",
     "Conversation", "ConversationParticipant", "Message",
+    "StickyNote",
 ]

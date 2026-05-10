@@ -628,3 +628,74 @@ export async function transcribeVoice(audioBlob: Blob, language = 'de'): Promise
   })
   return res.data
 }
+
+// ===== Translation =====
+
+export type TranslationResult = {
+  original: string
+  translated: string
+  detected_language: string | null
+  alternatives: string[]
+}
+
+export async function translateText(
+  text: string,
+  sourceLang: string = 'de',
+  targetLang: string = 'en'
+): Promise<TranslationResult> {
+  const res = await api.get('/translate', {
+    params: { q: text, source: sourceLang, target: targetLang }
+  })
+  return res.data
+}
+
+// ===== Sticky Notes =====
+
+export type StickyNote = {
+  id: number
+  user_id: number
+  title: string | null
+  content: string
+  color: 'yellow' | 'blue' | 'green' | 'pink' | 'purple'
+  is_pinned: boolean
+  reminder_at: string | null
+  reminder_sent: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function listStickyNotes(userId: number): Promise<StickyNote[]> {
+  const res = await api.get('/sticky-notes', { params: { user_id: userId } })
+  return res.data
+}
+
+export async function createStickyNote(payload: {
+  user_id: number
+  title?: string
+  content: string
+  color?: string
+  is_pinned?: boolean
+  reminder_at?: string
+}): Promise<StickyNote> {
+  const res = await api.post('/sticky-notes', payload)
+  return res.data
+}
+
+export async function updateStickyNote(noteId: number, userId: number, payload: Partial<{
+  title: string
+  content: string
+  color: string
+  is_pinned: boolean
+  reminder_at: string | null
+}>): Promise<StickyNote> {
+  const res = await api.put(`/sticky-notes/${noteId}`, payload, { params: { user_id: userId } })
+  return res.data
+}
+
+export async function deleteStickyNote(noteId: number, userId: number): Promise<void> {
+  await api.delete(`/sticky-notes/${noteId}`, { params: { user_id: userId } })
+}
+
+export async function markConversationRead(conversationId: number, userId: number): Promise<void> {
+  await api.post(`/conversations/${conversationId}/mark-read`, null, { params: { user_id: userId } })
+}

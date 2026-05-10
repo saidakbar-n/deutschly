@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { listMessages, sendMessage, getImageUrl, wsUrl, listWords, type User, type Message } from '../hooks/useApi'
+import { listMessages, sendMessage, getImageUrl, wsUrl, listWords, markConversationRead, type User, type Message } from '../hooks/useApi'
 import { ArrowLeft, Send, BookOpen } from 'lucide-react'
 
 interface ChatConversationProps {
@@ -69,6 +69,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
     try {
       const data = await listMessages(conversationId, user.id)
       setMessages(data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
+      markConversationRead(conversationId, user.id).catch(() => {})
     } catch (err) {
       console.error('Failed to load messages:', err)
     } finally {

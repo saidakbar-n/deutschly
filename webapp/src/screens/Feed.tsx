@@ -114,6 +114,19 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
 
   return (
     <div className="space-y-4 p-2 sm:p-4 lg:p-6" id="app">
+      {/* Mobile header with search/notifications */}
+      <div className="flex items-center justify-between md:hidden">
+        <h2 className="text-xl font-bold text-slate-900">Feed</h2>
+        <div className="flex gap-2">
+          {onDiscover && (
+            <button onClick={onDiscover} className="p-2 rounded-xl hover:bg-slate-100 transition-colors" title="Search">
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
       <div className="card p-3 sm:p-4">
         <CreatePostModal userId={userId} onCreated={() => { loadFeed(); onUserUpdated?.() }} />
       </div>

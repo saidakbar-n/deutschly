@@ -14,6 +14,8 @@ from app.api.notifications import router as notifications_router
 from app.api.quizzes import router as quizzes_router
 from app.api.grammar import router as grammar_router
 from app.api.chat import router as chat_router
+from app.api.translate import router as translate_router
+from app.api.sticky_notes import router as sticky_notes_router
 
 api_router = APIRouter()
 api_router.include_router(users_router)
@@ -30,3 +32,5 @@ api_router.include_router(notifications_router)
 api_router.include_router(quizzes_router)
 api_router.include_router(grammar_router)
 api_router.include_router(chat_router)
+api_router.include_router(translate_router)
+api_router.include_router(sticky_notes_router)

@@ -4,6 +4,7 @@ from sqlalchemy import func, cast, Date
 from app.models.notification import Notification
 from app.models.user_grammar_progress import UserGrammarProgress
 from app.models.user import User
+from app.models.sticky_note import StickyNote
 
 def generate_grammar_notifications(db: Session) -> int:
     """Generate smart notifications for users who haven't practiced grammar recently"""
@@ -70,4 +71,30 @@ def generate_grammar_notifications(db: Session) -> int:
     if count > 0:
         db.commit()
     
+    return count
+
+
+def check_reminders(db: Session) -> int:
+    """Send reminder notifications for due sticky notes."""
+    count = 0
+    now = datetime.now(timezone.utc)
+    due_notes = db.query(StickyNote).filter(
+        StickyNote.reminder_at <= now,
+        StickyNote.reminder_sent == False,
+    ).all()
+
+    for note in due_notes:
+        notification = Notification(
+            user_id=note.user_id,
+            type='note_reminder',
+            text=f"Reminder: {note.title or note.content[:50]}",
+            is_read=0,
+        )
+        db.add(notification)
+        note.reminder_sent = True
+        db.add(note)
+        count += 1
+
+    if count:
+        db.commit()
     return count
