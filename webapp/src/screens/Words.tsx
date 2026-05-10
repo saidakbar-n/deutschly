@@ -894,7 +894,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   }
 
   return (
-    <div className="space-y-3 md:space-y-4 px-1 sm:px-0">
+    <div className="space-y-3 md:space-y-4 px-1 sm:px-0 animate-qaw-fade-in-up">
       <div className="flex items-center justify-between">
         <h2 className="text-lg md:text-xl font-bold text-slate-900">Words</h2>
         {loading && <span className="text-xs text-slate-400">Loading...</span>}

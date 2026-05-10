@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { CreatePostModal } from '../components/CreatePostModal'
+import { Bell } from 'lucide-react'
 
-export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void }) {
+export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotifications, unreadNotifCount }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void; onNotifications?: () => void; unreadNotifCount?: number }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
   const [feedTab, setFeedTab] = useState<'following' | 'discover'>('following')
@@ -113,7 +114,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
   }
 
   return (
-    <div className="space-y-4 p-2 sm:p-4 lg:p-6" id="app">
+    <div className="space-y-4 p-2 sm:p-4 lg:p-6 animate-qaw-fade-in-up" id="app">
       {/* Mobile header with search/notifications */}
       <div className="flex items-center justify-between md:hidden">
         <h2 className="text-xl font-bold text-slate-900">Feed</h2>
@@ -123,6 +124,16 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
               <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
               </svg>
+            </button>
+          )}
+          {onNotifications && (
+            <button onClick={onNotifications} className="p-2 rounded-xl hover:bg-slate-100 transition-colors relative" title="Notifications">
+              <Bell size={20} className="text-slate-500" />
+              {(unreadNotifCount || 0) > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {(unreadNotifCount || 0) > 9 ? '9+' : unreadNotifCount}
+                </span>
+              )}
             </button>
           )}
         </div>
@@ -181,6 +192,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
               commentsOpen={openPostId === it.post.id}
               currentUserId={userId}
               word={it.post.word || null}
+              isLiked={likedPosts.has(it.post.id)}
             />
             {openPostId === it.post.id && (
               <div className="border border-slate-200 rounded-xl p-2 sm:p-3 space-y-3 bg-slate-50">

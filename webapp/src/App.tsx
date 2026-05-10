@@ -174,7 +174,7 @@ function App() {
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} />}
+              {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onNotifications={() => { setScreen('notifications'); setUnreadCount(0) }} unreadNotifCount={unreadCount} />}
               {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} onOpenChat={handleOpenChat} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
               {screen === 'grammar' && <GrammarCurriculum user={user} onUserUpdated={refresh} />}
@@ -212,9 +212,11 @@ function App() {
               </h3>
               <div className="space-y-3">
                {[
-                   { label: 'Words', value: user.words_count || 0 },
-                    { label: 'Posts', value: user.posts_count || 0 },
-                    { label: 'Streak 🔥', value: user.streak || 0 },
+                    { label: 'Words', value: user.words_count || 0 },
+                     { label: 'Posts', value: user.posts_count || 0 },
+                     { label: 'Followers', value: user.followers_count || 0 },
+                     { label: 'Following', value: user.following_count || 0 },
+                     { label: 'Streak 🔥', value: user.streak || 0 },
                  ].map((stat, i) => (
                   <div 
                     key={stat.label} 
@@ -256,11 +258,9 @@ function App() {
         <div className="flex justify-around items-center py-2 px-4">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
-              { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
-              { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
-              { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
+              { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
             const Icon = item.icon
@@ -269,7 +269,7 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-1 py-2 px-1.5 rounded-xl transition-colors ${
+                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'

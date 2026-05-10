@@ -12,6 +12,8 @@ class TranslationResult(BaseModel):
     translated: str
     detected_language: str | None = None
     alternatives: list[str] = []
+    article: str | None = None
+    term_with_article: str | None = None
 
 @router.get("/translate", response_model=TranslationResult)
 async def translate_text(
@@ -41,10 +43,20 @@ async def translate_text(
             if alt and alt != translated and alt not in alternatives:
                 alternatives.append(alt)
 
+        article = None
+        term_with_article = None
+        if source == 'de':
+            first_word = q.strip().split()[0].lower()
+            if first_word in ('der', 'die', 'das'):
+                article = first_word
+                term_with_article = q.strip()
+
         return TranslationResult(
             original=q.strip(),
             translated=translated,
             alternatives=alternatives[:2],
+            article=article,
+            term_with_article=term_with_article,
         )
 
     except httpx.TimeoutException:

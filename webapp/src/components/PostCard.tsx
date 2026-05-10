@@ -26,6 +26,7 @@ export type PostCardProps = {
   currentUserId?: number
   onDelete?: () => void
   word?: PostWord | null
+  isLiked?: boolean
 }
 
 function getArticleColor(term: string, isSingular: boolean): string {
@@ -74,6 +75,7 @@ export function PostCard({
   onDelete,
   timestamp,
   word,
+  isLiked,
 }: PostCardProps) {
   const safeImage = getImageUrl(image_url)
   const isMine = currentUserId !== undefined && author.id === currentUserId
@@ -121,7 +123,7 @@ export function PostCard({
       {safeImage && (
         <div className="rounded-xl overflow-hidden mb-3 sm:mb-4 shadow-lg shadow-slate-200 border-2 sm:border-4 border-slate-200">
           <div className="aspect-video bg-slate-50">
-            <img src={safeImage} alt="" className="w-full h-full object-cover" />
+            <img src={safeImage} alt="" className="w-full max-h-80 object-cover" />
           </div>
         </div>
       )}
@@ -169,8 +171,8 @@ export function PostCard({
             className="flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-red-500 transition-colors group"
             onClick={onLike}
           >
-            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 group-hover:bg-red-50 transition-colors">
-              <Heart size={16} className="sm:hidden group-hover:fill-red-500" /><Heart size={18} className="hidden sm:inline group-hover:fill-red-500" />
+            <div className={`p-1.5 sm:p-2 rounded-xl transition-colors ${isLiked ? 'bg-red-50' : 'bg-slate-100 group-hover:bg-red-50'}`}>
+              <Heart size={16} className={`sm:hidden ${isLiked ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500'}`} /><Heart size={18} className={`hidden sm:inline ${isLiked ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500'}`} />
             </div>
             <span className="text-xs sm:text-sm font-medium">{likes}</span>
           </button>

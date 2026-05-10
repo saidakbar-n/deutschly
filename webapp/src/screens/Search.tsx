@@ -73,7 +73,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
   }, [level])
 
   return (
-    <div className="card space-y-3">
+    <div className="card space-y-3 animate-qaw-fade-in-up">
       <div className="flex flex-col sm:flex-row gap-2">
         <input 
           className="border rounded-lg p-3 sm:p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base" 

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { translateText, createWord, detectArticle, type User } from '../hooks/useApi'
+import { translateText, createWord, type User } from '../hooks/useApi'
 import { ArrowLeftRight, Plus, Check, Loader2, Volume2 } from 'lucide-react'
 
 const LANGUAGES = [
@@ -19,9 +19,14 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
   const [inputText, setInputText] = useState('')
   const [sourceLang, setSourceLang] = useState('de')
   const [targetLang, setTargetLang] = useState('en')
+  const [history, setHistory] = useState<{original: string; translated: string; from: string; to: string}[]>(() => {
+    try { return JSON.parse(localStorage.getItem('deutschly:translate_history') || '[]') } catch { return [] }
+  })
   const [result, setResult] = useState<{
     translated: string
     alternatives: string[]
+    article?: string | null
+    term_with_article?: string | null
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -37,6 +42,12 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     try {
       const data = await translateText(text.trim(), sourceLang, targetLang)
       setResult(data)
+      const entry = { original: text.trim(), translated: data.translated, from: sourceLang, to: targetLang }
+      setHistory(prev => {
+        const updated = [entry, ...prev.filter(h => h.original !== text.trim())].slice(0, 20)
+        localStorage.setItem('deutschly:translate_history', JSON.stringify(updated))
+        return updated
+      })
     } catch {
       setError('Translation failed. Check your connection and try again.')
     } finally {
@@ -109,21 +120,11 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     setSaving(true)
     try {
       const isSourceGerman = sourceLang === 'de'
-      let term = isSourceGerman ? inputText.trim() : result.translated
+      const term = result.term_with_article || (isSourceGerman ? inputText.trim() : result.translated)
       const meaning = isSourceGerman ? result.translated : inputText.trim()
 
-      let { article, isSingular } = getLocalArticle(term)
-
-      if (!article && isSourceGerman && meaning) {
-        try {
-          const detected = await detectArticle(term, meaning)
-          if (detected.term_with_article) {
-            term = detected.term_with_article
-            article = detected.article || ''
-            isSingular = true
-          }
-        } catch {}
-      }
+      const { article } = getLocalArticle(term)
+      const isSingular = article ? true : undefined
 
       await createWord({
         user_id: user.id,
@@ -148,7 +149,7 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
   }
 
   return (
-    <div className="space-y-4 p-3 sm:p-0">
+    <div className="space-y-4 p-3 sm:p-0 animate-qaw-fade-in-up">
       <h2 className="text-xl font-bold text-slate-900">Translate</h2>
 
       <div className="flex items-center gap-2">
@@ -348,11 +349,29 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
       )}
 
       {!result && !loading && !inputText && (
-        <div className="text-center py-10 space-y-2">
-          <p className="text-5xl">{sourceLang === 'de' ? '🇩🇪' : '🔤'}</p>
-          <p className="text-slate-500 font-medium">Translate any word or phrase</p>
-          <p className="text-sm text-slate-400">Type above — German words translate automatically</p>
-          <p className="text-xs text-slate-300 mt-3">Powered by MyMemory</p>
+        <div>
+          {history.length > 0 ? (
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Recent</p>
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {history.slice(0, 5).map((h, i) => (
+                  <button key={i} className="w-full text-left card py-2.5 px-3 hover:shadow-md transition-all"
+                    onClick={() => { setInputText(h.original); setSourceLang(h.from); setTargetLang(h.to); handleTranslate(h.original) }}>
+                    <span className="font-medium text-slate-900 text-sm">{h.original}</span>
+                    <span className="text-slate-400 mx-2">→</span>
+                    <span className="text-indigo-700 text-sm">{h.translated}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-10 space-y-2">
+              <p className="text-5xl">{sourceLang === 'de' ? '🇩🇪' : '🔤'}</p>
+              <p className="text-slate-500 font-medium">Translate any word or phrase</p>
+              <p className="text-sm text-slate-400">Type above — German words translate automatically</p>
+              <p className="text-xs text-slate-300 mt-3">Powered by MyMemory</p>
+            </div>
+          )}
         </div>
       )}
     </div>

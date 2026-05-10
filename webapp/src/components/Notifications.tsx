@@ -107,7 +107,7 @@ export function Notifications({ user }: { user: User }) {
 
   if (loading) {
     return (
-      <div className="card space-y-2">
+      <div className="card space-y-2 animate-qaw-fade-in-up">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Notifications</h3>
         </div>
@@ -121,7 +121,7 @@ export function Notifications({ user }: { user: User }) {
 
   if (error) {
     return (
-      <div className="card space-y-2">
+      <div className="card space-y-2 animate-qaw-fade-in-up">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Notifications</h3>
         </div>

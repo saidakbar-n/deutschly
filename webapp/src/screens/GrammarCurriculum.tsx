@@ -16,6 +16,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
   const [chapterJustCompleted, setChapterJustCompleted] = useState(false)
   const [retakeChapter, setRetakeChapter] = useState<GrammarChapter | null>(null)
   const [retakeLoading, setRetakeLoading] = useState(false)
+  const [mistakeReplay, setMistakeReplay] = useState(false)
 
   const handleQuickStart = async () => {
     setQuickStartLoading(true)
@@ -112,10 +113,10 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
     loadChapters()
   }
 
-  if (view === 'practicing' && activeChapter) {
+  if (view === 'practicing') {
     return (
-      <div className="max-w-2xl mx-auto p-3 sm:p-6">
-        <GrammarPracticer user={user} chapterId={activeChapter.id} chapterTitle={activeChapter.title} onExit={backToCurriculum} onUserUpdated={onUserUpdated} onChapterCompleted={() => setChapterJustCompleted(true)} />
+      <div className="max-w-2xl mx-auto p-3 sm:p-6 animate-qaw-fade-in-up">
+        <GrammarPracticer user={user} chapterId={activeChapter?.id} chapterTitle={activeChapter?.title} onExit={() => { setMistakeReplay(false); backToCurriculum() }} onUserUpdated={onUserUpdated} onChapterCompleted={() => setChapterJustCompleted(true)} initialQuizType={mistakeReplay ? 'mistake-replay' : undefined} />
       </div>
     )
   }
@@ -123,10 +124,24 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
   const levels = ['A1', 'A2', 'B1', 'B2', 'C1']
 
   return (
-    <div className="max-w-3xl mx-auto p-3 sm:p-6">
+    <div className="max-w-3xl mx-auto p-3 sm:p-6 animate-qaw-fade-in-up">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Grammar Curriculum</h1>
         <p className="text-slate-600 mt-1">Netzwerk Neu — structured learning path</p>
+      </div>
+
+      {/* Mistake Replay Card */}
+      <div className="mb-6 card bg-red-50 border border-red-100 flex items-center justify-between p-4">
+        <div>
+          <p className="font-semibold text-red-800">Review mistakes</p>
+          <p className="text-sm text-red-600">Revisit patterns you got wrong</p>
+        </div>
+        <button
+          className="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
+          onClick={() => { setMistakeReplay(true); setActiveChapter(null); setView('practicing') }}
+        >
+          Review →
+        </button>
       </div>
 
       {/* Level Tabs */}

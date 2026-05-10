@@ -636,6 +636,8 @@ export type TranslationResult = {
   translated: string
   detected_language: string | null
   alternatives: string[]
+  article: string | null
+  term_with_article: string | null
 }
 
 export async function translateText(

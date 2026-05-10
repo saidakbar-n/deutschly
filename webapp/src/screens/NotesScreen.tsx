@@ -74,6 +74,7 @@ function NoteCard({ note, userId, onUpdate, onDelete }: NoteCardProps) {
           placeholder="Title (optional)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          onBlur={save}
         />
       ) : (
         note.title && <p className="font-semibold text-slate-900 text-sm">{note.title}</p>
@@ -84,6 +85,7 @@ function NoteCard({ note, userId, onUpdate, onDelete }: NoteCardProps) {
           className="bg-transparent text-slate-800 text-sm outline-none resize-none w-full min-h-[80px]"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          onBlur={save}
           autoFocus
         />
       ) : (
@@ -167,6 +169,7 @@ export default function NotesScreen({ user }: NotesScreenProps) {
   const [newTitle, setNewTitle] = useState('')
   const [newColor, setNewColor] = useState<string>('yellow')
   const [newReminder, setNewReminder] = useState('')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -210,11 +213,15 @@ export default function NotesScreen({ user }: NotesScreenProps) {
     setNotes(prev => prev.filter(n => n.id !== noteId))
   }
 
-  const pinned = notes.filter(n => n.is_pinned)
-  const unpinned = notes.filter(n => !n.is_pinned)
+  const filteredNotes = notes.filter(n =>
+    !search || n.content.toLowerCase().includes(search.toLowerCase()) ||
+    (n.title || '').toLowerCase().includes(search.toLowerCase())
+  )
+  const pinned = filteredNotes.filter(n => n.is_pinned)
+  const unpinned = filteredNotes.filter(n => !n.is_pinned)
 
   return (
-    <div className="space-y-4 p-3 sm:p-0">
+    <div className="space-y-4 p-3 sm:p-0 animate-qaw-fade-in-up">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900">Notes</h2>
         <button
@@ -224,6 +231,13 @@ export default function NotesScreen({ user }: NotesScreenProps) {
           <Plus size={16} /> New note
         </button>
       </div>
+
+      <input
+        className="input-primary text-sm"
+        placeholder="Search notes..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       {creating && (
         <div className="card space-y-3 border-2 border-indigo-200 bg-indigo-50">
