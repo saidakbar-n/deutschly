@@ -407,14 +407,30 @@ def list_chapters(book_id: int, user_id: int, db: Session = Depends(get_db)):
     return result
 
 @router.get("/grammar/chapters/{chapter_id}/exercises")
-def chapter_exercises(chapter_id: int, user_id: int, limit: int = 5, db: Session = Depends(get_db)):
+def chapter_exercises(chapter_id: int, user_id: int, limit: int = 25, db: Session = Depends(get_db)):
     rules = db.query(GrammarRule).filter_by(chapter_id=chapter_id).all()
     if not rules:
         return []
     rule_ids = [r.id for r in rules]
-    return db.query(GrammarExercise).filter(
+    all_exercises = db.query(GrammarExercise).filter(
         GrammarExercise.rule_id.in_(rule_ids)
-    ).order_by(func.random()).limit(limit).all()
+    ).all()
+
+    attempted_ids = {
+        row[0] for row in db.query(UserGrammarAttempt.exercise_id).filter(
+            UserGrammarAttempt.user_id == user_id,
+            UserGrammarAttempt.exercise_id.in_([e.id for e in all_exercises]),
+        ).distinct().all()
+    }
+
+    remaining = [e for e in all_exercises if e.id not in attempted_ids]
+
+    if not remaining:
+        return []
+
+    import random
+    random.shuffle(remaining)
+    return remaining[:limit]
 
 @router.get("/grammar/chapters/{chapter_id}/progress/{user_id}")
 def chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):
@@ -437,6 +453,31 @@ def chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db
         "unlocked_at": progress.unlocked_at,
         "completed_at": progress.completed_at,
     }
+
+@router.post("/grammar/chapters/{chapter_id}/reset-progress/{user_id}")
+def reset_chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):
+    chapter = db.get(GrammarChapter, chapter_id)
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+
+    rule_ids = [r.id for r in chapter.rules]
+    db.query(UserGrammarProgress).filter(
+        UserGrammarProgress.rule_id.in_(rule_ids),
+        UserGrammarProgress.user_id == user_id,
+    ).delete()
+
+    progress = db.query(UserChapterProgress).filter_by(
+        user_id=user_id, chapter_id=chapter_id
+    ).first()
+    if progress:
+        progress.status = "in_progress"
+        progress.exercises_done = 0
+        progress.score_pct = 0
+        progress.completed_at = None
+
+    db.commit()
+    return {"status": "reset"}
+
 
 @router.post("/grammar/chapters/{chapter_id}/sync-progress/{user_id}")
 def sync_chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):

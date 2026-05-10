@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import { searchUsers, followUser, unfollowUser, listFollowing, getImageUrl } from '../hooks/useApi'
 import type { User } from '../hooks/useApi'
-import { UserPlus, UserCheck } from 'lucide-react'
+import { UserPlus, UserCheck, MessageCircle } from 'lucide-react'
 
 interface SearchProps {
   user: User
   onViewUser?: (userId: number) => void
   onFollow?: (targetUserId: number) => Promise<void>
+  onOpenChat?: (targetUserId: number) => void
 }
 
-export function Search({ user, onViewUser, onFollow }: SearchProps) {
+export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) {
   const [q, setQ] = useState('')
   const [level, setLevel] = useState('')
   const [results, setResults] = useState<User[]>([])
@@ -148,29 +149,41 @@ export function Search({ user, onViewUser, onFollow }: SearchProps) {
                   </p>
                 </div>
               </button>
-              <button
-                className={`ml-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 flex-shrink-0 ${
-                  isFollowing
-                    ? 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                }`}
-                onClick={() => handleFollow(u.id)}
-                disabled={followLoading === u.id}
-              >
-                {followLoading === u.id ? (
-                  <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                ) : isFollowing ? (
-                  <>
-                    <UserCheck size={14} />
-                    <span className="hidden sm:inline">Following</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus size={14} />
-                    <span className="hidden sm:inline">Follow</span>
-                  </>
+              <div className="flex items-center gap-1">
+                {onOpenChat && u.id !== user.id && (
+                  <button
+                    className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    onClick={(e) => { e.stopPropagation(); onOpenChat(u.id) }}
+                    title="Send message"
+                    aria-label="Send message"
+                  >
+                    <MessageCircle size={16} />
+                  </button>
                 )}
-              </button>
+                <button
+                  className={`ml-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                    isFollowing
+                      ? 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                  onClick={() => handleFollow(u.id)}
+                  disabled={followLoading === u.id}
+                >
+                  {followLoading === u.id ? (
+                    <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                  ) : isFollowing ? (
+                    <>
+                      <UserCheck size={14} />
+                      <span className="hidden sm:inline">Following</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={14} />
+                      <span className="hidden sm:inline">Follow</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )
         })}

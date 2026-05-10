@@ -42,7 +42,7 @@ export default function ReverseTranslationExercise({ nativeSentence, onAnswerSub
         <button
           className="btn-primary"
           onClick={handleSubmit}
-          disabled={loading || !answer.trim()}
+          disabled={loading || !answer.trim() || !!feedback}
         >
           {loading ? 'Checking...' : 'Submit Answer'}
         </button>

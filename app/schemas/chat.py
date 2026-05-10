@@ -24,6 +24,7 @@ class ConversationListItem(BaseModel):
     last_message: Optional[dict] = None
     unread_count: int = 0
     created_at: datetime
+    is_pending: bool = False
 
 
 class ConversationCreate(BaseModel):

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ArrowRight, Sparkles, LogIn, ChevronLeft, UserPlus, Key, BookOpen, PenTool } from 'lucide-react'
 import { WebSignupPayload, checkUsername } from '../hooks/useApi'
 
@@ -183,15 +183,24 @@ export function Landing({
   const [password, setPassword] = useState('')
   const [recoveryCodes, setRecoveryCodes] = useState<number[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const formRef = useRef<HTMLDivElement>(null)
+
+  const scrollToForm = () => {
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  }
 
   const startLogin = () => {
     setIsLogin(true)
     setStep('username')
+    scrollToForm()
   }
 
   const startSignup = () => {
     setIsLogin(false)
     setStep('username')
+    scrollToForm()
   }
 
   const handleContinue = async () => {
@@ -296,11 +305,13 @@ export function Landing({
           {/* Left side - Content */}
           <div className="space-y-8">
             {/* Logo */}
-            <div className="inline-flex items-center gap-3">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                <RunningWolfPixel className="w-7 h-4 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 2 H10 V4 H12 V6 H14 V10 H12 V12 H10 V14 H2 Z" />
+                </svg>
               </div>
-              <span className="text-3xl font-bold text-gradient-indigo">Deutschly</span>
+              <span className="text-xl font-bold text-gradient-indigo">Deutschly</span>
             </div>
 
             {/* Main Headline */}
@@ -445,7 +456,7 @@ export function Landing({
         ============================================ */}
         <div className="mt-16 lg:mt-24">
           <div className="max-w-2xl mx-auto">
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <div ref={formRef} className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.6s' }}>
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 {step !== 'welcome' && (

@@ -45,7 +45,7 @@ export default function ClozeExercise({ sentenceWithBlank, infinitiveVerb, onAns
       <button
         className="btn-primary mt-4 w-full"
         onClick={handleSubmit}
-        disabled={loading || !answer.trim()}
+        disabled={loading || !answer.trim() || !!feedback}
       >
         {loading ? 'Checking...' : 'Submit Answer'}
       </button>

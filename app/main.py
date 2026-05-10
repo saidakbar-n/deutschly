@@ -22,6 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from app.api import api_router
+from app.api.chat_ws import router as chat_ws_router
 from app.core.database import Base
 from app import models  # noqa: F401 ensures models are registered
 from app.core.seed_grammar import seed_grammar
@@ -80,6 +81,7 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 app.include_router(api_router)
+app.include_router(chat_ws_router)
 
 
 @app.get("/")

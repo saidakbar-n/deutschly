@@ -4,6 +4,7 @@ interface WordCardProps {
   note?: string
   is_singular?: boolean
   created_at: string
+  compact?: boolean
 }
 
 // Helper function to extract German article and return appropriate styling
@@ -28,11 +29,11 @@ function getArticleInfo(term: string, is_singular?: boolean): { article: string;
   return { article: '', colorClass: 'bg-slate-100 text-black border-slate-300', termWithoutArticle: trimmed }
 }
 
-export function WordCard({ term, meaning, note, is_singular, created_at }: WordCardProps) {
+export function WordCard({ term, meaning, note, is_singular, created_at, compact }: WordCardProps) {
   const { article, colorClass, termWithoutArticle } = getArticleInfo(term, is_singular)
   
   return (
-    <div className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+    <div className={`flex items-center justify-between ${compact ? 'p-2' : 'p-3 md:p-4'} bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors`}>
       <div className="flex-1 min-w-0 flex items-start gap-3">
         {/* Article badge */}
         <span className={`flex-shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold border ${colorClass}`}>
@@ -40,8 +41,8 @@ export function WordCard({ term, meaning, note, is_singular, created_at }: WordC
         </span>
         
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-900 text-base md:text-lg truncate">{termWithoutArticle || term}</p>
-          <p className="text-slate-600 text-xs md:text-sm mt-1 truncate">{meaning}</p>
+          <p className={`font-bold text-slate-900 truncate ${compact ? 'text-sm' : 'text-base md:text-lg'}`}>{termWithoutArticle || term}</p>
+          <p className={`text-slate-600 truncate ${compact ? 'text-xs' : 'text-xs md:text-sm mt-1'}`}>{meaning}</p>
           {note && <p className="text-slate-500 text-xs mt-1 italic truncate">{note}</p>}
         </div>
       </div>

@@ -13,7 +13,7 @@ import { Header } from './components/Header'
 import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
-import { fetchNotifications, followUser, fetchUnreadChatCount } from './hooks/useApi'
+import { fetchNotifications, followUser, fetchUnreadChatCount, createConversation, getUser, wsUrl } from './hooks/useApi'
 import { Home, Compass, User as UserIcon, BookOpen, PenTool, MessageCircle } from 'lucide-react'
 import ChatScreen from './screens/ChatScreen'
 
@@ -29,6 +29,10 @@ function App() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [followVersion, setFollowVersion] = useState(0)
+  const [chatTargetConvId, setChatTargetConvId] = useState<number | null>(null)
+  const [chatTargetUserId, setChatTargetUserId] = useState<number | null>(null)
+  const [chatTargetUsername, setChatTargetUsername] = useState<string>('')
+  const [chatTargetPhoto, setChatTargetPhoto] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (!user) return
@@ -43,6 +47,39 @@ function App() {
     }, 15000)
     return () => clearInterval(interval)
   }, [user])
+
+  // App-level WebSocket for real-time chat unread badge updates
+  useEffect(() => {
+    if (!user) return
+    const ws = new WebSocket(`${wsUrl}/api/v1/ws/chat/${user.id}`)
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'new_message' && screen !== 'chat') {
+          setChatUnreadCount(prev => prev + 1)
+        }
+      } catch {}
+    }
+    const ping = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.send('ping')
+    }, 30000)
+    return () => { ws.close(); clearInterval(ping) }
+  }, [user?.id])
+
+  const handleOpenChat = async (targetUserId: number) => {
+    try {
+      const conv = await createConversation(user.id, targetUserId)
+      const targetUser = await getUser(targetUserId)
+      setChatTargetConvId(conv.id)
+      setChatTargetUserId(targetUserId)
+      setChatTargetUsername(targetUser?.username || 'User')
+      setChatTargetPhoto(targetUser?.profile_photo)
+      setScreen('chat')
+    } catch (err) {
+      console.error('Failed to open chat:', err)
+      setScreen('chat')
+    }
+  }
 
   const nav = useMemo(
     () => [
@@ -116,6 +153,7 @@ function App() {
               onNav={(s) => {
                 setScreen(s)
                 if (s === 'notifications') setUnreadCount(0)
+                if (s !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) }
               }} 
               onLogout={signOut}
               unreadCount={unreadCount}
@@ -133,12 +171,20 @@ function App() {
           <div className="space-y-6 w-full">
             <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} />}
-              {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} />}
+              {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} onOpenChat={handleOpenChat} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
               {screen === 'grammar' && <GrammarCurriculum user={user} onUserUpdated={refresh} />}
-              {screen === 'profile' && <Profile user={user} currentUser={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} />}
-              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onNavigate={(s) => setScreen(s as Screen)} />}
-              {screen === 'chat' && <ChatScreen user={user} />}
+              {screen === 'profile' && <Profile user={user} currentUser={user} onUpdated={setUser} onNavigate={(s) => setScreen(s as Screen)} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onOpenChat={handleOpenChat} />}
+              {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onNavigate={(s) => setScreen(s as Screen)} onOpenChat={handleOpenChat} />}
+              {screen === 'chat' && (
+                <ChatScreen
+                  user={user}
+                  initialConvId={chatTargetConvId || undefined}
+                  initialOtherUserId={chatTargetUserId || undefined}
+                  initialOtherUsername={chatTargetUsername || undefined}
+                  initialOtherPhoto={chatTargetPhoto}
+                />
+              )}
               {screen === 'notifications' && <Notifications user={user} />}
             </div>
           </div>
@@ -213,7 +259,7 @@ function App() {
             return (
               <button
                 key={item.key}
-                onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0) }}
+                onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'

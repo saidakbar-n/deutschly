@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChatList } from '../components/ChatList'
 import { ChatConversation } from '../components/ChatConversation'
 import { NewChatModal } from '../components/NewChatModal'
@@ -6,11 +6,15 @@ import type { User } from '../hooks/useApi'
 
 interface ChatScreenProps {
   user: User
+  initialConvId?: number
+  initialOtherUserId?: number
+  initialOtherUsername?: string
+  initialOtherPhoto?: string
 }
 
 type View = 'list' | 'conversation'
 
-export default function ChatScreen({ user }: ChatScreenProps) {
+export default function ChatScreen({ user, initialConvId, initialOtherUserId, initialOtherUsername, initialOtherPhoto }: ChatScreenProps) {
   const [view, setView] = useState<View>('list')
   const [activeConvId, setActiveConvId] = useState<number | null>(null)
   const [activeOtherUserId, setActiveOtherUserId] = useState<number | null>(null)
@@ -19,6 +23,16 @@ export default function ChatScreen({ user }: ChatScreenProps) {
   const [activeOtherFullName, setActiveOtherFullName] = useState<string | undefined>(undefined)
   const [activeOtherIsOnline, setActiveOtherIsOnline] = useState(false)
   const [newChatOpen, setNewChatOpen] = useState(false)
+
+  useEffect(() => {
+    if (initialConvId && initialOtherUserId) {
+      setActiveConvId(initialConvId)
+      setActiveOtherUserId(initialOtherUserId)
+      setActiveOtherUsername(initialOtherUsername || 'User')
+      setActiveOtherPhoto(initialOtherPhoto)
+      setView('conversation')
+    }
+  }, [initialConvId, initialOtherUserId])
 
   const handleSelectConversation = (convId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean) => {
     setActiveConvId(convId)

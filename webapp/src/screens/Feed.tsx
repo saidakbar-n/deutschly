@@ -20,6 +20,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
   const [peekUser, setPeekUser] = useState<any | null>(null)
   const [peekLoading, setPeekLoading] = useState(false)
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
+  const [followedIds, setFollowedIds] = useState<Set<number>>(new Set())
 
   const loadFeed = useCallback(async () => {
     setLoading(true)
@@ -96,7 +97,9 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
   }
 
   const handleFollow = async (targetId: number) => {
+    if (followedIds.has(targetId)) return
     await followUser(targetId, userId)
+    setFollowedIds(prev => new Set([...prev, targetId]))
   }
 
   const viewUser = async (userIdToView: number) => {
@@ -158,7 +161,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser }: { user: Us
               likes={it.post.likes}
               comments_count={it.post.comments_count}
               timestamp={it.post.timestamp ? new Date(it.post.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined}
-              onFollow={() => handleFollow(it.author.id)}
+              onFollow={followedIds.has(it.author.id) ? undefined : () => handleFollow(it.author.id)}
               onLike={() => handleLike(it.post.id)}
               onComment={() => toggleComments(it.post.id)}
               onDelete={() => handleDelete(it.post.id)}

@@ -7,8 +7,8 @@ from app.models.grammar_rule import GrammarRule
 from app.models.user_chapter_progress import UserChapterProgress
 from app.models.user_grammar_progress import UserGrammarProgress
 
-UNLOCK_THRESHOLD_PCT = 70
-UNLOCK_ACCURACY_PCT = 60
+UNLOCK_THRESHOLD_PCT = 100
+UNLOCK_ACCURACY_PCT = 0
 
 
 def get_or_create_user_chapter_progress(
@@ -50,7 +50,7 @@ def update_chapter_progress(user_id: int, chapter_id: int, db: Session):
         UserGrammarProgress.user_id == user_id
     ).all()
 
-    progress.exercises_done = sum(p.total_attempts for p in user_progress)
+    progress.exercises_done = min(sum(p.total_attempts for p in user_progress), progress.exercises_total)
     correct = sum(p.correct_attempts for p in user_progress)
     attempted = sum(p.total_attempts for p in user_progress)
     progress.score_pct = round((correct / attempted) * 100, 1) if attempted > 0 else 0

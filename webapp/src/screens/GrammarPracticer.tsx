@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress, fetchChapterProgress } from '../hooks/useApi'
 import BlurtingExercise from '../components/GrammarExercises/BlurtingExercise'
 import ClozeExercise from '../components/GrammarExercises/ClozeExercise'
@@ -62,6 +63,19 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
       } else {
         data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
       }
+
+      if (data.length === 0 && chapterId) {
+        await syncChapterProgress(chapterId, user.id).catch(console.error)
+        const prog = await fetchChapterProgress(chapterId, user.id).catch(() => null)
+        if (prog && (prog.exercises_done > 0 || prog.status === 'completed')) {
+          setScore({ correct: Math.round((prog.score_pct / 100) * prog.exercises_done), total: prog.exercises_done })
+          onUserUpdated?.()
+          setLoading(false)
+          setQuizComplete(true)
+          return
+        }
+      }
+
       setExercises(data)
     } catch (error) {
       console.error('Failed to load exercises:', error)
@@ -110,19 +124,30 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
     if (idx < total - 1) {
       setCurrentIndex(idx + 1)
     } else {
-      if (chapterId) {
-        await syncChapterProgress(chapterId, user.id).catch(console.error)
-        try {
-          const prog = await fetchChapterProgress(chapterId, user.id)
-          if (prog.status === 'completed') {
-            setChapterJustCompleted(true)
-            onChapterCompleted?.()
-          }
-        } catch { /* ignore */ }
-      }
-      onUserUpdated?.()
-      setQuizComplete(true)
+      await syncAndFinish()
     }
+  }
+
+  const syncAndFinish = async () => {
+    if (chapterId) {
+      await syncChapterProgress(chapterId, user.id).catch(console.error)
+      try {
+        const prog = await fetchChapterProgress(chapterId, user.id)
+        if (prog.status === 'completed') {
+          setChapterJustCompleted(true)
+          onChapterCompleted?.()
+        }
+      } catch { /* ignore */ }
+    }
+    onUserUpdated?.()
+    setQuizComplete(true)
+  }
+
+  const handleQuit = async () => {
+    if (score.total > 0) {
+      await syncAndFinish()
+    }
+    onExit?.()
   }
 
   const handleGenerate = async () => {
@@ -262,6 +287,15 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {onExit && (
+              <button
+                className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                onClick={handleQuit}
+                title="Save & quit"
+              >
+                <ArrowLeft size={20} />
+              </button>
+            )}
             <h1 className="text-2xl font-bold">{chapterTitle || 'Grammar Practice'}</h1>
             {!chapterId && (
               <span className={`level-badge level-${user.level.toLowerCase()}`}>

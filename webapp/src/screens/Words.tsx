@@ -976,7 +976,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
             />
           )}
 
-          {myWords.length === 0 && !loading && (
+          {!loading && wordsByFolder && myWords.length === 0 && (
             <div className="text-center py-10 space-y-2">
               <p className="text-4xl">📖</p>
               <p className="text-slate-500 font-medium">No words yet</p>

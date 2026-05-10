@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from datetime import datetime, timezone
@@ -22,6 +22,7 @@ class ConversationParticipant(Base):
     conversation_id = Column(Integer, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     last_read_at = Column(DateTime, default=datetime.now(timezone.utc))
+    is_pending = Column(Boolean, default=False, nullable=False)
 
     __table_args__ = (UniqueConstraint('conversation_id', 'user_id', name='uq_conversation_user'),)
 

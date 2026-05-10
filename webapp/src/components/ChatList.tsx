@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { listConversations, listFollowing, createConversation, getImageUrl, type Conversation, type User } from '../hooks/useApi'
-import { MessageCircle, ChevronRight, Plus } from 'lucide-react'
+import { listConversations, listFollowing, createConversation, acceptChatRequest, deleteConversation, getImageUrl, type Conversation, type User } from '../hooks/useApi'
+import { MessageCircle, ChevronRight, Plus, Check, X } from 'lucide-react'
 
 interface ChatListProps {
   user: User
@@ -54,7 +54,27 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
     }
   }
 
-  const conversationUserIds = new Set(conversations.map(c => c.other_user.id))
+  const handleAcceptRequest = async (convId: number) => {
+    try {
+      await acceptChatRequest(convId, user.id)
+      loadConversations()
+    } catch (err) {
+      console.error('Failed to accept request:', err)
+    }
+  }
+
+  const handleDeclineRequest = async (convId: number) => {
+    try {
+      await deleteConversation(convId, user.id)
+      loadConversations()
+    } catch (err) {
+      console.error('Failed to decline request:', err)
+    }
+  }
+
+  const pendingConversations = conversations.filter(c => c.is_pending)
+  const acceptedConversations = conversations.filter(c => !c.is_pending)
+  const conversationUserIds = new Set(acceptedConversations.map(c => c.other_user.id))
   const availableSuggestions = suggestions.filter(u => !conversationUserIds.has(u.id))
 
   if (loading) {
@@ -73,12 +93,21 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
           <MessageCircle size={22} className="text-indigo-500" />
           Messages
         </h2>
-        <button
-          className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
-          onClick={onStartNewChat}
-        >
-          New Message
-        </button>
+        {acceptedConversations.some(c => c.unread_count > 0) ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Unread</span>
+            <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {acceptedConversations.reduce((sum, c) => sum + c.unread_count, 0)}
+            </span>
+          </div>
+        ) : (
+          <button
+            className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            onClick={onStartNewChat}
+          >
+            New Message
+          </button>
+        )}
       </div>
 
       {conversations.length === 0 ? (
@@ -122,62 +151,118 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
           </div>
         )
       ) : (
-        <div className="space-y-1">
-          {conversations.map((conv) => (
-            <button
-              key={conv.id}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left"
-              onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online)}
-            >
-              {conv.other_user.profile_photo ? (
-                <img
-                  src={getImageUrl(conv.other_user.profile_photo)}
-                  alt={conv.other_user.username}
-                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-indigo-600 font-bold">{conv.other_user.username.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-slate-900 truncate">
-                    {conv.other_user.username}
-                    {conv.other_user.full_name && (
-                      <span className="text-xs text-slate-400 font-normal ml-1.5">({conv.other_user.full_name})</span>
-                    )}
-                  </p>
-                  {conv.last_message && (
-                    <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
-                      {formatTimeAgo(conv.last_message.created_at)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-slate-500 truncate flex-1">
-                    {conv.last_message ? (
-                      <>
-                        {conv.last_message.sender_id === user.id && <span className="text-slate-400">You: </span>}
-                        {conv.last_message.text}
-                      </>
+        <div className="space-y-4">
+          {/* Pending Requests */}
+          {pendingConversations.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide px-1 mb-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                Requests ({pendingConversations.length})
+              </p>
+              <div className="space-y-2">
+                {pendingConversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100"
+                  >
+                    {conv.other_user.profile_photo ? (
+                      <img src={getImageUrl(conv.other_user.profile_photo)} alt={conv.other_user.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                     ) : (
-                      <span className="italic text-slate-400">Start a conversation</span>
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-indigo-600 font-bold">{conv.other_user.username.charAt(0).toUpperCase()}</span>
+                      </div>
                     )}
-                  </p>
-                  {conv.unread_count > 0 && (
-                    <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                      {conv.unread_count}
-                    </span>
-                  )}
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900 text-sm truncate">{conv.other_user.username}</p>
+                      {conv.last_message && (
+                        <p className="text-xs text-slate-500 truncate">{conv.last_message.text}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        className="p-2 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-colors border border-green-200"
+                        onClick={() => handleAcceptRequest(conv.id)}
+                        title="Accept"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        className="p-2 bg-white text-red-500 rounded-lg hover:bg-red-50 transition-colors border border-red-200"
+                        onClick={() => handleDeclineRequest(conv.id)}
+                        title="Decline"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-            </button>
-          ))}
+            </div>
+          )}
+
+          {/* Accepted Conversations */}
+          {acceptedConversations.length > 0 && (
+            <div className="space-y-1">
+              {pendingConversations.length > 0 && (
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-2">Messages</p>
+              )}
+              {acceptedConversations.map((conv) => (
+                <button
+                  key={conv.id}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                  onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online)}
+                >
+                  {conv.other_user.profile_photo ? (
+                    <img
+                      src={getImageUrl(conv.other_user.profile_photo)}
+                      alt={conv.other_user.username}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-indigo-600 font-bold">{conv.other_user.username.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-slate-900 truncate">
+                        {conv.other_user.username}
+                        {conv.other_user.full_name && (
+                          <span className="text-xs text-slate-400 font-normal ml-1.5">({conv.other_user.full_name})</span>
+                        )}
+                      </p>
+                      {conv.last_message && (
+                        <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                          {formatTimeAgo(conv.last_message.created_at)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-slate-500 truncate flex-1">
+                        {conv.last_message ? (
+                          <>
+                            {conv.last_message.sender_id === user.id && <span className="text-slate-400">You: </span>}
+                            {conv.last_message.text}
+                          </>
+                        ) : (
+                          <span className="italic text-slate-400">Start a conversation</span>
+                        )}
+                      </p>
+                      {conv.unread_count > 0 && (
+                        <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                          {conv.unread_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
-      {conversations.length > 0 && availableSuggestions.length > 0 && (
+      {acceptedConversations.length > 0 && availableSuggestions.length > 0 && (
         <div className="pt-4 border-t border-slate-100">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-2">People you follow</p>
           {availableSuggestions.slice(0, 5).map((u) => (

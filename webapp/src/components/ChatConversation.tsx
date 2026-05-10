@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { listMessages, sendMessage, getImageUrl, type User, type Message } from '../hooks/useApi'
+import { listMessages, sendMessage, getImageUrl, apiUrl, type User, type Message } from '../hooks/useApi'
 import { ArrowLeft, Send } from 'lucide-react'
 
 interface ChatConversationProps {
@@ -22,9 +22,40 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
 
   useEffect(() => {
     loadMessages()
-    const interval = setInterval(loadMessages, 5000)
-    return () => clearInterval(interval)
-  }, [conversationId])
+
+    const wsBase = apiUrl.replace('/api/v1', '').replace('http', 'ws')
+    const ws = new WebSocket(`${wsBase}/api/v1/ws/chat/${user.id}`)
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null
+
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'new_message' && data.conversation_id === conversationId) {
+          setMessages(prev => {
+            const merged = [...prev, data.message]
+            const unique = Array.from(new Map(merged.map(m => [m.id, m])).values())
+            return unique.sort(
+              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            )
+          })
+        }
+      } catch {}
+    }
+
+    ws.onerror = () => {
+      fallbackInterval = setInterval(loadMessages, 5000)
+    }
+
+    const ping = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.send('ping')
+    }, 30000)
+
+    return () => {
+      ws.close()
+      clearInterval(ping)
+      if (fallbackInterval) clearInterval(fallbackInterval)
+    }
+  }, [conversationId, user.id])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

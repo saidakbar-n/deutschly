@@ -236,6 +236,11 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
             <BookOpen size={16} className="text-indigo-500" />
             Attach a Word (optional)
           </label>
+          {words.length === 0 ? (
+            <p className="text-xs text-slate-400 italic py-2">
+              Add words in the Words tab to attach them to posts
+            </p>
+          ) : (
           <div className="relative">
             <button
               className="w-full flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-slate-50 text-left hover:border-indigo-300 transition-colors"
@@ -268,6 +273,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
               </div>
             )}
           </div>
+          )}
           {selectedWordId && (
             <button
               className="text-xs text-indigo-500 hover:text-indigo-700 mt-1.5 ml-1 font-medium"

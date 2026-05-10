@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+export const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -8,6 +8,7 @@ const api = axios.create({
 })
 
 export const backendUrl = apiUrl.replace('/api/v1', '')
+export const wsUrl = apiUrl.replace('/api/v1', '').replace('http', 'ws')
 
 export function getImageUrl(path?: string | null): string | undefined {
   if (!path) return undefined
@@ -538,6 +539,10 @@ export async function syncChapterProgress(chapterId: number, userId: number): Pr
   return res.data
 }
 
+export async function resetChapterProgress(chapterId: number, userId: number): Promise<void> {
+  await api.post(`/grammar/chapters/${chapterId}/reset-progress/${userId}`)
+}
+
 export type QuickStartResult = {
   book: { id: number; level: string; title: string }
   chapter: { id: number; number: number; title: string; topic: string | null; exercise_count: number }
@@ -570,6 +575,7 @@ export type Conversation = {
   }
   unread_count: number
   created_at: string
+  is_pending?: boolean
 }
 
 export type Message = {
@@ -603,6 +609,14 @@ export async function sendMessage(conversationId: number, senderId: number, text
 export async function fetchUnreadChatCount(userId: number): Promise<{ unread_count: number }> {
   const res = await api.get('/conversations/unread-count', { params: { user_id: userId } })
   return res.data
+}
+
+export async function acceptChatRequest(conversationId: number, userId: number): Promise<void> {
+  await api.post(`/conversations/${conversationId}/accept`, null, { params: { user_id: userId } })
+}
+
+export async function deleteConversation(conversationId: number, userId: number): Promise<void> {
+  await api.delete(`/conversations/${conversationId}`, { params: { user_id: userId } })
 }
 
 export async function transcribeVoice(audioBlob: Blob, language = 'de'): Promise<{ text: string; confidence: number }> {

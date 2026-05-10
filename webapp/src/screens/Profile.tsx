@@ -16,9 +16,10 @@ interface ProfileProps {
   onBack?: () => void
   onNavigate?: (screen: string) => void
   onViewUser?: (userId: number) => void
+  onOpenChat?: (targetUserId: number) => void
 }
 
-export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate, onViewUser }: ProfileProps) {
+export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate, onViewUser, onOpenChat }: ProfileProps) {
   const [status, setStatus] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [postsLoading, setPostsLoading] = useState(false)
@@ -251,6 +252,9 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         if (targetUserId === user?.id) {
           setIsFollowing(false)
         }
+        if (onUpdated) {
+          onUpdated({ ...currentUser, following_count: Math.max(0, (currentUser.following_count || 0) - 1) })
+        }
       } else {
         await followUser(targetUserId, currentUser.id)
         const followedUser = await getUser(targetUserId)
@@ -260,6 +264,9 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         }
         if (targetUserId === user?.id) {
           setIsFollowing(true)
+        }
+        if (onUpdated) {
+          onUpdated({ ...currentUser, following_count: (currentUser.following_count || 0) + 1 })
         }
       }
     } catch (error) {
@@ -273,12 +280,20 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
     try {
       if (isFollowing) {
         await unfollowUser(user.id, currentUser.id)
-        setUser({ ...user, followers_count: Math.max(0, (user.followers_count || 0) - 1) })
+        const updatedUser = { ...user, followers_count: Math.max(0, (user.followers_count || 0) - 1) }
+        setUser(updatedUser)
         setIsFollowing(false)
+        if (onUpdated) {
+          onUpdated({ ...currentUser, following_count: Math.max(0, (currentUser.following_count || 0) - 1) })
+        }
       } else {
         await followUser(user.id, currentUser.id)
-        setUser({ ...user, followers_count: (user.followers_count || 0) + 1 })
+        const updatedUser = { ...user, followers_count: (user.followers_count || 0) + 1 }
+        setUser(updatedUser)
         setIsFollowing(true)
+        if (onUpdated) {
+          onUpdated({ ...currentUser, following_count: (currentUser.following_count || 0) + 1 })
+        }
       }
     } catch (error) {
       console.error('Failed to follow/unfollow:', error)
@@ -441,12 +456,11 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                     </button>
                     <button
                       className="px-4 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
-                      onClick={async () => {
-                        try {
-                          await createConversation(currentUser!.id, user.id)
+                      onClick={() => {
+                        if (onOpenChat && user?.id) {
+                          onOpenChat(user.id)
+                        } else {
                           onNavigate?.('chat')
-                        } catch (err) {
-                          console.error('Failed to start conversation:', err)
                         }
                       }}
                     >

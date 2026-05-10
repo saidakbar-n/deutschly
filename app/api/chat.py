@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.deps import get_db
 from app.core.streak import update_streak
 from app.models import User
+from app.models.follow import Follow
 from app.models.conversation import Conversation, ConversationParticipant, Message
 from app.schemas.chat import ConversationCreate, ConversationListItem, MessageOut, MessageSend, UnreadCountResponse
 
@@ -31,7 +32,7 @@ def list_conversations(user_id: int, db: Session = Depends(get_db)):
         .where(ConversationParticipant.user_id == user_id)
         .options(joinedload(ConversationParticipant.conversation).joinedload(Conversation.messages))
         .options(joinedload(ConversationParticipant.conversation).joinedload(Conversation.participants))
-    ).all()
+    ).unique().all()
 
     results = []
     for p in participant_rows:
@@ -67,6 +68,7 @@ def list_conversations(user_id: int, db: Session = Depends(get_db)):
             } if last_message else None,
             "unread_count": unread_count,
             "created_at": conv.created_at,
+            "is_pending": p.is_pending,
         })
 
     results.sort(key=lambda c: (c["last_message"] or {}).get("created_at", c["created_at"]), reverse=True)
@@ -97,21 +99,30 @@ def create_conversation(payload: ConversationCreate, db: Session = Depends(get_d
         )
         if other_in_conv:
             conv = db.get(Conversation, conv_id)
-            return _conversation_to_item(conv, payload.user_id, db)
+            return _conversation_to_item(conv, payload.user_id, db, other_in_conv.is_pending)
 
     conv = Conversation()
     db.add(conv)
     db.flush()
 
-    db.add(ConversationParticipant(conversation_id=conv.id, user_id=payload.user_id))
-    db.add(ConversationParticipant(conversation_id=conv.id, user_id=payload.participant_id))
+    # Check if recipient follows sender — if not, conversation is pending for recipient
+    recipient_follows_sender = db.scalar(
+        select(Follow).where(
+            Follow.follower_id == payload.participant_id,
+            Follow.following_id == payload.user_id,
+        )
+    )
+    is_pending_for_recipient = not recipient_follows_sender
+
+    db.add(ConversationParticipant(conversation_id=conv.id, user_id=payload.user_id, is_pending=False))
+    db.add(ConversationParticipant(conversation_id=conv.id, user_id=payload.participant_id, is_pending=is_pending_for_recipient))
     db.commit()
     db.refresh(conv)
 
-    return _conversation_to_item(conv, payload.user_id, db)
+    return _conversation_to_item(conv, payload.user_id, db, False)
 
 
-def _conversation_to_item(conv: Conversation, viewer_id: int, db: Session) -> dict:
+def _conversation_to_item(conv: Conversation, viewer_id: int, db: Session, is_pending: bool = False) -> dict:
     other = None
     for p in conv.participants:
         if p.user_id != viewer_id:
@@ -129,6 +140,7 @@ def _conversation_to_item(conv: Conversation, viewer_id: int, db: Session) -> di
         "last_message": {"id": last_msg.id, "sender_id": last_msg.sender_id, "text": last_msg.text, "created_at": last_msg.created_at} if last_msg else None,
         "unread_count": 0,
         "created_at": conv.created_at,
+        "is_pending": is_pending,
     }
 
 
@@ -206,8 +218,12 @@ def list_messages(conversation_id: int, user_id: int, limit: int = 50, offset: i
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=MessageOut)
-def send_message(conversation_id: int, payload: MessageSend, db: Session = Depends(get_db)):
-    conv = db.get(Conversation, conversation_id)
+async def send_message(conversation_id: int, payload: MessageSend, db: Session = Depends(get_db)):
+    conv = db.scalar(
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .options(joinedload(Conversation.participants))
+    )
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
@@ -235,7 +251,62 @@ def send_message(conversation_id: int, payload: MessageSend, db: Session = Depen
         update_streak(sender, db)
     db.commit()
     db.refresh(msg)
+
+    # Push to recipient via WebSocket
+    from app.api.chat_ws import manager
+    for p in conv.participants:
+        if p.user_id != payload.sender_id:
+            await manager.send_to_user(p.user_id, {
+                "type": "new_message",
+                "conversation_id": conversation_id,
+                "message": {
+                    "id": msg.id,
+                    "conversation_id": msg.conversation_id,
+                    "sender_id": msg.sender_id,
+                    "text": msg.text,
+                    "created_at": msg.created_at.isoformat(),
+                }
+            })
+
     return msg
+
+
+@router.post("/conversations/{conversation_id}/accept")
+def accept_chat_request(conversation_id: int, user_id: int, db: Session = Depends(get_db)):
+    participant = db.scalar(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conversation_id,
+            ConversationParticipant.user_id == user_id,
+        )
+    )
+    if not participant:
+        raise HTTPException(status_code=404, detail="Not a participant")
+    if not participant.is_pending:
+        raise HTTPException(status_code=400, detail="Already accepted")
+
+    participant.is_pending = False
+    db.commit()
+    return {"status": "accepted"}
+
+
+@router.delete("/conversations/{conversation_id}")
+def decline_chat_request(conversation_id: int, user_id: int, db: Session = Depends(get_db)):
+    participant = db.scalar(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conversation_id,
+            ConversationParticipant.user_id == user_id,
+        )
+    )
+    if not participant:
+        raise HTTPException(status_code=404, detail="Not a participant")
+
+    conv = db.get(Conversation, conversation_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    db.delete(conv)
+    db.commit()
+    return {"status": "deleted"}
 
 
 

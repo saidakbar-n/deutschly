@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchGrammarBooks, fetchChapters, fetchChapterExercises, quickStartGrammar, type GrammarBook, type GrammarChapter, type User, type QuickStartResult, fetchChapterProgress } from '../hooks/useApi'
+import { fetchGrammarBooks, fetchChapters, fetchChapterExercises, quickStartGrammar, resetChapterProgress, type GrammarBook, type GrammarChapter, type User, type QuickStartResult, fetchChapterProgress } from '../hooks/useApi'
 import GrammarPracticer from './GrammarPracticer'
-import { BookOpen, Lock, CheckCircle, Play, ChevronRight, ArrowLeft, Trophy, Zap } from 'lucide-react'
+import { BookOpen, Lock, CheckCircle, Play, ChevronRight, ArrowLeft, Trophy, Zap, AlertTriangle, X } from 'lucide-react'
 
 type View = 'curriculum' | 'practicing'
 
@@ -14,6 +14,8 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
   const [activeChapter, setActiveChapter] = useState<GrammarChapter | null>(null)
   const [quickStartLoading, setQuickStartLoading] = useState(false)
   const [chapterJustCompleted, setChapterJustCompleted] = useState(false)
+  const [retakeChapter, setRetakeChapter] = useState<GrammarChapter | null>(null)
+  const [retakeLoading, setRetakeLoading] = useState(false)
 
   const handleQuickStart = async () => {
     setQuickStartLoading(true)
@@ -79,9 +81,29 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
 
   const openChapter = async (chapter: GrammarChapter) => {
     if (chapter.progress.status === 'locked') return
+    if (chapter.progress.status === 'completed') {
+      setRetakeChapter(chapter)
+      return
+    }
     setChapterJustCompleted(false)
     setActiveChapter(chapter)
     setView('practicing')
+  }
+
+  const handleRetake = async () => {
+    if (!retakeChapter) return
+    setRetakeLoading(true)
+    try {
+      await resetChapterProgress(retakeChapter.id, user.id)
+      const resetChapter = { ...retakeChapter, progress: { ...retakeChapter.progress, status: 'in_progress' as const, exercises_done: 0, score_pct: 0 } }
+      setActiveChapter(resetChapter)
+      setRetakeChapter(null)
+      setView('practicing')
+    } catch (error) {
+      console.error('Failed to reset chapter:', error)
+    } finally {
+      setRetakeLoading(false)
+    }
   }
 
   const backToCurriculum = () => {
@@ -112,7 +134,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
         {levels.map(level => (
           <button
             key={level}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+            className={`flex-1 px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               activeLevel === level ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
             }`}
             onClick={() => setActiveLevel(level)}
@@ -262,6 +284,41 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
               </button>
             )
           })}
+        </div>
+      )}
+
+      {/* Retake Confirmation Modal */}
+      {retakeChapter && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={28} className="text-amber-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Retake Chapter?</h3>
+              <p className="text-sm text-slate-600 mb-1">
+                Kapitel {retakeChapter.number}: {retakeChapter.title}
+              </p>
+              <p className="text-sm text-amber-600 font-medium mb-6">
+                Your previous progress will be reset.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+                onClick={() => setRetakeChapter(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                onClick={handleRetake}
+                disabled={retakeLoading}
+              >
+                {retakeLoading ? 'Resetting...' : 'Retake'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
