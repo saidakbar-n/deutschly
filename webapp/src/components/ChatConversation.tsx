@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { listMessages, sendMessage, getImageUrl, apiUrl, type User, type Message } from '../hooks/useApi'
-import { ArrowLeft, Send } from 'lucide-react'
+import { listMessages, sendMessage, getImageUrl, wsUrl, listWords, type User, type Message } from '../hooks/useApi'
+import { ArrowLeft, Send, BookOpen } from 'lucide-react'
 
 interface ChatConversationProps {
   user: User
@@ -18,13 +18,16 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [wordShareOpen, setWordShareOpen] = useState(false)
+  const [myWords, setMyWords] = useState<any[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { listWords(user.id).then(setMyWords).catch(() => {}) }, [user.id])
 
   useEffect(() => {
     loadMessages()
 
-    const wsBase = apiUrl.replace('/api/v1', '').replace('http', 'ws')
-    const ws = new WebSocket(`${wsBase}/api/v1/ws/chat/${user.id}`)
+    const ws = new WebSocket(`${wsUrl}/api/v1/ws/chat/${user.id}`)
     let fallbackInterval: ReturnType<typeof setInterval> | null = null
 
     ws.onmessage = (e) => {
@@ -32,12 +35,13 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         const data = JSON.parse(e.data)
         if (data.type === 'new_message' && data.conversation_id === conversationId) {
           setMessages(prev => {
-            const merged = [...prev, data.message]
-            const unique = Array.from(new Map(merged.map(m => [m.id, m])).values())
-            return unique.sort(
+            if (prev.some(m => m.id === data.message.id)) return prev
+            return [...prev, data.message].sort(
               (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            )
+            ).map(m => m.id === data.message.id ? { ...m, ...data.message } : m)
           })
+          // Update read receipt on backend so unread count reflects current view
+          listMessages(conversationId, user.id, 1)
         }
       } catch {}
     }
@@ -51,7 +55,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
     }, 30000)
 
     return () => {
-      ws.close()
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close()
       clearInterval(ping)
       if (fallbackInterval) clearInterval(fallbackInterval)
     }
@@ -64,11 +68,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const loadMessages = async () => {
     try {
       const data = await listMessages(conversationId, user.id)
-      setMessages(prev => {
-        const merged = [...prev, ...data]
-        const unique = Array.from(new Map(merged.map(m => [m.id, m])).values())
-        return unique.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-      })
+      setMessages(data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
     } catch (err) {
       console.error('Failed to load messages:', err)
     } finally {
@@ -145,7 +145,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
                       : 'bg-slate-100 text-slate-900 rounded-bl-md'
                   }`}
                 >
-                  <p>{msg.text}</p>
+                  {renderMessageContent(msg.text, isMine)}
                   <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-400'}`}>
                     {formatTime(msg.created_at)}
                   </p>
@@ -157,6 +157,27 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         <div ref={messagesEndRef} />
       </div>
 
+      {wordShareOpen && myWords.length > 0 && (
+        <div className="border-t border-slate-100 p-3 max-h-48 overflow-y-auto">
+          <p className="text-xs font-semibold text-slate-400 uppercase mb-2">Share a word</p>
+          <div className="space-y-1">
+            {myWords.map((w: any) => (
+              <button
+                key={w.id}
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-50 transition-colors"
+                onClick={() => {
+                  const wordMsg = `[word:${w.term}|${w.meaning}${w.note ? '|' + w.note : ''}]`
+                  setText(wordMsg)
+                  setWordShareOpen(false)
+                }}
+              >
+                <p className="font-semibold text-slate-900 text-sm">{w.term}</p>
+                <p className="text-xs text-slate-500">{w.meaning}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="border-t border-slate-200 p-4">
         <div className="flex items-center gap-2">
           <input
@@ -168,6 +189,13 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
             disabled={sending}
           />
           <button
+            className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+            onClick={() => setWordShareOpen(!wordShareOpen)}
+            title="Share a word"
+          >
+            <BookOpen size={18} />
+          </button>
+          <button
             className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
             onClick={handleSend}
             disabled={!text.trim() || sending}
@@ -178,6 +206,31 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
       </div>
     </div>
   )
+}
+
+function renderMessageContent(text: string, isMine: boolean) {
+  const wordMatch = text.match(/^\[word:(.+?)\|(.+?)(?:\|(.+))?\]$/)
+  if (wordMatch) {
+    return (
+      <div className={`rounded-xl p-3 text-left ${isMine ? 'bg-indigo-500' : 'bg-indigo-50'}`}>
+        <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${isMine ? 'text-indigo-200' : 'text-indigo-400'}`}>
+          Shared word
+        </p>
+        <p className={`font-bold text-base ${isMine ? 'text-white' : 'text-slate-900'}`}>
+          {wordMatch[1]}
+        </p>
+        <p className={`text-sm mt-0.5 ${isMine ? 'text-indigo-100' : 'text-indigo-700'}`}>
+          {wordMatch[2]}
+        </p>
+        {wordMatch[3] && (
+          <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-500'}`}>
+            {wordMatch[3]}
+          </p>
+        )}
+      </div>
+    )
+  }
+  return <p>{text}</p>
 }
 
 function formatTime(dateString: string): string {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { listConversations, listFollowing, createConversation, acceptChatRequest, deleteConversation, getImageUrl, type Conversation, type User } from '../hooks/useApi'
+import { listConversations, listFollowing, createConversation, acceptChatRequest, deleteConversation, getImageUrl, wsUrl, type Conversation, type User } from '../hooks/useApi'
 import { MessageCircle, ChevronRight, Plus, Check, X } from 'lucide-react'
 
 interface ChatListProps {
@@ -17,6 +17,21 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
   useEffect(() => {
     loadConversations()
     loadSuggestions()
+
+    const ws = new WebSocket(`${wsUrl}/api/v1/ws/chat/${user.id}`)
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'new_message') {
+          loadConversations()
+        }
+      } catch {}
+    }
+    const ping = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.send('ping')
+    }, 30000)
+
+    return () => { if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close(); clearInterval(ping) }
   }, [user.id])
 
   const loadConversations = async () => {
@@ -296,13 +311,9 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
 function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return 'now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d`
-  return date.toLocaleDateString()
+  const isToday = date.toDateString() === now.toDateString()
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }

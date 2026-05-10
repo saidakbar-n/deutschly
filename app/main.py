@@ -1,5 +1,6 @@
 import os
 import typing
+import asyncio
 
 # Compatibility patch: Python 3.12 changed ForwardRef._evaluate signature; pydantic v1 still
 # calls it without the new keyword-only argument. Patch to keep FastAPI startup working.
@@ -16,16 +17,21 @@ if hasattr(typing, "ForwardRef") and hasattr(typing.ForwardRef, "_evaluate"):
     typing.ForwardRef._evaluate = _patched_forward_ref_evaluate
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from app.api import api_router
-from app.api.chat_ws import router as chat_ws_router
-from app.core.database import Base
+from app.api.chat_ws import manager
+from app.core.database import Base, SessionLocal
 from app import models  # noqa: F401 ensures models are registered
 from app.core.seed_grammar import seed_grammar
+from app.services.notification_scheduler import generate_grammar_notifications
+from sqlalchemy.orm import Session
+from app.core.deps import get_db
+from fastapi import WebSocket, WebSocketDisconnect
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,9 +49,23 @@ async def lifespan(app: FastAPI):
         seed_grammar(db)
     finally:
         db.close()
+
+    scheduler = AsyncIOScheduler()
+
+    def run_notifications():
+        db = SessionLocal()
+        try:
+            generate_grammar_notifications(db)
+        finally:
+            db.close()
+
+    scheduler.add_job(run_notifications, "cron", hour=9, minute=0)
+    scheduler.start()
+
     print("Application started successfully")
     yield
     # Shutdown
+    scheduler.shutdown()
     print("Application shutting down")
 
 app = FastAPI(title="Deutschly Social API", version="1.0.0", lifespan=lifespan)
@@ -81,7 +101,22 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 app.include_router(api_router)
-app.include_router(chat_ws_router)
+
+
+@app.websocket("/api/v1/ws/chat/{user_id}")
+async def chat_ws(websocket: WebSocket, user_id: int):
+    await manager.connect(user_id, websocket)
+    try:
+        while True:
+            await asyncio.wait_for(websocket.receive_text(), timeout=60)
+    except (WebSocketDisconnect, asyncio.TimeoutError, Exception):
+        manager.disconnect(user_id, websocket)
+
+
+@app.get("/api/v1/admin/run-notifications")
+def run_notifications(db: Session = Depends(get_db)):
+    count = generate_grammar_notifications(db)
+    return {"notifications_created": count}
 
 
 @app.get("/")

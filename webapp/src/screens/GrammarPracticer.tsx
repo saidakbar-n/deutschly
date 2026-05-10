@@ -64,12 +64,11 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
         data = await fetchGrammarExercises(user.id, { limit: CHAPTER_EXERCISE_COUNT })
       }
 
-      if (data.length === 0 && chapterId) {
+      if (data.length === 0 && chapterId && !quizComplete) {
         await syncChapterProgress(chapterId, user.id).catch(console.error)
         const prog = await fetchChapterProgress(chapterId, user.id).catch(() => null)
         if (prog && (prog.exercises_done > 0 || prog.status === 'completed')) {
           setScore({ correct: Math.round((prog.score_pct / 100) * prog.exercises_done), total: prog.exercises_done })
-          onUserUpdated?.()
           setLoading(false)
           setQuizComplete(true)
           return

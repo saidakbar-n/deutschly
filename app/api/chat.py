@@ -30,13 +30,22 @@ def list_conversations(user_id: int, db: Session = Depends(get_db)):
     participant_rows = db.scalars(
         select(ConversationParticipant)
         .where(ConversationParticipant.user_id == user_id)
-        .options(joinedload(ConversationParticipant.conversation).joinedload(Conversation.messages))
-        .options(joinedload(ConversationParticipant.conversation).joinedload(Conversation.participants))
+        .options(
+            joinedload(ConversationParticipant.conversation)
+            .joinedload(Conversation.participants)
+        )
     ).unique().all()
 
     results = []
     for p in participant_rows:
         conv = p.conversation
+        last_message = db.scalar(
+            select(Message)
+            .where(Message.conversation_id == conv.id)
+            .order_by(Message.created_at.desc())
+            .limit(1)
+        )
+
         other_participant = None
         for op in conv.participants:
             if op.user_id != user_id:
@@ -44,9 +53,6 @@ def list_conversations(user_id: int, db: Session = Depends(get_db)):
                 if other_user:
                     other_participant = _user_to_other_dict(other_user)
                 break
-
-        messages = sorted(conv.messages, key=lambda m: m.created_at, reverse=True)
-        last_message = messages[0] if messages else None
 
         unread_count = db.scalar(
             select(func.count(Message.id))

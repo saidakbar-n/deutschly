@@ -63,7 +63,7 @@ function App() {
     const ping = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) ws.send('ping')
     }, 30000)
-    return () => { ws.close(); clearInterval(ping) }
+    return () => { if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close(); clearInterval(ping) }
   }, [user?.id])
 
   const handleOpenChat = async (targetUserId: number) => {
@@ -178,6 +178,7 @@ function App() {
               {screen === 'user-profile' && viewedUserId && <Profile userId={viewedUserId} currentUser={user} onUpdated={setUser} onBack={() => setScreen('search')} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onNavigate={(s) => setScreen(s as Screen)} onOpenChat={handleOpenChat} />}
               {screen === 'chat' && (
                 <ChatScreen
+                  key={chatTargetConvId ?? 'list'}
                   user={user}
                   initialConvId={chatTargetConvId || undefined}
                   initialOtherUserId={chatTargetUserId || undefined}

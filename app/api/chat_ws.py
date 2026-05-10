@@ -1,8 +1,6 @@
-from fastapi import WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, WebSocketDisconnect
 from collections import defaultdict
 import asyncio
-
-router = APIRouter()
 
 
 class ConnectionManager:
@@ -36,8 +34,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@router.websocket("/ws/chat/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
+async def chat_websocket_endpoint(websocket: WebSocket, user_id: int):
     await manager.connect(user_id, websocket)
     try:
         while True:

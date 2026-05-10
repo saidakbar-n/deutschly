@@ -274,6 +274,12 @@ export function Landing({
     }
   }
 
+  const toggleAuthMode = () => {
+    setIsLogin(prev => !prev)
+    setPassword('')
+    setStatus('')
+  }
+
   const goBack = () => {
     if (step === 'username') {
       setStep('welcome')
@@ -515,7 +521,7 @@ export function Landing({
                     </button>
                     <button
                       className="w-full text-sm text-slate-500 hover:text-indigo-600 transition-colors"
-                      onClick={goBack}
+                      onClick={toggleAuthMode}
                     >
                       {isLogin ? 'New here? Create account' : 'Already have an account?'}
                     </button>

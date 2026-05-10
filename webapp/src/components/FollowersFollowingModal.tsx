@@ -45,7 +45,7 @@ export function FollowersFollowingModal({
   if (!isOpen) return null
   const displayUsers = activeTab === 'followers' ? followers : following
   const isLoading = activeTab === 'followers' ? followersLoading : followingLoading
-  const count = activeTab === 'followers' ? user.followers_count || 0 : user.following_count || 0
+  const count = activeTab === 'followers' ? followers.length : following.length
   const title = activeTab === 'followers' ? 'Followers' : 'Following'
 
   const isFollowingUser = (userId: number) => {
@@ -80,7 +80,7 @@ export function FollowersFollowingModal({
             }`}
             onClick={() => setActiveTab('followers')}
           >
-            <span className="mr-1">{user.followers_count || 0}</span>
+            <span className="mr-1">{followers.length}</span>
             Followers
           </button>
           <button
@@ -91,7 +91,7 @@ export function FollowersFollowingModal({
             }`}
             onClick={() => setActiveTab('following')}
           >
-            <span className="mr-1">{user.following_count || 0}</span>
+            <span className="mr-1">{following.length}</span>
             Following
           </button>
         </div>
