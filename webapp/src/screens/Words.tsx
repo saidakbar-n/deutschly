@@ -677,6 +677,89 @@ function QuizHistoryCard({ quiz }: { quiz: Quiz }) {
   )
 }
 
+// ─── Folder Section ────────────────────────────────────────────
+function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz }: {
+  folder: WordFolder
+  words: Word[]
+  userId: number
+  onDelete: (wordId: number) => Promise<void>
+  onStartFolderQuiz: (words: Word[]) => void
+}) {
+  const [collapsed, setCollapsed] = useState(words.length > 5)
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50/80 transition-colors"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
+          <span className="font-semibold text-slate-900">{folder.name}</span>
+          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} words</span>
+        </div>
+        {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
+      </div>
+      {!collapsed && (
+        <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
+          {words.length >= 3 && (
+            <button
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
+              onClick={(e) => { e.stopPropagation(); onStartFolderQuiz(words) }}
+            >
+              🧠 Quiz this folder ({words.length} words)
+            </button>
+          )}
+          {words.map(w => (
+            <WordCard key={w.id} word={w} isMine={true} onDelete={() => onDelete(w.id)} compact />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Uncategorized Section ──────────────────────────────────────
+function UncategorizedSection({ words, userId, onDelete, onStartQuiz }: {
+  words: Word[]
+  userId: number
+  onDelete: (wordId: number) => Promise<void>
+  onStartQuiz: (words: Word[]) => void
+}) {
+  const [collapsed, setCollapsed] = useState(words.length > 5)
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50/80 transition-colors"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-2">
+          <FolderOpen size={16} className="text-slate-400" />
+          <span className="font-semibold text-slate-900">Uncategorized</span>
+          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} words</span>
+        </div>
+        {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
+      </div>
+      {!collapsed && (
+        <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
+          {words.length >= 3 && (
+            <button
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
+              onClick={(e) => { e.stopPropagation(); onStartQuiz(words) }}
+            >
+              🧠 Quiz uncategorized ({words.length} words)
+            </button>
+          )}
+          {words.map(w => (
+            <WordCard key={w.id} word={w} isMine={true} onDelete={() => onDelete(w.id)} compact />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Words Screen ────────────────────────────────────────────
 export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () => void }) {
   const [tab, setTab] = useState<'mine' | 'community' | 'history'>('mine')
@@ -687,6 +770,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   const [loading, setLoading] = useState(false)
   const [quizMode, setQuizMode] = useState(false)
   const [quizHistory, setQuizHistory] = useState<Quiz[]>([])
+  const [quizWords, setQuizWords] = useState<Word[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [folders, setFolders] = useState<WordFolder[]>([])
   const [folderModalOpen, setFolderModalOpen] = useState(false)
@@ -793,7 +877,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   }
 
   if (quizMode) {
-    return <QuizMode words={myWords} onExit={() => setQuizMode(false)} user={user} />
+    return <QuizMode words={quizWords.length > 0 ? quizWords : myWords} onExit={() => { setQuizMode(false); setQuizWords([]) }} user={user} />
   }
 
   return (
@@ -849,13 +933,47 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
         <div className="space-y-3">
           <AddWordForm userId={user.id} onAdded={handleAdded} folders={folders} onCreateFolder={() => setFolderModalOpen(true)} />
 
+          {folders.length > 0 && (
+            <button
+              className="w-full py-2.5 px-4 rounded-2xl bg-indigo-50 text-indigo-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100"
+              onClick={() => setFolderModalOpen(true)}
+            >
+              <Folder size={15} /> Manage Folders ({folders.length})
+            </button>
+          )}
+
           {myWords.length >= 3 && (
             <button
               className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200"
               onClick={() => setQuizMode(true)}
             >
-              🧠 Start Flashcard Quiz ({myWords.length} words)
+              🧠 Quiz All Words ({myWords.length})
             </button>
+          )}
+
+          {/* Folder sections */}
+          {wordsByFolder && Object.values(wordsByFolder.folders).map(({ folder, words }) => (
+            <FolderSection
+              key={folder.id}
+              folder={folder}
+              words={words}
+              userId={user.id}
+              onDelete={handleDelete}
+              onStartFolderQuiz={(folderWords) => {
+                setQuizWords(folderWords)
+                setQuizMode(true)
+              }}
+            />
+          ))}
+
+          {/* Uncategorized */}
+          {wordsByFolder && wordsByFolder.uncategorized.length > 0 && (
+            <UncategorizedSection
+              words={wordsByFolder.uncategorized}
+              userId={user.id}
+              onDelete={handleDelete}
+              onStartQuiz={(words) => { setQuizWords(words); setQuizMode(true) }}
+            />
           )}
 
           {myWords.length === 0 && !loading && (
@@ -865,16 +983,6 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
               <p className="text-sm text-slate-400">Add your first word above or save from Community</p>
             </div>
           )}
-
-          {myWords.map((w) => (
-            <WordCard
-              key={w.id}
-              word={w}
-              isMine={true}
-              onDelete={() => handleDelete(w.id)}
-              compact
-            />
-          ))}
         </div>
       )}
 

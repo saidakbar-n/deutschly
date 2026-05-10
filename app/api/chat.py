@@ -132,6 +132,38 @@ def _conversation_to_item(conv: Conversation, viewer_id: int, db: Session) -> di
     }
 
 
+@router.get("/conversations/unread-count", response_model=UnreadCountResponse)
+def unread_count(user_id: int, db: Session = Depends(get_db)):
+    conv_ids = db.scalars(
+        select(ConversationParticipant.conversation_id).where(
+            ConversationParticipant.user_id == user_id
+        )
+    ).all()
+
+    if not conv_ids:
+        return {"unread_count": 0}
+
+    total = 0
+    for cid in conv_ids:
+        last_read = db.scalar(
+            select(ConversationParticipant.last_read_at).where(
+                ConversationParticipant.conversation_id == cid,
+                ConversationParticipant.user_id == user_id,
+            )
+        ) or datetime(2000, 1, 1, tzinfo=timezone.utc)
+
+        unread = db.scalar(
+            select(func.count(Message.id)).where(
+                Message.conversation_id == cid,
+                Message.sender_id != user_id,
+                Message.created_at > last_read,
+            )
+        ) or 0
+        total += unread
+
+    return {"unread_count": total}
+
+
 @router.get("/conversations/{conversation_id}/messages", response_model=list[MessageOut])
 def list_messages(conversation_id: int, user_id: int, limit: int = 50, offset: int = 0, db: Session = Depends(get_db)):
     conv = db.get(Conversation, conversation_id)
@@ -206,33 +238,4 @@ def send_message(conversation_id: int, payload: MessageSend, db: Session = Depen
     return msg
 
 
-@router.get("/conversations/unread-count", response_model=UnreadCountResponse)
-def unread_count(user_id: int, db: Session = Depends(get_db)):
-    conv_ids = db.scalars(
-        select(ConversationParticipant.conversation_id).where(
-            ConversationParticipant.user_id == user_id
-        )
-    ).all()
 
-    if not conv_ids:
-        return {"unread_count": 0}
-
-    total = 0
-    for cid in conv_ids:
-        last_read = db.scalar(
-            select(ConversationParticipant.last_read_at).where(
-                ConversationParticipant.conversation_id == cid,
-                ConversationParticipant.user_id == user_id,
-            )
-        ) or datetime(2000, 1, 1, tzinfo=timezone.utc)
-
-        unread = db.scalar(
-            select(func.count(Message.id)).where(
-                Message.conversation_id == cid,
-                Message.sender_id != user_id,
-                Message.created_at > last_read,
-            )
-        ) or 0
-        total += unread
-
-    return {"unread_count": total}

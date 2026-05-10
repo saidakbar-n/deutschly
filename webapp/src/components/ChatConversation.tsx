@@ -33,7 +33,11 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const loadMessages = async () => {
     try {
       const data = await listMessages(conversationId, user.id)
-      setMessages(data)
+      setMessages(prev => {
+        const merged = [...prev, ...data]
+        const unique = Array.from(new Map(merged.map(m => [m.id, m])).values())
+        return unique.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      })
     } catch (err) {
       console.error('Failed to load messages:', err)
     } finally {
@@ -63,7 +67,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   }
 
   return (
-    <div className="card p-0 flex flex-col h-[600px] max-h-[80vh]">
+    <div className="card p-0 flex flex-col h-[calc(100vh-220px)] max-h-[600px] min-h-[400px]">
       <div className="flex items-center gap-3 p-4 border-b border-slate-200">
         <button className="p-1 rounded-lg hover:bg-slate-100 transition-colors" onClick={onBack}>
           <ArrowLeft size={20} className="text-slate-600" />
@@ -83,7 +87,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
           <p className="text-xs flex items-center gap-1 mt-0.5">
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${otherIsOnline ? 'bg-green-500' : 'bg-slate-300'}`} />
             <span className={otherIsOnline ? 'text-green-600' : 'text-slate-400'}>
-              {otherIsOnline ? 'Online' : 'Offline'}
+              {otherIsOnline ? 'Active today' : 'Offline'}
             </span>
           </p>
         </div>
@@ -126,7 +130,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         <div className="flex items-center gap-2">
           <input
             className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            placeholder="Type a message..."
+            placeholder="Type a message... (Enter to send)"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}

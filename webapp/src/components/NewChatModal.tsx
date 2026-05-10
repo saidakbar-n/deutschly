@@ -165,7 +165,12 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
                     </div>
                   )}
                   <div className="flex-1 text-left">
-                    <p className="font-semibold text-slate-900 text-sm">{u.username}</p>
+                    <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                      {u.username}
+                      {suggestions.some(s => s.id === u.id) && (
+                        <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium">Following</span>
+                      )}
+                    </p>
                     <p className="text-xs text-slate-500">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
                   </div>
                   <MessageCircle size={16} className="text-slate-300 flex-shrink-0" />

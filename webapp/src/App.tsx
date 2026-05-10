@@ -203,9 +203,9 @@ function App() {
         <div className="flex justify-around items-center py-2 px-4">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
-              { key: 'search' as Screen, icon: Compass, label: 'Discover' },
-              { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
+              { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
+              { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
             const Icon = item.icon
