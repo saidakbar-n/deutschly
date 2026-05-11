@@ -31,6 +31,8 @@ wheels/
 # Virtual environments
 ENV/
 env/
+.env.example
+.env
 
 # IDE
 .idea/

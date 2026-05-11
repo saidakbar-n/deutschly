@@ -26,7 +26,10 @@ def _score_post(post: Post, user: User, followed_ids: set[int], variant: str) ->
         if any(t in text for t in topics):
             score += 2
     # recency (newer is better)
-    age_hours = (datetime.now(timezone.utc) - post.timestamp).total_seconds() / 3600
+    ts = post.timestamp
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    age_hours = (datetime.now(timezone.utc) - ts).total_seconds() / 3600
     score += max(0, 3 - (age_hours / 6))  # decay over time
 
     if variant == "recency":
