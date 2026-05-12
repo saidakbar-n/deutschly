@@ -120,3 +120,40 @@ def get_discover_feed(user_id: int, limit: int = 20, offset: int = 0, db: Sessio
     posts = db.scalars(stmt.order_by(Post.timestamp.desc()).offset(offset).limit(limit)).all()
     items = [FeedItem(post=_decorate_post(db, p, viewer_id=user_id), author=db.get(User, p.user_id)) for p in posts]
     return FeedResponse(items=items, total=len(posts), variant="discover")
+
+
+@router.get("/feed/{user_id}/stories")
+def get_stories(user_id: int, db: Session = Depends(get_db)):
+    """Return active story authors the user follows, plus their own stories."""
+    followed_ids = db.scalars(
+        select(Follow.following_id).where(Follow.follower_id == user_id)
+    ).all()
+    author_ids = list(followed_ids) + [user_id]
+
+    now = datetime.now(timezone.utc)
+    stories = db.scalars(
+        select(Post)
+        .where(
+            Post.user_id.in_(author_ids),
+            Post.type == 'story',
+            (Post.expires_at.is_(None)) | (Post.expires_at > now),
+        )
+        .order_by(Post.timestamp.desc())
+    ).all()
+
+    seen: set[int] = set()
+    result = []
+    for s in stories:
+        if s.user_id not in seen:
+            author = db.get(User, s.user_id)
+            if author:
+                result.append({
+                    "user_id": s.user_id,
+                    "username": author.username,
+                    "profile_photo": author.profile_photo,
+                    "post_id": s.id,
+                    "text": s.text[:80] if s.text else "",
+                    "is_own": s.user_id == user_id,
+                })
+                seen.add(s.user_id)
+    return result

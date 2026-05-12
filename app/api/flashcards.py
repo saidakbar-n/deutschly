@@ -170,3 +170,30 @@ def setup_folder_reviews(user_id: int, folder_id: int, db: Session = Depends(get
 
     db.commit()
     return {"status": "ok", "created": created, "total": len(words)}
+
+
+@router.post("/flashcards/setup-all/{user_id}")
+def setup_all_reviews(user_id: int, db: Session = Depends(get_db)):
+    """Create WordReview records for ALL words a user has, not just a folder."""
+    words = db.scalars(
+        select(Word).where(Word.user_id == user_id)
+    ).all()
+
+    created = 0
+    for w in words:
+        existing = db.scalar(
+            select(WordReview).where(
+                WordReview.user_id == user_id,
+                WordReview.word_id == w.id,
+            )
+        )
+        if not existing:
+            db.add(WordReview(
+                word_id=w.id,
+                user_id=user_id,
+                next_review=datetime.now(timezone.utc),
+            ))
+            created += 1
+
+    db.commit()
+    return {"status": "ok", "created": created, "total": len(words)}

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, deleteComment, User, getImageUrl } from '../hooks/useApi'
+import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, deleteComment, User, getImageUrl, fetchStories, type StoryAuthor } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { PostDetailModal } from '../components/PostDetailModal'
 import { CreatePostModal } from '../components/CreatePostModal'
@@ -24,6 +24,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
   const [peekLoading, setPeekLoading] = useState(false)
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
   const [followedIds, setFollowedIds] = useState<Set<number>>(new Set())
+  const [stories, setStories] = useState<StoryAuthor[]>([])
 
   const loadFeed = useCallback(async () => {
     setLoading(true)
@@ -37,6 +38,8 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
     )
     setLikedPosts(alreadyLiked)
     setLoading(false)
+    const storiesData = await fetchStories(userId).catch(() => [])
+    setStories(storiesData)
   }, [userId, feedTab])
 
   useEffect(() => {
@@ -168,6 +171,40 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
       <div className="card p-3 sm:p-4">
         <CreatePostModal userId={userId} onCreated={() => { loadFeed(); onUserUpdated?.() }} />
       </div>
+      {stories.length > 0 && (
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          {stories.map((s) => (
+            <button
+              key={s.user_id}
+              className="flex flex-col items-center gap-1 shrink-0 min-w-[60px]"
+              onClick={() => onViewUser?.(s.user_id)}
+            >
+              <div className={`w-14 h-14 rounded-full p-0.5 ${
+                s.is_own
+                  ? 'bg-slate-300'
+                  : 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500'
+              }`}>
+                <div className="w-full h-full rounded-full bg-white p-0.5 overflow-hidden">
+                  {s.profile_photo ? (
+                    <img
+                      src={getImageUrl(s.profile_photo)}
+                      className="w-full h-full object-cover rounded-full"
+                      alt={s.username}
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-xl">
+                      🐺
+                    </div>
+                  )}
+                </div>
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium max-w-[56px] truncate">
+                {s.is_own ? 'Your story' : s.username}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
         {(['following', 'discover'] as const).map((tab) => (
           <button
@@ -317,6 +354,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
           isLiked={likedPosts.has(detailItem.post.id)}
           currentUserId={userId}
           onClose={() => setDetailPostId(null)}
+          onLike={() => handleLike(detailItem.post.id)}
           onDelete={detailItem.author.id === userId ? () => { handleDelete(detailItem.post.id); setDetailPostId(null); } : undefined}
           onViewUser={(id) => {
             setDetailPostId(null)

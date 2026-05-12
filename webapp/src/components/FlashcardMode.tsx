@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { ArrowLeft, Brain, RotateCcw, Sparkles, ThumbsDown, ThumbsUp, ChevronLeft, ChevronRight, Check } from 'lucide-react'
-import { getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, getFlashcardStats, type DueCard, type User } from '../hooks/useApi'
+import { getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupAllFlashcards, getFlashcardStats, type DueCard, type User } from '../hooks/useApi'
 import { getArticleColor, getWordArticleInfo } from '../utils/wordHelpers'
 
 export default function FlashcardMode({ user, folderId, folderName, onExit, onComplete }: {
@@ -26,9 +26,13 @@ export default function FlashcardMode({ user, folderId, folderName, onExit, onCo
     setLoading(true)
     try {
       let data = await getDueFlashcards(user.id, folderId, 30)
-      if (data.length === 0 && folderId) {
+      if (data.length === 0) {
         setSetupLoading(true)
-        await setupFolderFlashcards(user.id, folderId)
+        if (folderId) {
+          await setupFolderFlashcards(user.id, folderId)
+        } else {
+          await setupAllFlashcards(user.id)
+        }
         data = await getDueFlashcards(user.id, folderId, 30)
         setSetupLoading(false)
       }

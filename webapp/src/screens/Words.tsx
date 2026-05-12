@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getArticleColor, getWordArticleInfo } from '../utils/wordHelpers'
-import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay, createWordsBatch, getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupFlashcardReview, getFlashcardStats, type DueCard, type FlashcardStats as FCStats } from '../hooks/useApi'
+import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay, createWordsBatch, getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupFlashcardReview, getFlashcardStats, type DueCard, type FlashcardStats } from '../hooks/useApi'
 import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen, Upload, Sparkles, Layers, Rotate3D, ThumbsUp, ThumbsDown, RefreshCw, AlertCircle, Brain } from 'lucide-react'
 import FlashcardMode from '../components/FlashcardMode'
 
@@ -854,7 +854,7 @@ function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz, onS
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
           <span className="font-semibold text-slate-900">{folder.name}</span>
-          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} word{words.length !== 1 ? 's' : ''}</span>
+          <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full leading-tight">{words.length}</span>
         </div>
         {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
       </div>
@@ -912,8 +912,8 @@ function UncategorizedSection({ words, userId, onDelete, onStartQuiz }: {
       >
         <div className="flex items-center gap-2">
           <FolderOpen size={16} className="text-slate-400" />
-          <span className="font-semibold text-slate-900">Uncategorized</span>
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} words</span>
+          <span className="font-semibold text-slate-500">Uncategorized</span>
+          <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full leading-tight">{words.length}</span>
         </div>
         {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
       </div>
@@ -957,6 +957,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   const [addWordTrigger, setAddWordTrigger] = useState<{ folderId: number | null; counter: number }>({ folderId: null, counter: 0 })
   const [batchFolderPreselect, setBatchFolderPreselect] = useState<number | null>(null)
   const [batchModalOpen, setBatchModalOpen] = useState(false)
+  const [flashcardStats, setFlashcardStats] = useState<FlashcardStats | null>(null)
 
   const loadMyWords = useCallback(async () => {
     setLoading(true)
@@ -1028,7 +1029,8 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
 
   useEffect(() => {
     loadWordsByFolder()
-  }, [loadWordsByFolder])
+    getFlashcardStats(user.id).then(setFlashcardStats).catch(() => {})
+  }, [loadWordsByFolder, user.id])
 
   useEffect(() => {
     if (tab === 'community') {
@@ -1094,6 +1096,36 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
         <h2 className="text-lg md:text-xl font-bold text-slate-900">Words</h2>
         {loading && <span className="text-xs text-slate-400">Loading...</span>}
       </div>
+
+      {flashcardStats && flashcardStats.total > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-indigo-50 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-bold text-indigo-700">{flashcardStats.due}</p>
+            <p className="text-[11px] text-indigo-500 font-medium">Due today</p>
+          </div>
+          <div className="bg-green-50 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-bold text-green-700">{flashcardStats.reviewed}</p>
+            <p className="text-[11px] text-green-500 font-medium">Reviewed</p>
+          </div>
+          <div className="bg-slate-50 rounded-xl p-2.5 text-center">
+            <p className="text-xl font-bold text-slate-700">{flashcardStats.total}</p>
+            <p className="text-[11px] text-slate-500 font-medium">Total cards</p>
+          </div>
+        </div>
+      )}
+
+      {flashcardStats && flashcardStats.due > 0 && (
+        <button
+          className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200"
+          onClick={() => {
+            setFlashcardFolderId(undefined)
+            setFlashcardFolderName('All Words')
+            setFlashcardMode(true)
+          }}
+        >
+          🃏 Review {flashcardStats.due} due card{flashcardStats.due !== 1 ? 's' : ''}
+        </button>
+      )}
 
       {/* Tabs - Responsive */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-hide">

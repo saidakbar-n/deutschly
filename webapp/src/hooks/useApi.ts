@@ -787,3 +787,22 @@ export async function setupFolderFlashcards(userId: number, folderId: number): P
   const res = await api.post(`/flashcards/setup-folder/${userId}/${folderId}`)
   return res.data
 }
+
+export async function setupAllFlashcards(userId: number): Promise<{ status: string; created: number; total: number }> {
+  const res = await api.post(`/flashcards/setup-all/${userId}`)
+  return res.data
+}
+
+export type StoryAuthor = {
+  user_id: number
+  username: string
+  profile_photo: string | null
+  post_id: number
+  text: string
+  is_own: boolean
+}
+
+export async function fetchStories(userId: number): Promise<StoryAuthor[]> {
+  const res = await api.get(`/feed/${userId}/stories`)
+  return res.data
+}

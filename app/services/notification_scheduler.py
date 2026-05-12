@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, Date
+from sqlalchemy import func, cast, Date, select
 from app.models.notification import Notification
 from app.models.user_grammar_progress import UserGrammarProgress
 from app.models.user import User
@@ -94,6 +94,42 @@ def check_reminders(db: Session) -> int:
         note.reminder_sent = True
         db.add(note)
         count += 1
+
+    if count:
+        db.commit()
+    return count
+
+
+def send_due_flashcard_notifications(db: Session) -> int:
+    """Notify users who have 3+ cards due but haven't reviewed today."""
+    from app.models.word_review import WordReview
+
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    rows = db.execute(
+        select(WordReview.user_id, func.count(WordReview.id).label('due_count'))
+        .where(WordReview.next_review <= now)
+        .group_by(WordReview.user_id)
+        .having(func.count(WordReview.id) >= 3)
+    ).all()
+
+    count = 0
+    for row in rows:
+        already_notified = db.scalar(
+            select(Notification).where(
+                Notification.user_id == row.user_id,
+                Notification.type == 'flashcard_reminder',
+                Notification.created_at >= today_start,
+            )
+        )
+        if not already_notified:
+            db.add(Notification(
+                user_id=row.user_id,
+                type='flashcard_reminder',
+                text=f"📚 You have {row.due_count} vocabulary cards due for review today!"
+            ))
+            count += 1
 
     if count:
         db.commit()

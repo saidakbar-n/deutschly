@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 import hashlib
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
@@ -55,6 +55,21 @@ def create_word(payload: WordCreate, db: Session = Depends(get_db)):
     update_streak(user, db)
     db.commit()
     db.refresh(word)
+
+    existing_review = db.scalar(
+        select(WordReview).where(
+            WordReview.user_id == word.user_id,
+            WordReview.word_id == word.id,
+        )
+    )
+    if not existing_review:
+        db.add(WordReview(
+            word_id=word.id,
+            user_id=word.user_id,
+            next_review=datetime.now(timezone.utc),
+        ))
+        db.commit()
+
     return word
 
 

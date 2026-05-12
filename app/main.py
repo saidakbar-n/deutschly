@@ -69,6 +69,16 @@ async def lifespan(app: FastAPI):
             db.close()
 
     scheduler.add_job(run_reminders, "interval", minutes=15)
+
+    def run_flashcard_notifications():
+        db = SessionLocal()
+        try:
+            from app.services.notification_scheduler import send_due_flashcard_notifications
+            send_due_flashcard_notifications(db)
+        finally:
+            db.close()
+
+    scheduler.add_job(run_flashcard_notifications, 'cron', hour=8, minute=30)
     scheduler.start()
 
     print("Application started successfully")

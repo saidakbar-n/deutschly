@@ -14,7 +14,7 @@ import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
 import { fetchNotifications, followUser, fetchUnreadChatCount, createConversation, getUser, wsUrl } from './hooks/useApi'
-import { Home, Compass, User as UserIcon, BookOpen, PenTool, MessageCircle, Languages, StickyNote } from 'lucide-react'
+import { Home, User as UserIcon, BookOpen, PenTool, MessageCircle } from 'lucide-react'
 import ChatScreen from './screens/ChatScreen'
 import TranslateScreen from './screens/TranslateScreen'
 import NotesScreen from './screens/NotesScreen'
@@ -253,14 +253,12 @@ function App() {
       </div>
 
       {/* Mobile Bottom Navigation - Only on small screens */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom overflow-x-auto scrollbar-hide">
-        <div className="flex items-center justify-around gap-0.5 px-1 py-1.5 min-w-max mx-auto max-w-screen-sm">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
+        <div className="flex items-center justify-around px-2 py-1.5">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
-              { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
-              { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
               { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
