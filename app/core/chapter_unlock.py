@@ -6,6 +6,7 @@ from app.models.grammar_exercise import GrammarExercise
 from app.models.grammar_rule import GrammarRule
 from app.models.user_chapter_progress import UserChapterProgress
 from app.models.user_grammar_progress import UserGrammarProgress
+from app.models.user_grammar_attempt import UserGrammarAttempt
 
 UNLOCK_THRESHOLD_PCT = 100
 UNLOCK_ACCURACY_PCT = 0
@@ -45,12 +46,23 @@ def update_chapter_progress(user_id: int, chapter_id: int, db: Session):
         GrammarExercise.rule_id.in_(rule_ids)
     ).count()
 
+    chapter_exercise_ids = [
+        row[0] for row in db.query(GrammarExercise.id).filter(
+            GrammarExercise.rule_id.in_(rule_ids)
+        ).all()
+    ]
+
+    exercises_done = db.query(UserGrammarAttempt.exercise_id).filter(
+        UserGrammarAttempt.user_id == user_id,
+        UserGrammarAttempt.exercise_id.in_(chapter_exercise_ids)
+    ).distinct().count()
+    progress.exercises_done = min(exercises_done, progress.exercises_total)
+
     user_progress = db.query(UserGrammarProgress).filter(
         UserGrammarProgress.rule_id.in_(rule_ids),
         UserGrammarProgress.user_id == user_id
     ).all()
 
-    progress.exercises_done = min(sum(p.total_attempts for p in user_progress), progress.exercises_total)
     correct = sum(p.correct_attempts for p in user_progress)
     attempted = sum(p.total_attempts for p in user_progress)
     progress.score_pct = round((correct / attempted) * 100, 1) if attempted > 0 else 0

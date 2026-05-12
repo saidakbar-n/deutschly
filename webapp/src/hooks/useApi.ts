@@ -218,6 +218,11 @@ export async function listComments(postId: number, limit = 50, offset = 0) {
   return res.data
 }
 
+export async function deleteComment(postId: number, commentId: number, userId: number) {
+  const res = await api.delete(`/posts/${postId}/comment/${commentId}`, { params: { user_id: userId } })
+  return res.data
+}
+
 export type Notification = {
   id: number
   user_id: number
@@ -713,4 +718,72 @@ export async function deleteStickyNote(noteId: number, userId: number): Promise<
 
 export async function markConversationRead(conversationId: number, userId: number): Promise<void> {
   await api.post(`/conversations/${conversationId}/mark-read`, null, { params: { user_id: userId } })
+}
+
+// ===== Flashcards & Batch Words =====
+
+export type WordReview = {
+  id: number
+  word_id: number
+  user_id: number
+  ease_factor: number
+  interval: number
+  repetitions: number
+  next_review: string
+  last_reviewed: string | null
+  created_at: string
+}
+
+export type DueCard = {
+  id: number
+  word_id: number
+  term: string
+  meaning: string
+  note: string | null
+  is_singular: boolean
+  folder_id: number | null
+  review: WordReview
+}
+
+export type FlashcardStats = {
+  total: number
+  due: number
+  reviewed: number
+}
+
+export async function createWordsBatch(payload: {
+  user_id: number
+  folder_id?: number
+  words: { term: string; meaning: string; note?: string; is_singular?: boolean }[]
+}): Promise<{ created: number; words: any[] }> {
+  const res = await api.post('/words/batch', payload)
+  return res.data
+}
+
+export async function getDueFlashcards(userId: number, folderId?: number, limit = 20): Promise<DueCard[]> {
+  const params: any = {}
+  if (folderId) params.folder_id = folderId
+  if (limit) params.limit = limit
+  const res = await api.get(`/flashcards/due/${userId}`, { params })
+  return res.data
+}
+
+export async function getFlashcardStats(userId: number): Promise<FlashcardStats> {
+  const res = await api.get(`/flashcards/stats/${userId}`)
+  return res.data
+}
+
+export async function submitFlashcardReview(reviewId: number, userId: number, rating: number): Promise<{ status: string; next_review: string }> {
+  const res = await api.post(`/flashcards/review/${reviewId}`, { user_id: userId, rating })
+  return res.data
+}
+
+export async function setupFlashcardReview(userId: number, wordId: number): Promise<{ status: string; review_id: number }> {
+  const res = await api.post(`/flashcards/setup/${userId}/${wordId}`)
+  return res.data
+}
+
+export async function setupFolderFlashcards(userId: number, folderId: number): Promise<{ status: string; created: number; total: number }> {
+  const res = await api.post(`/flashcards/setup-folder/${userId}/${folderId}`)
+  return res.data
 }

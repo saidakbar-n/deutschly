@@ -34,3 +34,16 @@ class WordOut(WordBase):
 
 class WordFeedOut(WordOut):
     user: Optional[UserOut] = None
+
+
+class WordBatchItem(BaseModel):
+    term: str = Field(min_length=1, max_length=100)
+    meaning: str = Field(min_length=1)
+    note: Optional[str] = None
+    is_singular: Optional[bool] = True
+
+
+class WordBatchCreate(BaseModel):
+    user_id: int
+    folder_id: Optional[int] = None
+    words: list[WordBatchItem]

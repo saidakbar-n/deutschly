@@ -1,33 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
-import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay } from '../hooks/useApi'
-import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen } from 'lucide-react'
-
-// Helper function to get article color based on term and singular/plural
-function getArticleColor(term: string, isSingular: boolean): string {
-  const trimmedTerm = term.trim().toLowerCase()
-  
-  if (trimmedTerm.startsWith('der ')) return 'bg-blue-100 text-blue-700'
-  if (trimmedTerm.startsWith('das ')) return 'bg-green-100 text-green-700'
-  if (trimmedTerm.startsWith('die ')) {
-    return isSingular ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-  }
-  return 'bg-yellow-100 text-yellow-800' // Default yellow for words without articles
-}
-
-// Function to get article info for display
-function getWordArticleInfo(term: string, isSingular: boolean = true): { color: string; article: string } {
-  const trimmedTerm = term.trim()
-  const firstWord = trimmedTerm.split(' ')[0]?.toLowerCase() || ''
-  
-  if (firstWord === 'der') return { color: 'bg-blue-100 text-blue-700', article: 'der' }
-  if (firstWord === 'das') return { color: 'bg-green-100 text-green-700', article: 'das' }
-  if (firstWord === 'die') {
-    return isSingular 
-      ? { color: 'bg-red-100 text-red-700', article: 'die (singular)' }
-      : { color: 'bg-gray-100 text-gray-700', article: 'die (plural)' }
-  }
-  return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', article: '' } // Default yellow when no article
-}
+import { getArticleColor, getWordArticleInfo } from '../utils/wordHelpers'
+import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay, createWordsBatch, getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupFlashcardReview, getFlashcardStats, type DueCard, type FlashcardStats as FCStats } from '../hooks/useApi'
+import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen, Upload, Sparkles, Layers, Rotate3D, ThumbsUp, ThumbsDown, RefreshCw, AlertCircle, Brain } from 'lucide-react'
+import FlashcardMode from '../components/FlashcardMode'
 
 type Word = {
   id: number
@@ -47,8 +22,181 @@ type FolderWithWords = {
   words: Word[]
 }
 
-// ─── Add Word Form ────────────────────────────────────────────────
-function AddWordForm({ userId, onAdded, folders, onCreateFolder }: { userId: number; onAdded: (w: Word) => void; folders: WordFolder[]; onCreateFolder: () => void }) {
+// ─── Batch Add Modal (Quizlet-style) ──────────────────────────────
+function BatchAddModal({
+  userId,
+  folders,
+  isOpen,
+  onClose,
+  onAdded,
+  preselectFolderId,
+}: {
+  userId: number
+  folders: WordFolder[]
+  isOpen: boolean
+  onClose: () => void
+  onAdded: () => void
+  preselectFolderId?: number | null
+}) {
+  const [text, setText] = useState('')
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [parsed, setParsed] = useState<{ term: string; meaning: string; note?: string }[]>([])
+
+  useEffect(() => {
+    if (isOpen && preselectFolderId) {
+      setSelectedFolderId(preselectFolderId)
+    }
+  }, [isOpen, preselectFolderId])
+
+  const parseText = (input: string) => {
+    const blocks = input.split(/\n\s*\n/).filter(b => b.trim())
+    const pairs: { term: string; meaning: string; note?: string }[] = []
+    const separators = ['\t', ' - ', ' — ', ' | ', ' : ', ': ']
+    for (const block of blocks) {
+      const lines = block.split('\n').filter(l => l.trim())
+      if (lines.length === 0) continue
+      const first = lines[0]
+      let sep = ''
+      for (const s of separators) {
+        if (first.includes(s)) { sep = s; break }
+      }
+      if (!sep) continue
+      const idx = first.indexOf(sep)
+      const term = first.slice(0, idx).trim()
+      const meaning = first.slice(idx + sep.length).trim()
+      if (!term || !meaning) continue
+      const note = lines.length > 1 ? lines.slice(1).join('\n') : undefined
+      pairs.push({ term, meaning, note })
+    }
+    return pairs
+  }
+
+  const handleTextChange = (val: string) => {
+    setText(val)
+    setParsed(parseText(val))
+  }
+
+  const submit = async () => {
+    if (parsed.length === 0) return
+    setLoading(true)
+    try {
+      await createWordsBatch({
+        user_id: userId,
+        folder_id: selectedFolderId || undefined,
+        words: parsed.map(p => ({ term: p.term, meaning: p.meaning, note: p.note })),
+      })
+      onAdded()
+      setText('')
+      setParsed([])
+      setSelectedFolderId(null)
+      onClose()
+    } catch (e) {
+      console.error('Batch add failed:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Upload size={16} className="text-indigo-600" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900">Batch Import</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+            <X size={20} />
+          </button>
+        </div>
+
+        <p className="text-sm text-slate-500 mb-4">
+          Paste your words, one per line. Separate term and meaning with a tab, dash, or colon.
+        </p>
+
+        <div className="bg-slate-50 rounded-2xl p-4 mb-4">
+          <p className="text-xs text-slate-400 font-medium mb-2">Example:</p>
+          <code className="text-xs text-slate-600 bg-white px-3 py-2 rounded-xl block leading-relaxed">
+            der Hund - the dog{'\n'}
+            Der Hund ist braun. - The dog is brown.{'\n'}
+            {'\n'}
+            die Katze - the cat{'\n'}
+            {'\n'}
+            das Haus : the house
+          </code>
+          <p className="text-xs text-slate-400 mt-2">Separate entries with blank lines. First line = word; following lines = example sentences (optional).</p>
+        </div>
+
+        <textarea
+          className="w-full input-primary resize-none text-sm"
+          rows={6}
+          placeholder="Paste your words here..."
+          value={text}
+          onChange={(e) => handleTextChange(e.target.value)}
+        />
+
+        {parsed.length > 0 && (
+          <div className="mt-3 mb-4">
+            <p className="text-xs text-indigo-600 font-semibold mb-2">
+              {parsed.length} word{parsed.length !== 1 ? 's' : ''} detected
+            </p>
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {parsed.map((p, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm bg-indigo-50 rounded-xl px-3 py-1.5">
+                  <span className="font-medium text-slate-900">{p.term}</span>
+                  <span className="text-slate-400">→</span>
+                  <span className="text-indigo-700">{p.meaning}</span>
+                  {p.note && <span className="text-xs text-indigo-400 ml-auto" title={p.note}>📝</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-4">
+          <label className="text-sm font-medium text-slate-700 mb-1 block">Save to folder (optional)</label>
+          <select
+            className="input-primary text-sm w-full"
+            value={selectedFolderId || ''}
+            onChange={(e) => setSelectedFolderId(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">No folder (Uncategorized)</option>
+            {folders.map(f => (
+              <option key={f.id} value={f.id}>{f.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex gap-3">
+          <button className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            onClick={submit}
+            disabled={parsed.length === 0 || loading}
+          >
+            {loading ? 'Importing...' : `Import ${parsed.length > 0 ? parsed.length : ''} Words`}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0, defaultFolderId = null }: {
+  userId: number
+  onAdded: (w: Word) => void
+  folders: WordFolder[]
+  onCreateFolder: () => void
+  openTrigger?: number
+  defaultFolderId?: number | null
+}) {
   const [open, setOpen] = useState(false)
   const [term, setTerm] = useState('')
   const [meaning, setMeaning] = useState('')
@@ -57,6 +205,13 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder }: { userId: num
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [folderDropdownOpen, setFolderDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    if (openTrigger > 0) {
+      setSelectedFolderId(defaultFolderId)
+      setOpen(true)
+    }
+  }, [openTrigger])
 
   const submit = async () => {
     if (!term.trim() || !meaning.trim()) return
@@ -678,38 +833,59 @@ function QuizHistoryCard({ quiz }: { quiz: Quiz }) {
 }
 
 // ─── Folder Section ────────────────────────────────────────────
-function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz }: {
+function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz, onStartFlashcards, onBatchAdd, onAddWord }: {
   folder: WordFolder
   words: Word[]
   userId: number
   onDelete: (wordId: number) => Promise<void>
   onStartFolderQuiz: (words: Word[]) => void
+  onStartFlashcards: (folderId: number, folderName: string) => void
+  onBatchAdd: (folderId: number) => void
+  onAddWord: (folderId: number) => void
 }) {
-  const [collapsed, setCollapsed] = useState(words.length > 5)
+  const [collapsed, setCollapsed] = useState(words.length > 3)
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all hover:shadow-md">
       <div
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50/80 transition-colors"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
+          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: folder.color || '#6366f1' }} />
           <span className="font-semibold text-slate-900">{folder.name}</span>
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} words</span>
+          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{words.length} word{words.length !== 1 ? 's' : ''}</span>
         </div>
         {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
       </div>
+      <div className="px-4 pb-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+        <button
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+          onClick={(e) => { e.stopPropagation(); onAddWord(folder.id) }}
+        >
+          <Plus size={14} /> Add Word
+        </button>
+        <button
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+          onClick={(e) => { e.stopPropagation(); onBatchAdd(folder.id) }}
+        >
+          <Upload size={14} /> Batch Add
+        </button>
+        <button
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+          onClick={(e) => { e.stopPropagation(); onStartFlashcards(folder.id, folder.name) }}
+        >
+          <Brain size={14} /> Flashcards
+        </button>
+        <button
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+          onClick={(e) => { e.stopPropagation(); onStartFolderQuiz(words) }}
+        >
+          <Sparkles size={14} /> Quiz
+        </button>
+      </div>
       {!collapsed && (
-        <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
-          {words.length >= 3 && (
-            <button
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
-              onClick={(e) => { e.stopPropagation(); onStartFolderQuiz(words) }}
-            >
-              🧠 Quiz this folder ({words.length} words)
-            </button>
-          )}
+        <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-2">
           {words.map(w => (
             <WordCard key={w.id} word={w} isMine={true} onDelete={() => onDelete(w.id)} compact />
           ))}
@@ -775,6 +951,12 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   const [folders, setFolders] = useState<WordFolder[]>([])
   const [folderModalOpen, setFolderModalOpen] = useState(false)
   const [wordsByFolder, setWordsByFolder] = useState<{ uncategorized: Word[]; folders: Record<number, { folder: WordFolder; words: Word[] }> } | null>(null)
+  const [flashcardMode, setFlashcardMode] = useState(false)
+  const [flashcardFolderId, setFlashcardFolderId] = useState<number | undefined>(undefined)
+  const [flashcardFolderName, setFlashcardFolderName] = useState('')
+  const [addWordTrigger, setAddWordTrigger] = useState<{ folderId: number | null; counter: number }>({ folderId: null, counter: 0 })
+  const [batchFolderPreselect, setBatchFolderPreselect] = useState<number | null>(null)
+  const [batchModalOpen, setBatchModalOpen] = useState(false)
 
   const loadMyWords = useCallback(async () => {
     setLoading(true)
@@ -858,6 +1040,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
 
   const handleAdded = (w: Word) => {
     setMyWords((prev) => [w, ...prev])
+    setAddWordTrigger({ folderId: null, counter: 0 })
     onUserUpdated?.()
   }
 
@@ -891,6 +1074,18 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
 
   if (quizMode) {
     return <QuizMode words={quizWords.length > 0 ? quizWords : myWords} onExit={() => { setQuizMode(false); setQuizWords([]) }} user={user} />
+  }
+
+  if (flashcardMode) {
+    return (
+      <FlashcardMode
+        user={user}
+        folderId={flashcardFolderId}
+        folderName={flashcardFolderName}
+        onExit={() => { setFlashcardMode(false); setFlashcardFolderId(undefined); setFlashcardFolderName('') }}
+        onComplete={() => { setFlashcardMode(false); setFlashcardFolderId(undefined); setFlashcardFolderName('') }}
+      />
+    )
   }
 
   return (
@@ -944,27 +1139,54 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
       {/* My Words Tab */}
       {tab === 'mine' && (
         <div className="space-y-3">
-          <AddWordForm userId={user.id} onAdded={handleAdded} folders={folders} onCreateFolder={() => setFolderModalOpen(true)} />
+          {/* Folder empty state */}
+          {folders.length === 0 && !loading && (
+            <div className="text-center py-12 space-y-4">
+              <div className="w-16 h-16 bg-indigo-100 rounded-3xl flex items-center justify-center mx-auto">
+                <FolderPlus size={32} className="text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-900">No folders yet</p>
+                <p className="text-sm text-slate-500 mt-1">Create a folder to organize your words and start studying</p>
+              </div>
+              <button
+                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
+                onClick={() => setFolderModalOpen(true)}
+              >
+                <FolderPlus size={18} /> Create Your First Folder
+              </button>
+            </div>
+          )}
+
+          <AddWordForm
+            userId={user.id}
+            onAdded={handleAdded}
+            folders={folders}
+            onCreateFolder={() => setFolderModalOpen(true)}
+            openTrigger={addWordTrigger.counter}
+            defaultFolderId={addWordTrigger.folderId}
+          />
 
           {folders.length > 0 && (
-            <button
-              className="w-full py-2.5 px-4 rounded-2xl bg-indigo-50 text-indigo-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100"
-              onClick={() => setFolderModalOpen(true)}
-            >
-              <Folder size={15} /> Manage Folders ({folders.length})
-            </button>
+            <div className="flex items-center gap-2">
+              {myWords.length >= 3 && (
+                <button
+                  className="flex-1 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
+                  onClick={() => setQuizMode(true)}
+                >
+                  <Sparkles size={15} /> Quiz All ({myWords.length})
+                </button>
+              )}
+              <button
+                className="py-2.5 px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-all"
+                onClick={() => setFolderModalOpen(true)}
+              >
+                <Folder size={15} /> Manage
+              </button>
+            </div>
           )}
 
-          {myWords.length >= 3 && (
-            <button
-              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200"
-              onClick={() => setQuizMode(true)}
-            >
-              🧠 Quiz All Words ({myWords.length})
-            </button>
-          )}
-
-          {/* Folder sections */}
+          {/* Folder cards */}
           {wordsByFolder && Object.values(wordsByFolder.folders).map(({ folder, words }) => (
             <FolderSection
               key={folder.id}
@@ -975,6 +1197,18 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
               onStartFolderQuiz={(folderWords) => {
                 setQuizWords(folderWords)
                 setQuizMode(true)
+              }}
+              onStartFlashcards={(folderId, folderName) => {
+                setFlashcardFolderId(folderId)
+                setFlashcardFolderName(folderName)
+                setFlashcardMode(true)
+              }}
+              onBatchAdd={(folderId) => {
+                setBatchFolderPreselect(folderId)
+                setBatchModalOpen(true)
+              }}
+              onAddWord={(folderId) => {
+                setAddWordTrigger(prev => ({ folderId, counter: prev.counter + 1 }))
               }}
             />
           ))}
@@ -989,7 +1223,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
             />
           )}
 
-          {!loading && wordsByFolder && myWords.length === 0 && (
+          {!loading && wordsByFolder && myWords.length === 0 && folders.length > 0 && (
             <div className="text-center py-10 space-y-2">
               <p className="text-4xl">📖</p>
               <p className="text-slate-500 font-medium">No words yet</p>
@@ -1066,6 +1300,14 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
         isOpen={folderModalOpen}
         onClose={() => setFolderModalOpen(false)}
         onFoldersUpdated={() => { loadFolders(); setFolderModalOpen(false) }}
+      />
+      <BatchAddModal
+        userId={user.id}
+        folders={folders}
+        isOpen={batchModalOpen}
+        preselectFolderId={batchFolderPreselect}
+        onClose={() => { setBatchModalOpen(false); setBatchFolderPreselect(null) }}
+        onAdded={() => { setBatchModalOpen(false); setBatchFolderPreselect(null); loadWordsByFolder() }}
       />
     </div>
   )

@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, User, getImageUrl } from '../hooks/useApi'
+import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, deleteComment, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
+import { PostDetailModal } from '../components/PostDetailModal'
 import { CreatePostModal } from '../components/CreatePostModal'
-import { Bell } from 'lucide-react'
+import { Bell, Trash2 } from 'lucide-react'
 
 export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotifications, unreadNotifCount }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void; onNotifications?: () => void; unreadNotifCount?: number }) {
   const userId = user.id
@@ -19,6 +20,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
   const [commentText, setCommentText] = useState<Record<number, string>>({})
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [peekUser, setPeekUser] = useState<any | null>(null)
+  const [detailPostId, setDetailPostId] = useState<number | null>(null)
   const [peekLoading, setPeekLoading] = useState(false)
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
   const [followedIds, setFollowedIds] = useState<Set<number>>(new Set())
@@ -40,6 +42,18 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
   useEffect(() => {
     loadFeed()
   }, [loadFeed])
+
+  const handleCardClick = async (item: any) => {
+    setDetailPostId(item.post.id)
+    if (!comments[item.post.id]) {
+      setCommentsLoading(true)
+      const data = await listComments(item.post.id)
+      setComments((prev) => ({ ...prev, [item.post.id]: data }))
+      setCommentsLoading(false)
+    }
+  }
+
+  const detailItem = detailPostId ? items.find((it) => it.post.id === detailPostId) : null
 
   const handleLike = async (postId: number) => {
     await likePost(postId, userId)
@@ -81,18 +95,31 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
   const handleCommentSubmit = async (postId: number) => {
     const text = (commentText[postId] || '').trim()
     if (!text) return
-    await commentPost(postId, { user_id: userId, text })
+    const created = await commentPost(postId, { user_id: userId, text })
     setCommentText((prev) => ({ ...prev, [postId]: '' }))
     setComments((prev) => ({
       ...prev,
       [postId]: [
-        { id: Date.now(), user_id: userId, user, text, created_at: new Date().toISOString() },
+        { ...created, user: created.user || user },
         ...(prev[postId] || []),
       ],
     }))
     setItems((prev) =>
       prev.map((it) =>
         it.post.id === postId ? { ...it, post: { ...it.post, comments_count: (it.post.comments_count || 0) + 1 } } : it
+      )
+    )
+  }
+
+  const handleDeleteComment = async (postId: number, commentId: number) => {
+    await deleteComment(postId, commentId, userId)
+    setComments((prev) => ({
+      ...prev,
+      [postId]: (prev[postId] || []).filter((c) => c.id !== commentId),
+    }))
+    setItems((prev) =>
+      prev.map((it) =>
+        it.post.id === postId ? { ...it, post: { ...it.post, comments_count: Math.max(0, (it.post.comments_count || 0) - 1) } } : it
       )
     )
   }
@@ -193,6 +220,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
               currentUserId={userId}
               word={it.post.word || null}
               isLiked={likedPosts.has(it.post.id)}
+              onClick={() => handleCardClick(it)}
             />
             {openPostId === it.post.id && (
               <div className="border border-slate-200 rounded-xl p-2 sm:p-3 space-y-3 bg-slate-50">
@@ -211,17 +239,31 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                   <p className="text-xs text-slate-500">Loading comments...</p>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {(comments[it.post.id] || []).map((c: any) => (
-                      <div key={c.id} className="text-sm bg-white border rounded-lg px-2 sm:px-3 py-2">
-                        <div className="flex items-center justify-between flex-wrap gap-1">
-                          <button className="font-semibold text-blue-600 text-sm" onClick={() => viewUser(c.user_id)}>
-                            {c.user?.username || (c.user_id === userId ? user.username : `User ${c.user_id}`)}
-                          </button>
-                          <span className="text-[10px] sm:text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
+                    {(comments[it.post.id] || []).map((c: any) => {
+                      const canDelete = c.user_id === userId || it.author.id === userId
+                      return (
+                        <div key={c.id} className="text-sm bg-white border rounded-lg px-2 sm:px-3 py-2">
+                          <div className="flex items-center justify-between flex-wrap gap-1">
+                            <button className="font-semibold text-blue-600 text-sm" onClick={() => viewUser(c.user_id)}>
+                              {c.user?.username || (c.user_id === userId ? user.username : `User ${c.user_id}`)}
+                            </button>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] sm:text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
+                              {canDelete && (
+                                <button
+                                  className="text-slate-400 hover:text-red-500 transition-colors"
+                                  onClick={() => handleDeleteComment(it.post.id, c.id)}
+                                  title="Delete comment"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-slate-700 mt-1">{c.text}</p>
                         </div>
-                        <p className="text-slate-700 mt-1">{c.text}</p>
-                      </div>
-                    ))}
+                      )
+                    })}
                     {(!comments[it.post.id] || comments[it.post.id].length === 0) && (
                       <p className="text-xs text-slate-500">No comments yet.</p>
                     )}
@@ -258,6 +300,48 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                </div>
              )}
       {peekLoading && <div className="fixed inset-0 pointer-events-none" />}
+
+      {detailItem && (
+        <PostDetailModal
+          post={{
+            id: detailItem.post.id,
+            text: detailItem.post.text,
+            image_url: detailItem.post.image_url,
+            type: detailItem.post.type,
+            likes: detailItem.post.likes,
+            comments_count: detailItem.post.comments_count,
+            timestamp: detailItem.post.timestamp ? new Date(detailItem.post.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined,
+            word: detailItem.post.word || null,
+          }}
+          author={{ id: detailItem.author.id, username: detailItem.author.username, level: detailItem.author.level, city: detailItem.author.city }}
+          isLiked={likedPosts.has(detailItem.post.id)}
+          currentUserId={userId}
+          onClose={() => setDetailPostId(null)}
+          onDelete={detailItem.author.id === userId ? () => { handleDelete(detailItem.post.id); setDetailPostId(null); } : undefined}
+          onViewUser={(id) => {
+            setDetailPostId(null)
+            onViewUser?.(id)
+          }}
+          comments={comments[detailItem.post.id]}
+          commentsLoading={commentsLoading}
+          onCommentSubmit={async (text) => {
+            const created = await commentPost(detailItem.post.id, { user_id: userId, text })
+            setComments((prev) => ({
+              ...prev,
+              [detailItem.post.id]: [
+                { ...created, user: created.user || { id: userId, username: user.username } },
+                ...(prev[detailItem.post.id] || []),
+              ],
+            }))
+            setItems((prev) =>
+              prev.map((it) =>
+                it.post.id === detailItem.post.id ? { ...it, post: { ...it.post, comments_count: (it.post.comments_count || 0) + 1 } } : it
+              )
+            )
+          }}
+          onDeleteComment={(commentId) => handleDeleteComment(detailItem.post.id, commentId)}
+        />
+      )}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, unfollowUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, unfollowUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich, likePost, commentPost, listComments, deleteComment } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
+import { PostDetailModal } from '../components/PostDetailModal'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
 import { WordCard } from '../components/WordCard'
@@ -40,6 +41,11 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   const [grammarProgress, setGrammarProgress] = useState<UserGrammarProgressRich[]>([])
   const [grammarLoading, setGrammarLoading] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
+  const [detailPostId, setDetailPostId] = useState<number | null>(null)
+  const [detailComments, setDetailComments] = useState<any[]>([])
+  const [detailCommentsLoading, setDetailCommentsLoading] = useState(false)
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
+  const detailPost = detailPostId ? posts.find((p) => p.id === detailPostId) : null
 
   const [form, setForm] = useState({
     username: '',
@@ -138,6 +144,46 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   // Helper function to get folder by ID
   const getFolderById = (folderId: number) => {
     return folders.find(f => f.id === folderId)
+  }
+
+  const handlePostClick = async (post: any) => {
+    setDetailPostId(post.id)
+    setDetailCommentsLoading(true)
+    try {
+      const data = await listComments(post.id)
+      setDetailComments(data || [])
+    } finally {
+      setDetailCommentsLoading(false)
+    }
+  }
+
+  const handleDetailLike = async (postId: number) => {
+    const uid = currentUser?.id || user?.id
+    if (!uid) return
+    await likePost(postId, uid)
+    setLikedPosts((prev) => {
+      const next = new Set(prev)
+      if (next.has(postId)) next.delete(postId)
+      else next.add(postId)
+      return next
+    })
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, likes: (p.likes || 0) + (likedPosts.has(postId) ? -1 : 1) } : p
+      )
+    )
+  }
+
+  const handleDeleteComment = async (commentId: number) => {
+    const uid = currentUser?.id || user?.id
+    if (!uid) return
+    await deleteComment(detailPost.id, commentId, uid)
+    setDetailComments((prev) => prev.filter((c) => c.id !== commentId))
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === detailPost.id ? { ...p, comments_count: Math.max(0, (p.comments_count || 0) - 1) } : p
+      )
+    )
   }
 
   const loadFollowers = useCallback(async () => {
@@ -579,6 +625,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                         await deletePost(p.id, user.id)
                         setPosts((prev) => prev.filter((x) => x.id !== p.id))
                       } : undefined}
+                      onClick={() => handlePostClick(p)}
                     />
                   </div>
                 ))}
@@ -759,6 +806,49 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           </div>
         )}
       </div>
+
+      {/* Post Detail Modal */}
+      {detailPost && (
+        <PostDetailModal
+          post={{
+            id: detailPost.id,
+            text: detailPost.text,
+            image_url: detailPost.image_url,
+            type: detailPost.type,
+            likes: detailPost.likes,
+            comments_count: detailPost.comments_count,
+            timestamp: detailPost.timestamp ? new Date(detailPost.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined,
+            word: detailPost.word || null,
+          }}
+          author={{ id: user?.id, username: user?.username || '', level: user?.level, city: user?.city }}
+          isLiked={likedPosts.has(detailPost.id)}
+          currentUserId={currentUser?.id || user?.id || 0}
+          onClose={() => { setDetailPostId(null); setDetailComments([]) }}
+          onLike={() => handleDetailLike(detailPost.id)}
+          onDelete={isOwnProfile ? async () => {
+            await deletePost(detailPost.id, user?.id || 0)
+            setPosts((prev) => prev.filter((x) => x.id !== detailPost.id))
+            setDetailPostId(null)
+          } : undefined}
+          comments={detailComments}
+          commentsLoading={detailCommentsLoading}
+          onCommentSubmit={async (text) => {
+            const uid = currentUser?.id || user?.id
+            if (!uid) return
+            const created = await commentPost(detailPost.id, { user_id: uid, text })
+            setDetailComments((prev) => [
+              { ...created, user: created.user || { id: uid, username: currentUser?.username || user?.username } },
+              ...prev,
+            ])
+            setPosts((prev) =>
+              prev.map((p) =>
+                p.id === detailPost.id ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
+              )
+            )
+          }}
+          onDeleteComment={handleDeleteComment}
+        />
+      )}
 
       {/* Followers/Following Modal */}
         <FollowersFollowingModal

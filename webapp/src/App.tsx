@@ -43,12 +43,11 @@ function App() {
 
   useEffect(() => {
     if (!user) return
-    fetchUnreadChatCount(user.id).then((d) => setChatUnreadCount(d.unread_count || 0)).catch(() => {})
-    const interval = setInterval(() => {
-      fetchUnreadChatCount(user.id).then((d) => setChatUnreadCount(d.unread_count || 0)).catch(() => {})
-    }, 15000)
+    const fetchCount = () => fetchUnreadChatCount(user.id).then((d) => setChatUnreadCount(d.unread_count || 0)).catch(() => {})
+    fetchCount()
+    const interval = setInterval(fetchCount, 15000)
     return () => clearInterval(interval)
-  }, [user])
+  }, [user, screen])
 
   // App-level WebSocket for real-time chat unread badge updates
   useEffect(() => {
@@ -57,7 +56,7 @@ function App() {
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
-        if (data.type === 'new_message' && screen !== 'chat') {
+        if (data.type === 'new_message') {
           setChatUnreadCount(prev => prev + 1)
         }
       } catch {}
@@ -127,7 +126,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen hero-bg overflow-y-auto pb-20 md:pb-0">
+    <div className="min-h-screen hero-bg pb-20 md:pb-0" style={{ overflow: 'visible' }}>
       {/* ============================================
           Background Decorative Elements - QA Wolf Style
       ============================================ */}
@@ -254,12 +253,14 @@ function App() {
       </div>
 
       {/* Mobile Bottom Navigation - Only on small screens */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
-        <div className="flex justify-around items-center py-2 px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom overflow-x-auto scrollbar-hide">
+        <div className="flex items-center justify-around gap-0.5 px-1 py-1.5 min-w-max mx-auto max-w-screen-sm">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+              { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
+              { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
               { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
@@ -269,21 +270,21 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 <div className="relative">
-                  <Icon size={22} />
+                  <Icon size={20} />
                   {item.key === 'chat' && chatUnreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-indigo-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                       {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                     </span>
                   )}
                 </div>
-                <span className="text-xs font-semibold">{item.label}</span>
+                <span className="text-[10px] font-semibold leading-tight">{item.label}</span>
               </button>
             )
           })}

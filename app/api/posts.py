@@ -175,3 +175,18 @@ def delete_post(post_id: int, user_id: int, db: Session = Depends(get_db)):
     db.delete(post)
     db.commit()
     return {"detail": "deleted"}
+
+
+@router.delete("/posts/{post_id}/comment/{comment_id}")
+def delete_comment(post_id: int, comment_id: int, user_id: int, db: Session = Depends(get_db)):
+    comment = db.get(Comment, comment_id)
+    if not comment or comment.post_id != post_id:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    post = db.get(Post, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if comment.user_id != user_id and post.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+    db.delete(comment)
+    db.commit()
+    return {"detail": "deleted"}

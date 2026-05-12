@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_db
 from app.core.streak import update_streak
-from app.models import Word, User, WordFolder
-from app.schemas.word import WordCreate, WordOut, WordUpdate
+from app.models import Word, User, WordFolder, WordReview
+from app.schemas.word import WordCreate, WordOut, WordUpdate, WordBatchCreate
 
 router = APIRouter(prefix="/api/v1", tags=["words"])
 
@@ -209,3 +209,36 @@ def list_words_by_folder(user_id: int, db: Session = Depends(get_db)):
         "uncategorized": uncategorized,
         "folders": words_by_folder
     }
+
+
+@router.post("/words/batch")
+def create_words_batch(payload: WordBatchCreate, db: Session = Depends(get_db)):
+    user = db.get(User, payload.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if payload.folder_id is not None:
+        folder = db.get(WordFolder, payload.folder_id)
+        if not folder or folder.user_id != payload.user_id:
+            raise HTTPException(status_code=403, detail="Invalid folder")
+
+    created = []
+    for item in payload.words:
+        word = Word(
+            user_id=payload.user_id,
+            folder_id=payload.folder_id,
+            term=item.term,
+            meaning=item.meaning,
+            note=item.note,
+            is_singular=item.is_singular,
+        )
+        db.add(word)
+        created.append(word)
+        user.words_count = (user.words_count or 0) + 1
+
+    update_streak(user, db)
+    db.commit()
+    for w in created:
+        db.refresh(w)
+
+    return {"created": len(created), "words": created}

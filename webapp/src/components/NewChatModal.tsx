@@ -79,18 +79,19 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
   const showSuggestions = !q.trim() || results.length === 0
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-slate-900">New Message</h2>
-          <button className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-white w-full sm:rounded-2xl sm:shadow-2xl sm:max-w-md sm:m-4 sm:p-6 rounded-t-2xl max-h-[85dvh] flex flex-col">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-0 sm:pt-0 sm:pb-4">
+          <div className="sm:hidden w-10 h-1 rounded-full bg-slate-300 mx-auto absolute left-1/2 -translate-x-1/2 top-2" />
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900">New Message</h2>
+          <button className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 px-4 sm:px-0 pb-3 sm:pb-4">
           <input
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
             placeholder="Search users..."
             value={q}
             onChange={(e) => {
@@ -99,12 +100,12 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
             }}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 text-sm font-semibold" onClick={handleSearch} disabled={loading}>
-            <Search size={16} />
+          <button className="px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:bg-indigo-800 text-sm font-semibold min-h-[44px] min-w-[44px] flex items-center justify-center" onClick={handleSearch} disabled={loading}>
+            <Search size={18} />
           </button>
         </div>
 
-        <div className="space-y-2 max-h-80 overflow-y-auto">
+        <div className="space-y-2 overflow-y-auto px-4 sm:px-0 pb-4 flex-1">
           {suggestionsLoading ? (
             <div className="text-center py-4 text-slate-500 text-sm">
               <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -118,26 +119,26 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
               {filteredSuggestions.map((u) => (
                 <button
                   key={u.id}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-colors"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors min-h-[52px]"
                   onClick={() => handleSelect(u.id)}
                 >
                   {u.profile_photo ? (
-                    <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-10 h-10 rounded-full object-cover" />
+                    <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-indigo-600 font-bold text-sm">{u.username.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
-                  <div className="flex-1 text-left">
-                    <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5 truncate">
                       {u.username}
                       {suggestions.some(s => s.id === u.id) && (
-                        <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium">Following</span>
+                        <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Following</span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500">{u.full_name || u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
+                    <p className="text-xs text-slate-500 truncate">{u.full_name || u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
                   </div>
-                  <MessageCircle size={16} className="text-slate-300 flex-shrink-0" />
+                  <MessageCircle size={18} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
             </>
@@ -154,26 +155,26 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
               {results.map((u) => (
                 <button
                   key={u.id}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-colors"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors min-h-[52px]"
                   onClick={() => handleSelect(u.id)}
                 >
                   {u.profile_photo ? (
-                    <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-10 h-10 rounded-full object-cover" />
+                    <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-indigo-600 font-bold text-sm">{u.username.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
-                  <div className="flex-1 text-left">
-                    <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5 truncate">
                       {u.username}
                       {suggestions.some(s => s.id === u.id) && (
-                        <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium">Following</span>
+                        <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Following</span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
+                    <p className="text-xs text-slate-500 truncate">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
                   </div>
-                  <MessageCircle size={16} className="text-slate-300 flex-shrink-0" />
+                  <MessageCircle size={18} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
             </>

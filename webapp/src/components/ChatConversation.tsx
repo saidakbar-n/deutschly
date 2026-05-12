@@ -21,11 +21,13 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const [wordShareOpen, setWordShareOpen] = useState(false)
   const [myWords, setMyWords] = useState<any[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { listWords(user.id).then(setMyWords).catch(() => {}) }, [user.id])
 
   useEffect(() => {
     loadMessages()
+    inputRef.current?.focus()
 
     const ws = new WebSocket(`${wsUrl}/api/v1/ws/chat/${user.id}`)
     let fallbackInterval: ReturnType<typeof setInterval> | null = null
@@ -99,22 +101,22 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   }
 
   return (
-    <div className="card p-0 flex flex-col h-[calc(100vh-220px)] max-h-[600px] min-h-[400px]">
-      <div className="flex items-center gap-3 p-4 border-b border-slate-200">
-        <button className="p-1 rounded-lg hover:bg-slate-100 transition-colors" onClick={onBack}>
-          <ArrowLeft size={20} className="text-slate-600" />
+    <div className="card p-0 flex flex-col h-[70dvh] sm:h-[600px] min-h-[400px]">
+      <div className="flex items-center gap-3 px-3 py-3 sm:px-4 sm:py-4 border-b border-slate-200">
+        <button className="p-2 -ml-1 rounded-xl hover:bg-slate-100 transition-colors active:bg-slate-200 tap-highlight-transparent" onClick={onBack}>
+          <ArrowLeft size={22} className="text-slate-600" />
         </button>
         {otherProfilePhoto ? (
-          <img src={getImageUrl(otherProfilePhoto)} alt={otherUsername} className="w-10 h-10 rounded-full object-cover" />
+          <img src={getImageUrl(otherProfilePhoto)} alt={otherUsername} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover" />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span className="text-indigo-600 font-bold">{otherUsername.charAt(0).toUpperCase()}</span>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-indigo-600 font-bold text-sm sm:text-base">{otherUsername.charAt(0).toUpperCase()}</span>
           </div>
         )}
-        <div>
-          <p className="font-semibold text-slate-900">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
             {otherUsername}
-            {otherFullName && <span className="text-xs text-slate-400 font-normal ml-1.5">({otherFullName})</span>}
+            {otherFullName && <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({otherFullName})</span>}
           </p>
           <p className="text-xs flex items-center gap-1 mt-0.5">
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${otherIsOnline ? 'bg-green-500' : 'bg-slate-300'}`} />
@@ -125,7 +127,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 space-y-3 scroll-soft">
         {loading ? (
           <div className="text-center py-8">
             <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-qaw-spin mx-auto" />
@@ -159,17 +161,18 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
       </div>
 
       {wordShareOpen && myWords.length > 0 && (
-        <div className="border-t border-slate-100 p-3 max-h-48 overflow-y-auto">
+        <div className="border-t border-slate-100 px-3 py-2 sm:px-4 sm:py-3 max-h-40 overflow-y-auto">
           <p className="text-xs font-semibold text-slate-400 uppercase mb-2">Share a word</p>
-          <div className="space-y-1">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
             {myWords.map((w: any) => (
               <button
                 key={w.id}
-                className="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-50 transition-colors"
+                className="flex-shrink-0 text-left px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 transition-colors border border-indigo-100 min-h-[44px]"
                 onClick={() => {
                   const wordMsg = `[word:${w.term}|${w.meaning}${w.note ? '|' + w.note : ''}]`
                   setText(wordMsg)
                   setWordShareOpen(false)
+                  inputRef.current?.focus()
                 }}
               >
                 <p className="font-semibold text-slate-900 text-sm">{w.term}</p>
@@ -179,29 +182,30 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
           </div>
         </div>
       )}
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-slate-200 px-3 py-3 sm:px-4 sm:py-4 safe-area-inset-bottom">
         <div className="flex items-center gap-2">
           <input
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            placeholder="Type a message... (Enter to send)"
+            ref={inputRef}
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
+            placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={sending}
           />
           <button
-            className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+            className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors active:bg-indigo-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={() => setWordShareOpen(!wordShareOpen)}
             title="Share a word"
           >
-            <BookOpen size={18} />
+            <BookOpen size={20} />
           </button>
           <button
-            className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors active:bg-indigo-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={handleSend}
             disabled={!text.trim() || sending}
           >
-            <Send size={18} />
+            <Send size={20} />
           </button>
         </div>
       </div>

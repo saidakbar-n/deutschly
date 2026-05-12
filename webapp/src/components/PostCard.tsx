@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Heart, MessageCircle, UserPlus, MoreVertical, Trash2 } from 'lucide-react'
-import { getImageUrl } from '../hooks/useApi'
+import { Heart, MessageCircle, UserPlus, Trash2 } from 'lucide-react'
 
 export type PostWord = {
   id: number
@@ -27,6 +26,7 @@ export type PostCardProps = {
   onDelete?: () => void
   word?: PostWord | null
   isLiked?: boolean
+  onClick?: () => void
 }
 
 function getArticleColor(term: string, isSingular: boolean): string {
@@ -76,13 +76,13 @@ export function PostCard({
   timestamp,
   word,
   isLiked,
+  onClick,
 }: PostCardProps) {
-  const safeImage = getImageUrl(image_url)
   const isMine = currentUserId !== undefined && author.id === currentUserId
   const [wordFlipped, setWordFlipped] = useState(false)
   
   return (
-    <div className="card group hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 w-full">
+    <div className={`card group hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 w-full ${onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
       {/* Author Info */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div className="flex items-center gap-2 sm:gap-3">
@@ -99,7 +99,7 @@ export function PostCard({
           </div>
         </div>
         
-        <div className="flex items-center gap-1 sm:gap-2 sm:ml-auto">
+        <div className="flex items-center gap-1 sm:gap-2 sm:ml-auto" onClick={(e) => e.stopPropagation()}>
           {!isMine && onFollow && (
             <button 
               className="text-indigo-600 text-xs sm:text-sm flex items-center gap-1 hover:bg-indigo-50 px-2 sm:px-3 py-1.5 rounded-xl transition-colors"
@@ -119,25 +119,16 @@ export function PostCard({
         </div>
       </div>
 
-      {/* Post Content */}
-      {safeImage && (
-        <div className="rounded-xl overflow-hidden mb-3 sm:mb-4 shadow-lg shadow-slate-200 border-2 sm:border-4 border-slate-200">
-          <div className="aspect-video bg-slate-50">
-            <img src={safeImage} alt="" className="w-full max-h-80 object-cover" />
-          </div>
-        </div>
-      )}
-      
       {text && (
-        <p className="text-slate-700 mb-3 sm:mb-4 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
+        <p className="text-slate-700 mb-3 sm:mb-4 whitespace-pre-wrap leading-relaxed text-sm sm:text-base line-clamp-3">
           {text}
         </p>
       )}
 
       {word && (
         <div
-          className="relative cursor-pointer select-none"
-          onClick={() => setWordFlipped((f) => !f)}
+          className="relative cursor-pointer select-none mb-3 sm:mb-4"
+          onClick={(e) => { e.stopPropagation(); setWordFlipped((f) => !f); }}
         >
           <div className="bg-gradient-to-br from-indigo-50 to-sky-50 border border-indigo-100 rounded-xl p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-md">
             {!wordFlipped ? (
@@ -165,7 +156,7 @@ export function PostCard({
       )}
 
       {/* Post Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 sm:gap-6">
           <button 
             className="flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-red-500 transition-colors group"

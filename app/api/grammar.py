@@ -425,12 +425,27 @@ def chapter_exercises(chapter_id: int, user_id: int, limit: int = 25, db: Sessio
 
     remaining = [e for e in all_exercises if e.id not in attempted_ids]
 
-    if not remaining:
-        return []
+    if remaining:
+        import random
+        random.shuffle(remaining)
+        return remaining[:limit]
+
+    wrong_ids = {
+        row[0] for row in db.query(UserGrammarAttempt.exercise_id).filter(
+            UserGrammarAttempt.user_id == user_id,
+            UserGrammarAttempt.exercise_id.in_([e.id for e in all_exercises]),
+            UserGrammarAttempt.is_correct == False
+        ).distinct().all()
+    }
 
     import random
-    random.shuffle(remaining)
-    return remaining[:limit]
+    if wrong_ids:
+        review = [e for e in all_exercises if e.id in wrong_ids]
+        random.shuffle(review)
+        return review[:limit]
+
+    random.shuffle(all_exercises)
+    return all_exercises[:limit]
 
 @router.get("/grammar/chapters/{chapter_id}/progress/{user_id}")
 def chapter_progress(chapter_id: int, user_id: int, db: Session = Depends(get_db)):

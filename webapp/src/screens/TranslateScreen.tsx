@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { translateText, createWord, type User } from '../hooks/useApi'
-import { ArrowLeftRight, Plus, Check, Loader2, Volume2 } from 'lucide-react'
+import { translateText, createWord, detectArticle, type User } from '../hooks/useApi'
+import { ArrowLeftRight, Plus, Check, Loader2, Volume2, X } from 'lucide-react'
 
 const LANGUAGES = [
   { code: 'de', label: 'German' },
@@ -41,10 +41,23 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     setSavedWord(false)
     try {
       const data = await translateText(text.trim(), sourceLang, targetLang)
+
+      const trimmed = text.trim()
+      const isGermanTerm = sourceLang === 'de' && isSingleTerm(trimmed)
+      if (isGermanTerm && !data.article) {
+        try {
+          const articleResult = await detectArticle(trimmed, data.translated)
+          if (articleResult.article) {
+            data.article = articleResult.article
+            data.term_with_article = articleResult.term_with_article
+          }
+        } catch {}
+      }
+
       setResult(data)
-      const entry = { original: text.trim(), translated: data.translated, from: sourceLang, to: targetLang }
+      const entry = { original: trimmed, translated: data.translated, from: sourceLang, to: targetLang }
       setHistory(prev => {
-        const updated = [entry, ...prev.filter(h => h.original !== text.trim())].slice(0, 20)
+        const updated = [entry, ...prev.filter(h => h.original !== trimmed)].slice(0, 20)
         localStorage.setItem('deutschly:translate_history', JSON.stringify(updated))
         return updated
       })
@@ -110,6 +123,13 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     return { article: '', isSingular: undefined }
   }
 
+  function isLikelyPlural(word: string): boolean {
+    const w = word.toLowerCase()
+    if (/[äöü]/.test(w) && w.endsWith('er')) return true
+    if (w.endsWith('en') || w.endsWith('s')) return true
+    return false
+  }
+
   const germanTerm = isGermanInvolved
     ? (sourceLang === 'de' ? inputText.trim() : (result?.translated || '').trim())
     : ''
@@ -120,11 +140,14 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     setSaving(true)
     try {
       const isSourceGerman = sourceLang === 'de'
-      const term = result.term_with_article || (isSourceGerman ? inputText.trim() : result.translated)
+      const word = isSourceGerman ? inputText.trim() : result.translated
       const meaning = isSourceGerman ? result.translated : inputText.trim()
 
-      const { article } = getLocalArticle(term)
-      const isSingular = article ? true : undefined
+      const article = result.article || getLocalArticle(word).article
+      const term = article ? `${article} ${word}` : word
+
+      const plural = article === 'die' && isLikelyPlural(word)
+      const isSingular = article && !plural ? true : plural ? false : undefined
 
       await createWord({
         user_id: user.id,
@@ -139,6 +162,14 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     } finally {
       setSaving(false)
     }
+  }
+
+  const deleteHistoryEntry = (index: number) => {
+    setHistory(prev => {
+      const updated = prev.filter((_, i) => i !== index)
+      localStorage.setItem('deutschly:translate_history', JSON.stringify(updated))
+      return updated
+    })
   }
 
   const speakText = (text: string, lang: string) => {
@@ -196,18 +227,21 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
         </select>
       </div>
 
-      <div className="card p-0 overflow-hidden">
-        <div className="p-4">
-          <textarea
-            className="w-full text-slate-900 text-base resize-none outline-none bg-transparent placeholder-slate-300"
-            rows={4}
-            placeholder="Type to translate..."
-            value={inputText}
-            onChange={(e) => handleInput(e.target.value)}
-            onPaste={handlePaste}
-            autoFocus
-            maxLength={MAX_CHARS}
-          />
+      <div className="card p-0 overflow-hidden rounded-3xl shadow-lg shadow-indigo-100/50 border-2 border-slate-100 focus-within:border-indigo-200 focus-within:shadow-indigo-100/70 transition-all duration-200">
+        <div className="relative">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500" />
+          <div className="p-5">
+            <textarea
+              className="w-full text-slate-900 text-base resize-none outline-none bg-slate-50/80 placeholder-slate-300 leading-relaxed rounded-2xl px-4 py-3 border border-slate-200 focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-all duration-200"
+              rows={4}
+              placeholder="Type to translate..."
+              value={inputText}
+              onChange={(e) => handleInput(e.target.value)}
+              onPaste={handlePaste}
+              autoFocus
+              maxLength={MAX_CHARS}
+            />
+          </div>
         </div>
         <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2">
           <span className="text-xs text-slate-400">{inputText.length}/500</span>
@@ -296,18 +330,19 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
           {/* Article badge for German words */}
           {isGermanInvolved && (() => {
             const germanText = sourceLang === 'de' ? inputText : result.translated
-            const { article } = getLocalArticle(germanText)
+            const article = result.article || getLocalArticle(germanText).article
             if (!article) return null
             const colors: Record<string, string> = {
               der: 'bg-blue-100 text-blue-700 border-blue-200',
               die: 'bg-red-100 text-red-700 border-red-200',
               das: 'bg-green-100 text-green-700 border-green-200',
             }
+            const plural = article === 'die' && isLikelyPlural(germanText)
             return (
               <div className="flex items-center gap-2 pt-1">
                 <span className="text-xs text-slate-400 font-medium">Article:</span>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${colors[article]}`}>
-                  {article}
+                  {article}{plural ? ' (pl)' : ''}
                 </span>
               </div>
             )
@@ -332,19 +367,7 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
             </div>
           )}
 
-          {(sourceLang === 'de' || targetLang === 'de') && (() => {
-            const germanText = sourceLang === 'de' ? inputText : result.translated
-            const firstWord = germanText.trim().split(' ')[0].toLowerCase()
-            if (['der', 'die', 'das'].includes(firstWord)) {
-              const colorMap: Record<string, string> = { der: 'text-blue-600 bg-blue-50', die: 'text-red-600 bg-red-50', das: 'text-green-600 bg-green-50' }
-              return (
-                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${colorMap[firstWord]}`}>
-                  Article: {firstWord.toUpperCase()}
-                </div>
-              )
-            }
-            return null
-          })()}
+
         </div>
       )}
 
@@ -355,12 +378,21 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Recent</p>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {history.slice(0, 5).map((h, i) => (
-                  <button key={i} className="w-full text-left card py-2.5 px-3 hover:shadow-md transition-all"
-                    onClick={() => { setInputText(h.original); setSourceLang(h.from); setTargetLang(h.to); handleTranslate(h.original) }}>
-                    <span className="font-medium text-slate-900 text-sm">{h.original}</span>
-                    <span className="text-slate-400 mx-2">→</span>
-                    <span className="text-indigo-700 text-sm">{h.translated}</span>
-                  </button>
+                  <div key={i} className="group flex items-center gap-1">
+                    <button className="flex-1 text-left card py-2.5 px-3 hover:shadow-md transition-all"
+                      onClick={() => { setInputText(h.original); setSourceLang(h.from); setTargetLang(h.to); handleTranslate(h.original) }}>
+                      <span className="font-medium text-slate-900 text-sm">{h.original}</span>
+                      <span className="text-slate-400 mx-2">→</span>
+                      <span className="text-indigo-700 text-sm">{h.translated}</span>
+                    </button>
+                    <button
+                      className="p-1.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                      onClick={() => deleteHistoryEntry(i)}
+                      title="Remove"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>

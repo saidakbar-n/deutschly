@@ -27,6 +27,8 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
 
   const currentIndexRef = useRef(0)
   const exercisesRef = useRef<GrammarExercise[]>([])
+  const hasPendingRef = useRef(false)
+  const chapterIdRef = useRef(chapterId)
 
   useEffect(() => {
     currentIndexRef.current = currentIndex
@@ -37,12 +39,24 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   }, [exercises])
 
   useEffect(() => {
+    chapterIdRef.current = chapterId
+  }, [chapterId])
+
+  useEffect(() => {
     if (user) {
       fetchGrammarProgress(user.id)
         .then(data => setProgress(data))
         .catch(console.error)
     }
   }, [user, quizComplete])
+
+  useEffect(() => {
+    return () => {
+      if (hasPendingRef.current && chapterIdRef.current) {
+        syncChapterProgress(chapterIdRef.current, user?.id).catch(() => {})
+      }
+    }
+  }, [user?.id])
 
   const loadExercises = useCallback(async () => {
     if (!user) return
@@ -51,11 +65,29 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
     setQuizComplete(false)
     setChapterJustCompleted(false)
     setCurrentIndex(0)
-    setScore({ correct: 0, total: 0 })
     setReadyToAdvance(false)
 
     try {
       let data: GrammarExercise[]
+
+      if (chapterId && quizType !== 'mistake-replay') {
+        try {
+          const prog = await fetchChapterProgress(chapterId, user.id)
+          if (prog.exercises_done > 0 && prog.status !== 'completed') {
+            setScore({
+              correct: Math.round((prog.score_pct / 100) * prog.exercises_done),
+              total: prog.exercises_done
+            })
+          } else {
+            setScore({ correct: 0, total: 0 })
+          }
+        } catch {
+          setScore({ correct: 0, total: 0 })
+        }
+      } else {
+        setScore({ correct: 0, total: 0 })
+      }
+
       if (quizType === 'mistake-replay') {
         data = await fetchMistakeReplayQuiz(user.id)
       } else if (chapterId) {
@@ -67,7 +99,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
       if (data.length === 0 && chapterId && !quizComplete) {
         await syncChapterProgress(chapterId, user.id).catch(console.error)
         const prog = await fetchChapterProgress(chapterId, user.id).catch(() => null)
-        if (prog && (prog.exercises_done > 0 || prog.status === 'completed')) {
+        if (prog && (prog.exercises_done >= prog.exercises_total || prog.status === 'completed')) {
           setScore({ correct: Math.round((prog.score_pct / 100) * prog.exercises_done), total: prog.exercises_done })
           setLoading(false)
           setQuizComplete(true)
@@ -97,6 +129,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
     setLoading(true)
 
     try {
+      hasPendingRef.current = true
       const attempt = await submitGrammarAnswer(exercisesRef.current[currentIndexRef.current].id, user.id, userInput)
       setFeedback(attempt)
       setScore(prev => ({
@@ -128,6 +161,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   }
 
   const syncAndFinish = async () => {
+    hasPendingRef.current = false
     if (chapterId) {
       await syncChapterProgress(chapterId, user.id).catch(console.error)
       try {
@@ -316,7 +350,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
         </div>
         <p className="text-gray-600 mt-1">
           {quizType === 'mistake-replay' ? 'Reviewing missed patterns' : `Exercise ${currentIndex + 1} of ${exercises.length}`}
-          {chapterId ? ' — Chapter exercises' : ' — Exercises matched to your level'}
+          {chapterId ? ` — ${score.total > 0 ? `${score.correct}/${score.total} overall · ` : ''}Chapter exercises` : ' — Exercises matched to your level'}
         </p>
         {quizType !== 'mistake-replay' && (
           <div className="w-full bg-gray-200 rounded-full h-2 mt-3">

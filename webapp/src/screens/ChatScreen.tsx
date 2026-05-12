@@ -51,36 +51,37 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
     setView('conversation')
   }
 
-  if (view === 'conversation' && activeConvId && activeOtherUserId) {
-    return (
-      <div className="animate-qaw-fade-in-up">
-        <ChatConversation
+  return (
+    <div className="relative">
+      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-0 pointer-events-none absolute inset-0 -translate-x-4' : 'opacity-100'}`}>
+        <ChatList
           user={user}
-          conversationId={activeConvId}
-          otherUserId={activeOtherUserId}
-          otherUsername={activeOtherUsername || 'User'}
-          otherProfilePhoto={activeOtherPhoto}
-          otherFullName={activeOtherFullName}
-          otherIsOnline={activeOtherIsOnline}
-          onBack={() => {
-            setView('list')
-            setActiveConvId(null)
-            setActiveOtherUserId(null)
-            setActiveOtherFullName(undefined)
-            setActiveOtherIsOnline(false)
-          }}
+          onSelectConversation={handleSelectConversation}
+          onStartNewChat={() => setNewChatOpen(true)}
         />
       </div>
-    )
-  }
 
-  return (
-    <div className="animate-qaw-fade-in-up">
-      <ChatList
-        user={user}
-        onSelectConversation={handleSelectConversation}
-        onStartNewChat={() => setNewChatOpen(true)}
-      />
+      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none absolute inset-0 translate-x-4'}`}>
+        {view === 'conversation' && activeConvId && activeOtherUserId && (
+          <ChatConversation
+            user={user}
+            conversationId={activeConvId}
+            otherUserId={activeOtherUserId}
+            otherUsername={activeOtherUsername || 'User'}
+            otherProfilePhoto={activeOtherPhoto}
+            otherFullName={activeOtherFullName}
+            otherIsOnline={activeOtherIsOnline}
+            onBack={() => {
+              setView('list')
+              setActiveConvId(null)
+              setActiveOtherUserId(null)
+              setActiveOtherFullName(undefined)
+              setActiveOtherIsOnline(false)
+            }}
+          />
+        )}
+      </div>
+
       <NewChatModal
         user={user}
         isOpen={newChatOpen}

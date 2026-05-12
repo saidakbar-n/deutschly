@@ -102,22 +102,23 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
   }
 
   return (
-    <div className="card p-4 space-y-3">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <MessageCircle size={22} className="text-indigo-500" />
+    <div className="card px-3 py-3 sm:p-4 space-y-2 sm:space-y-3">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+          <MessageCircle size={20} className="text-indigo-500 sm:hidden" />
+          <MessageCircle size={22} className="text-indigo-500 hidden sm:block" />
           Messages
         </h2>
         {acceptedConversations.some(c => c.unread_count > 0) ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Unread</span>
+            <span className="text-xs text-slate-400 hidden sm:inline">Unread</span>
             <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
               {acceptedConversations.reduce((sum, c) => sum + c.unread_count, 0)}
             </span>
           </div>
         ) : (
           <button
-            className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-indigo-600 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors min-h-[36px]"
             onClick={onStartNewChat}
           >
             New Message
@@ -137,30 +138,30 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
             {availableSuggestions.map((u) => (
               <button
                 key={u.id}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors text-left min-h-[60px]"
                 onClick={() => handleStartChat(u.id)}
               >
                 {u.profile_photo ? (
-                  <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                  <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0" />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-indigo-600 font-bold">{u.username.charAt(0).toUpperCase()}</span>
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-indigo-600 font-bold text-sm sm:text-base">{u.username.charAt(0).toUpperCase()}</span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 truncate">
+                  <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
                     {u.username}
-                    {u.full_name && <span className="text-xs text-slate-400 font-normal ml-1.5">({u.full_name})</span>}
+                    {u.full_name && <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({u.full_name})</span>}
                   </p>
-                  <p className="text-xs text-slate-500">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
+                  <p className="text-xs text-slate-500 truncate">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
                 </div>
-                <Plus size={18} className="text-indigo-500 flex-shrink-0" />
+                <Plus size={20} className="text-indigo-500 flex-shrink-0" />
               </button>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <MessageCircle size={40} className="mx-auto text-slate-300 mb-2" />
+          <div className="text-center py-12 sm:py-8">
+            <MessageCircle size={36} className="mx-auto text-slate-300 mb-2" />
             <p className="text-slate-500 text-sm">No conversations yet</p>
             <p className="text-slate-400 text-xs mt-1">Follow other learners to start chatting!</p>
           </div>
@@ -193,20 +194,20 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
                         <p className="text-xs text-slate-500 truncate">{conv.last_message.text}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <button
-                        className="p-2 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-colors border border-green-200"
+                        className="p-2.5 bg-white text-green-600 rounded-xl hover:bg-green-50 active:bg-green-100 transition-colors border border-green-200 min-h-[40px] min-w-[40px] flex items-center justify-center"
                         onClick={() => handleAcceptRequest(conv.id)}
                         title="Accept"
                       >
-                        <Check size={16} />
+                        <Check size={18} />
                       </button>
                       <button
-                        className="p-2 bg-white text-red-500 rounded-lg hover:bg-red-50 transition-colors border border-red-200"
+                        className="p-2.5 bg-white text-red-500 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors border border-red-200 min-h-[40px] min-w-[40px] flex items-center justify-center"
                         onClick={() => handleDeclineRequest(conv.id)}
                         title="Decline"
                       >
-                        <X size={16} />
+                        <X size={18} />
                       </button>
                     </div>
                   </div>
@@ -217,42 +218,42 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
 
           {/* Accepted Conversations */}
           {acceptedConversations.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {pendingConversations.length > 0 && (
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-2">Messages</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-1.5 mt-3">Messages</p>
               )}
               {acceptedConversations.map((conv) => (
                 <button
                   key={conv.id}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left min-h-[64px]"
                   onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online)}
                 >
                   {conv.other_user.profile_photo ? (
                     <img
                       src={getImageUrl(conv.other_user.profile_photo)}
                       alt={conv.other_user.username}
-                      className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-indigo-600 font-bold">{conv.other_user.username.charAt(0).toUpperCase()}</span>
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-indigo-600 font-bold text-sm sm:text-base">{conv.other_user.username.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-900 truncate">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
                         {conv.other_user.username}
                         {conv.other_user.full_name && (
-                          <span className="text-xs text-slate-400 font-normal ml-1.5">({conv.other_user.full_name})</span>
+                          <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({conv.other_user.full_name})</span>
                         )}
                       </p>
                       {conv.last_message && (
-                        <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                        <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap">
                           {formatTimeAgo(conv.last_message.created_at)}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-sm text-slate-500 truncate flex-1">
                         {conv.last_message ? (
                           <>
@@ -270,7 +271,7 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
                       )}
                     </div>
                   </div>
-                  <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+                  <ChevronRight size={18} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
             </div>
@@ -278,30 +279,35 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
         </div>
       )}
       {acceptedConversations.length > 0 && availableSuggestions.length > 0 && (
-        <div className="pt-4 border-t border-slate-100">
+        <div className="pt-3 sm:pt-4 border-t border-slate-100 mt-1">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 mb-2">People you follow</p>
-          {availableSuggestions.slice(0, 5).map((u) => (
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+            {availableSuggestions.slice(0, 8).map((u) => (
+              <button
+                key={u.id}
+                className="flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors min-w-[72px]"
+                onClick={() => handleStartChat(u.id)}
+              >
+                {u.profile_photo ? (
+                  <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-12 h-12 rounded-full object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span className="text-indigo-600 font-bold text-sm">{u.username.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+                <p className="font-semibold text-slate-900 text-[11px] truncate w-full text-center leading-tight">{u.username}</p>
+              </button>
+            ))}
             <button
-              key={u.id}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-colors text-left"
-              onClick={() => handleStartChat(u.id)}
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 p-2 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors min-w-[72px]"
+              onClick={onStartNewChat}
             >
-              {u.profile_photo ? (
-                <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-indigo-600 font-bold">{u.username.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 text-sm truncate">
-                  {u.username}
-                  {u.full_name && <span className="text-xs text-slate-400 font-normal ml-1.5">({u.full_name})</span>}
-                </p>
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Plus size={20} className="text-indigo-500" />
               </div>
-              <Plus size={16} className="text-indigo-500 flex-shrink-0" />
+              <p className="text-[11px] text-indigo-500 font-semibold text-center leading-tight">All</p>
             </button>
-          ))}
+          </div>
         </div>
       )}
     </div>
