@@ -4,11 +4,12 @@ import { MessageCircle, ChevronRight, Plus, Check, X } from 'lucide-react'
 
 interface ChatListProps {
   user: User
+  refreshTrigger?: number
   onSelectConversation: (conversationId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean) => void
   onStartNewChat: () => void
 }
 
-export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatListProps) {
+export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onStartNewChat }: ChatListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [suggestions, setSuggestions] = useState<User[]>([])
@@ -33,6 +34,10 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
 
     return () => { if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close(); clearInterval(ping) }
   }, [user.id])
+
+  useEffect(() => {
+    if (refreshTrigger > 0) loadConversations()
+  }, [refreshTrigger])
 
   const loadConversations = async () => {
     setLoading(true)
@@ -191,8 +196,8 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-slate-900 text-sm truncate">{conv.other_user.username}</p>
                       {conv.last_message && (
-                        <p className="text-xs text-slate-500 truncate">{conv.last_message.text}</p>
-                      )}
+                         <p className="text-xs text-slate-500 truncate">{formatMessagePreview(conv.last_message.text)}</p>
+                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
@@ -258,7 +263,7 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
                         {conv.last_message ? (
                           <>
                             {conv.last_message.sender_id === user.id && <span className="text-slate-400">You: </span>}
-                            {conv.last_message.text}
+                            {formatMessagePreview(conv.last_message.text)}
                           </>
                         ) : (
                           <span className="italic text-slate-400">Start a conversation</span>
@@ -312,6 +317,14 @@ export function ChatList({ user, onSelectConversation, onStartNewChat }: ChatLis
       )}
     </div>
   )
+}
+
+function formatMessagePreview(text: string): string {
+  const newMatch = text.match(/^\[word:(\d+)\|(.+?)\|(.+?)(?:\|(.+))?\]$/)
+  const oldMatch = !newMatch ? text.match(/^\[word:(.+?)\|(.+?)(?:\|(.+))?\]$/) : null
+  if (newMatch) return `📖 ${newMatch[2]} — ${newMatch[3]}`
+  if (oldMatch) return `📖 ${oldMatch[1]} — ${oldMatch[2]}`
+  return text
 }
 
 function formatTimeAgo(dateString: string): string {

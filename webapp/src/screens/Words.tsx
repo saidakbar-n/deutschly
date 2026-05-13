@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getArticleColor, getWordArticleInfo } from '../utils/wordHelpers'
-import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay, createWordsBatch, getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupFlashcardReview, getFlashcardStats, type DueCard, type FlashcardStats } from '../hooks/useApi'
+import { listWordsFeed, listWords, createWord, saveWord, deleteWord, createQuiz, listQuizzes, User, Quiz, listWordFolders, createWordFolder, updateWordFolder, deleteWordFolder, reorderWordFolders, WordFolder, listWordsByFolder, fetchWordOfTheDay, createWordsBatch, getDueFlashcards, submitFlashcardReview, setupFolderFlashcards, setupFlashcardReview, getFlashcardStats, logActivity, type DueCard, type FlashcardStats } from '../hooks/useApi'
 import { Plus, X, BookOpen, Globe, Trash2, Bookmark, ArrowLeft, RotateCcw, History, Trophy, Folder, FolderPlus, Edit2, Check, MoreVertical, ChevronDown, ChevronUp, FolderOpen, Upload, Sparkles, Layers, Rotate3D, ThumbsUp, ThumbsDown, RefreshCw, AlertCircle, Brain } from 'lucide-react'
 import FlashcardMode from '../components/FlashcardMode'
+import { useLevelUp } from '../contexts/LevelUpContext'
 
 type Word = {
   id: number
@@ -958,6 +959,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
   const [batchFolderPreselect, setBatchFolderPreselect] = useState<number | null>(null)
   const [batchModalOpen, setBatchModalOpen] = useState(false)
   const [flashcardStats, setFlashcardStats] = useState<FlashcardStats | null>(null)
+  const { reportLevelUp } = useLevelUp()
 
   const loadMyWords = useCallback(async () => {
     setLoading(true)
@@ -1040,10 +1042,33 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
     if (tab === 'history') loadQuizHistory()
   }, [tab, loadCommunityWords, loadQuizHistory])
 
-  const handleAdded = (w: Word) => {
+  const handleAdded = async (w: Word) => {
     setMyWords((prev) => [w, ...prev])
+    setWordsByFolder((prev) => {
+      if (!prev) return prev
+      if (w.folder_id && prev.folders[w.folder_id]) {
+        return {
+          ...prev,
+          folders: {
+            ...prev.folders,
+            [w.folder_id]: {
+              ...prev.folders[w.folder_id],
+              words: [w, ...prev.folders[w.folder_id].words],
+            },
+          },
+        }
+      }
+      return {
+        ...prev,
+        uncategorized: [w, ...prev.uncategorized],
+      }
+    })
     setAddWordTrigger({ folderId: null, counter: 0 })
     onUserUpdated?.()
+    try {
+      const result = await logActivity(user.id, 'word')
+      if (result.leveled_up) reportLevelUp(result)
+    } catch {}
   }
 
   const handleDelete = async (wordId: number) => {

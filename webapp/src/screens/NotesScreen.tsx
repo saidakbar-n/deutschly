@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { listStickyNotes, createStickyNote, updateStickyNote, deleteStickyNote, type StickyNote, type User } from '../hooks/useApi'
+import { listStickyNotes, createStickyNote, updateStickyNote, deleteStickyNote, logActivity, type StickyNote, type User } from '../hooks/useApi'
 import { Plus, Pin, Trash2, Bell, Check, Edit3 } from 'lucide-react'
+import { useLevelUp } from '../contexts/LevelUpContext'
 
 const COLOR_CONFIG: Record<string, { bg: string; border: string; dot: string }> = {
   yellow: { bg: 'bg-yellow-50',  border: 'border-yellow-200', dot: 'bg-yellow-400' },
@@ -170,6 +171,7 @@ export default function NotesScreen({ user }: NotesScreenProps) {
   const [newColor, setNewColor] = useState<string>('yellow')
   const [newReminder, setNewReminder] = useState('')
   const [search, setSearch] = useState('')
+  const { reportLevelUp } = useLevelUp()
 
   useEffect(() => {
     setLoading(true)
@@ -195,6 +197,8 @@ export default function NotesScreen({ user }: NotesScreenProps) {
       setNewColor('yellow')
       setNewReminder('')
       setCreating(false)
+      const result = await logActivity(user.id, 'note')
+      if (result.leveled_up) reportLevelUp(result)
     } catch (err) {
       console.error('Failed to create note:', err)
     }

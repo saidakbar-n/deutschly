@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { listMessages, sendMessage, getImageUrl, wsUrl, listWords, markConversationRead, type User, type Message } from '../hooks/useApi'
-import { ArrowLeft, Send, BookOpen } from 'lucide-react'
+import { listMessages, sendMessage, getImageUrl, wsUrl, listWords, markConversationRead, saveWord, listWordFolders, updateWord, type User, type Message, type WordFolder } from '../hooks/useApi'
+import { ArrowLeft, Send, BookOpen, BookmarkPlus, Check, FolderPlus } from 'lucide-react'
 
 interface ChatConversationProps {
   user: User
@@ -13,6 +13,9 @@ interface ChatConversationProps {
   onBack: () => void
 }
 
+const WORD_NEW_RE = /^\[word:(\d+)\|(.+?)\|(.+?)(?:\|(.+))?\]$/
+const WORD_OLD_RE = /^\[word:(.+?)\|(.+?)(?:\|(.+))?\]$/
+
 export function ChatConversation({ user, conversationId, otherUserId, otherUsername, otherProfilePhoto, otherFullName, otherIsOnline, onBack }: ChatConversationProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
@@ -20,10 +23,22 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const [sending, setSending] = useState(false)
   const [wordShareOpen, setWordShareOpen] = useState(false)
   const [myWords, setMyWords] = useState<any[]>([])
+  const [userFolders, setUserFolders] = useState<WordFolder[]>([])
+  const [savingWordId, setSavingWordId] = useState<number | null>(null)
+  const [folderPickerWordId, setFolderPickerWordId] = useState<number | null>(null)
+  const [savedWords, setSavedWords] = useState<Set<number>>(new Set())
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { listWords(user.id).then(setMyWords).catch(() => {}) }, [user.id])
+  useEffect(() => {
+    listWords(user.id).then(setMyWords).catch(() => {})
+    listWordFolders(user.id).then(setUserFolders).catch(() => {})
+  }, [user.id])
+  useEffect(() => {
+    if (!wordShareOpen) return
+    listWords(user.id).then(setMyWords).catch(() => {})
+    listWordFolders(user.id).then(setUserFolders).catch(() => {})
+  }, [wordShareOpen, user.id])
 
   useEffect(() => {
     loadMessages()
@@ -40,10 +55,9 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
             if (prev.some(m => m.id === data.message.id)) return prev
             return [...prev, data.message].sort(
               (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            ).map(m => m.id === data.message.id ? { ...m, ...data.message } : m)
+            )
           })
-          // Update read receipt on backend so unread count reflects current view
-          listMessages(conversationId, user.id, 1)
+          markConversationRead(conversationId, user.id).catch(() => {})
         }
       } catch {}
     }
@@ -70,7 +84,11 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   const loadMessages = async () => {
     try {
       const data = await listMessages(conversationId, user.id)
-      setMessages(data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
+      setMessages(prev => {
+        const loadedIds = new Set(data.map(m => m.id))
+        const extras = prev.filter(m => !loadedIds.has(m.id))
+        return [...data, ...extras].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      })
       markConversationRead(conversationId, user.id).catch(() => {})
     } catch (err) {
       console.error('Failed to load messages:', err)
@@ -97,6 +115,33 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
+    }
+  }
+
+  const handleShareWord = async (w: any) => {
+    setWordShareOpen(false)
+    const wordMsg = `[word:${w.id}|${w.term}|${w.meaning}${w.note ? '|' + w.note : ''}]`
+    try {
+      const msg = await sendMessage(conversationId, user.id, wordMsg)
+      setMessages(prev => [...prev, msg])
+    } catch (err) {
+      console.error('Failed to send word:', err)
+    }
+  }
+
+  const handleSaveWord = async (originalWordId: number, folderId?: number | null) => {
+    setSavingWordId(originalWordId)
+    setFolderPickerWordId(null)
+    try {
+      const saved = await saveWord(originalWordId, user.id)
+      if (folderId) {
+        await updateWord(saved.id, user.id, { folder_id: folderId })
+      }
+      setSavedWords(prev => new Set(prev).add(originalWordId))
+    } catch (err) {
+      console.error('Failed to save word:', err)
+    } finally {
+      setSavingWordId(null)
     }
   }
 
@@ -148,7 +193,18 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
                       : 'bg-slate-100 text-slate-900 rounded-bl-md'
                   }`}
                 >
-                  {renderMessageContent(msg.text, isMine)}
+                  <WordMessageContent
+                    text={msg.text}
+                    isMine={isMine}
+                    userId={user.id}
+                    savingWordId={savingWordId}
+                    folderPickerWordId={folderPickerWordId}
+                    savedWords={savedWords}
+                    userFolders={userFolders}
+                    onToggleSave={(id) => setFolderPickerWordId(folderPickerWordId === id ? null : id)}
+                    onSaveTo={(origId, folderId) => handleSaveWord(origId, folderId)}
+                    onCloseFolderPicker={() => setFolderPickerWordId(null)}
+                  />
                   <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-400'}`}>
                     {formatTime(msg.created_at)}
                   </p>
@@ -160,26 +216,30 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         <div ref={messagesEndRef} />
       </div>
 
-      {wordShareOpen && myWords.length > 0 && (
+      {wordShareOpen && (
         <div className="border-t border-slate-100 px-3 py-2 sm:px-4 sm:py-3 max-h-40 overflow-y-auto">
-          <p className="text-xs font-semibold text-slate-400 uppercase mb-2">Share a word</p>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-            {myWords.map((w: any) => (
-              <button
-                key={w.id}
-                className="flex-shrink-0 text-left px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 transition-colors border border-indigo-100 min-h-[44px]"
-                onClick={() => {
-                  const wordMsg = `[word:${w.term}|${w.meaning}${w.note ? '|' + w.note : ''}]`
-                  setText(wordMsg)
-                  setWordShareOpen(false)
-                  inputRef.current?.focus()
-                }}
-              >
-                <p className="font-semibold text-slate-900 text-sm">{w.term}</p>
-                <p className="text-xs text-slate-500">{w.meaning}</p>
-              </button>
-            ))}
-          </div>
+          {myWords.length > 0 ? (
+            <>
+              <p className="text-xs font-semibold text-slate-400 uppercase mb-2">Share a word</p>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+                {myWords.map((w: any) => (
+                  <button
+                    key={w.id}
+                    className="flex-shrink-0 text-left px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 transition-colors border border-indigo-100 min-h-[44px]"
+                    onClick={() => handleShareWord(w)}
+                  >
+                    <p className="font-semibold text-slate-900 text-sm">{w.term}</p>
+                    <p className="text-xs text-slate-500">{w.meaning}</p>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase mb-1">Share a word</p>
+              <p className="text-sm text-slate-500">You haven't added any words yet. Add words to your list to share them in chat!</p>
+            </div>
+          )}
         </div>
       )}
       <div className="border-t border-slate-200 px-3 py-3 sm:px-4 sm:py-4 safe-area-inset-bottom">
@@ -213,28 +273,133 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   )
 }
 
-function renderMessageContent(text: string, isMine: boolean) {
-  const wordMatch = text.match(/^\[word:(.+?)\|(.+?)(?:\|(.+))?\]$/)
-  if (wordMatch) {
+function WordMessageContent({
+  text, isMine, userId, savingWordId, folderPickerWordId, savedWords, userFolders, onToggleSave, onSaveTo, onCloseFolderPicker
+}: {
+  text: string
+  isMine: boolean
+  userId: number
+  savingWordId: number | null
+  folderPickerWordId: number | null
+  savedWords: Set<number>
+  userFolders: WordFolder[]
+  onToggleSave: (originalWordId: number) => void
+  onSaveTo: (originalWordId: number, folderId?: number | null) => void
+  onCloseFolderPicker: () => void
+}) {
+  const newMatch = text.match(WORD_NEW_RE)
+  const oldMatch = !newMatch ? text.match(WORD_OLD_RE) : null
+  const match = newMatch || oldMatch
+
+  if (!match) return <p>{text}</p>
+
+  if (newMatch) {
+    const wordId = parseInt(newMatch[1], 10)
+    const term = newMatch[2]
+    const meaning = newMatch[3]
+    const note = newMatch[4]
+    const isSaved = savedWords.has(wordId)
+    const isLoading = savingWordId === wordId
+    const showPicker = folderPickerWordId === wordId
+    const canSave = !isMine
+
+    return (
+      <div className={`relative rounded-xl p-3 text-left ${isMine ? 'bg-indigo-500' : 'bg-indigo-50'}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${isMine ? 'text-indigo-200' : 'text-indigo-400'}`}>
+              Shared word
+            </p>
+            <p className={`font-bold text-base ${isMine ? 'text-white' : 'text-slate-900'}`}>
+              {term}
+            </p>
+            <p className={`text-sm mt-0.5 ${isMine ? 'text-indigo-100' : 'text-indigo-700'}`}>
+              {meaning}
+            </p>
+            {note && (
+              <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-500'}`}>
+                {note}
+              </p>
+            )}
+          </div>
+          {canSave && !isSaved && (
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => onToggleSave(wordId)}
+                className={`p-1.5 rounded-lg transition-colors ${isMine ? 'hover:bg-indigo-400 text-indigo-200' : 'hover:bg-indigo-100 text-indigo-400'}`}
+                title="Save to my words"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-qaw-spin" />
+                ) : showPicker ? (
+                  <Check size={16} />
+                ) : (
+                  <BookmarkPlus size={16} />
+                )}
+              </button>
+              {showPicker && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={onCloseFolderPicker} />
+                  <div className={`absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-white rounded-xl shadow-xl border border-slate-200 py-1 ${isMine ? 'right-0' : 'left-0'}`}>
+                    <p className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Save to folder</p>
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                      onClick={() => onSaveTo(wordId, null)}
+                    >
+                      <FolderPlus size={14} className="text-slate-400" />
+                      Uncategorized
+                    </button>
+                    {userFolders.map(f => (
+                      <button
+                        key={f.id}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        onClick={() => onSaveTo(wordId, f.id)}
+                      >
+                        <div className="w-3 h-3 rounded" style={{ backgroundColor: f.color || '#6366f1' }} />
+                        {f.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {canSave && isSaved && (
+            <div className={`flex items-center gap-1 text-xs font-semibold flex-shrink-0 mt-0.5 ${isMine ? 'text-indigo-200' : 'text-indigo-500'}`}>
+              <Check size={14} />
+              Saved
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (oldMatch) {
+    const term = oldMatch[1]
+    const meaning = oldMatch[2]
+    const note = oldMatch[3]
     return (
       <div className={`rounded-xl p-3 text-left ${isMine ? 'bg-indigo-500' : 'bg-indigo-50'}`}>
         <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${isMine ? 'text-indigo-200' : 'text-indigo-400'}`}>
           Shared word
         </p>
         <p className={`font-bold text-base ${isMine ? 'text-white' : 'text-slate-900'}`}>
-          {wordMatch[1]}
+          {term}
         </p>
         <p className={`text-sm mt-0.5 ${isMine ? 'text-indigo-100' : 'text-indigo-700'}`}>
-          {wordMatch[2]}
+          {meaning}
         </p>
-        {wordMatch[3] && (
+        {note && (
           <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-500'}`}>
-            {wordMatch[3]}
+            {note}
           </p>
         )}
       </div>
     )
   }
+
   return <p>{text}</p>
 }
 

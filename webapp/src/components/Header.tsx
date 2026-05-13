@@ -1,4 +1,4 @@
-import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool, MessageCircle, Languages, StickyNote } from 'lucide-react'
+import { LogOut, Home, Compass, BookOpen, Bell, User, PenTool, MessageCircle, Languages, StickyNote, TreePine } from 'lucide-react'
 import { User as UserType } from '../hooks/useApi'
 import { Screen } from '../App'
 
@@ -27,6 +27,8 @@ const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) =>
       return <Languages className={iconClass} />
     case 'notes':
       return <StickyNote className={iconClass} />
+    case 'progress':
+      return <TreePine className={iconClass} />
     default:
       return null
   }
@@ -88,8 +90,8 @@ export function Header({
           ))}
         </div>
 
-        {/* Tablet navigation icons only - visible on md to lg */}
-        <div className="hidden md:flex lg:hidden items-center gap-1">
+        {/* Tablet navigation icons only - scrollable on md to lg */}
+        <div className="hidden md:flex lg:hidden items-center gap-1 overflow-x-auto scrollbar-hide scroll-soft">
           {nav.map((item) => (
             <button
               key={item.key}
@@ -114,7 +116,18 @@ export function Header({
               )}
             </button>
           ))}
-      </div>
+          <button
+            onClick={() => onNav('progress')}
+            className={`p-2 rounded-xl transition-all duration-200 relative
+              ${active === 'progress' 
+                ? 'bg-indigo-100 text-indigo-600' 
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+              }`}
+            title="Progress"
+          >
+            <TreePine className={active === 'progress' ? 'w-5 h-5 text-indigo-600' : 'w-5 h-5 text-slate-400'} />
+          </button>
+        </div>
 
       {/* Mobile navigation dropdown - hidden since we use bottom nav */}
       <div className="md:hidden hidden">

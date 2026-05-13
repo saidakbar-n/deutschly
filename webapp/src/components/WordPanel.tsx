@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { createWord, listWords, User } from '../hooks/useApi'
+import { createWord, listWords, logActivity, User } from '../hooks/useApi'
+import { useLevelUp } from '../contexts/LevelUpContext'
 
 export function WordPanel({ user }: { user: User }) {
   const [words, setWords] = useState<any[]>([])
@@ -7,6 +8,7 @@ export function WordPanel({ user }: { user: User }) {
   const [meaning, setMeaning] = useState('')
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
+  const { reportLevelUp } = useLevelUp()
 
   const load = async () => {
     setLoading(true)
@@ -27,6 +29,8 @@ export function WordPanel({ user }: { user: User }) {
       setTerm('')
       setMeaning('')
       setNote('')
+      const result = await logActivity(user.id, 'word')
+      if (result.leveled_up) reportLevelUp(result)
     } catch (err) {
       console.error('Failed to create word:', err)
     }

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
-import { translateText, createWord, detectArticle, type User } from '../hooks/useApi'
+import { translateText, createWord, detectArticle, logActivity, type User } from '../hooks/useApi'
 import { ArrowLeftRight, Plus, Check, Loader2, Volume2, X } from 'lucide-react'
+import { useLevelUp } from '../contexts/LevelUpContext'
 
 const LANGUAGES = [
   { code: 'de', label: 'German' },
@@ -32,6 +33,7 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
   const [error, setError] = useState('')
   const [savedWord, setSavedWord] = useState(false)
   const [saving, setSaving] = useState(false)
+  const { reportLevelUp } = useLevelUp()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleTranslate = async (text = inputText) => {
@@ -61,6 +63,8 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
         localStorage.setItem('deutschly:translate_history', JSON.stringify(updated))
         return updated
       })
+      const result = await logActivity(user.id, 'translate')
+      if (result.leveled_up) reportLevelUp(result)
     } catch {
       setError('Translation failed. Check your connection and try again.')
     } finally {

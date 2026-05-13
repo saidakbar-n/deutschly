@@ -23,6 +23,7 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
   const [activeOtherFullName, setActiveOtherFullName] = useState<string | undefined>(undefined)
   const [activeOtherIsOnline, setActiveOtherIsOnline] = useState(false)
   const [newChatOpen, setNewChatOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     if (initialConvId && initialOtherUserId) {
@@ -55,6 +56,7 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
     <div className="relative">
       <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-0 pointer-events-none absolute inset-0 -translate-x-4' : 'opacity-100'}`}>
         <ChatList
+          refreshTrigger={refreshKey}
           user={user}
           onSelectConversation={handleSelectConversation}
           onStartNewChat={() => setNewChatOpen(true)}
@@ -73,6 +75,7 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
             otherIsOnline={activeOtherIsOnline}
             onBack={() => {
               setView('list')
+              setRefreshKey(k => k + 1)
               setActiveConvId(null)
               setActiveOtherUserId(null)
               setActiveOtherFullName(undefined)

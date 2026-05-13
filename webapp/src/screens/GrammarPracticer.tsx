@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress, fetchChapterProgress } from '../hooks/useApi'
+import { fetchGrammarExercises, fetchGrammarRules, submitGrammarAnswer, fetchGrammarProgress, fetchMistakeReplayQuiz, generateGrammarExercise, fetchChapterExercises, syncChapterProgress, fetchChapterProgress, logActivity } from '../hooks/useApi'
 import BlurtingExercise from '../components/GrammarExercises/BlurtingExercise'
 import ClozeExercise from '../components/GrammarExercises/ClozeExercise'
 import ReverseTranslationExercise from '../components/GrammarExercises/ReverseTranslationExercise'
 import GrammarFeedback from '../components/GrammarFeedback'
 import type { GrammarExercise, GrammarRule, UserGrammarAttempt, User } from '../hooks/useApi'
+import { useLevelUp } from '../contexts/LevelUpContext'
 
 const CHAPTER_EXERCISE_COUNT = 25
 
@@ -24,6 +25,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
   const [generating, setGenerating] = useState(false)
   const [readyToAdvance, setReadyToAdvance] = useState(false)
   const [chapterJustCompleted, setChapterJustCompleted] = useState(false)
+  const { reportLevelUp } = useLevelUp()
 
   const currentIndexRef = useRef(0)
   const exercisesRef = useRef<GrammarExercise[]>([])
@@ -137,6 +139,8 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
         total: prev.total + 1
       }))
       setReadyToAdvance(true)
+      const result = await logActivity(user.id, 'grammar')
+      if (result.leveled_up) reportLevelUp(result)
     } catch (error) {
       console.error('Failed to submit answer:', error)
     } finally {

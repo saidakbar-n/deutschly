@@ -31,6 +31,8 @@ export type User = {
   words_count: number
   streak?: number
   last_active_date?: string
+  tree_points?: number
+  tree_level?: number
   is_online?: boolean
   posts_count?: number
   followers_count?: number
@@ -804,5 +806,43 @@ export type StoryAuthor = {
 
 export async function fetchStories(userId: number): Promise<StoryAuthor[]> {
   const res = await api.get(`/feed/${userId}/stories`)
+  return res.data
+}
+
+// ===== Progress / Gamification =====
+
+export type ProgressData = {
+  tree_points: number
+  tree_level: number
+  trees_grown: number
+  tree_stage: string
+  points_to_next: number
+  points_for_current: number
+  points_for_next: number
+  next_stage: string | null
+  streak: number
+  is_active_today: boolean
+  last_active_date: string | null
+}
+
+export type LogActivityResult = {
+  points_earned: number
+  tree_points: number
+  tree_level: number
+  trees_grown: number
+  tree_stage: string
+  points_to_next: number
+  streak: number
+  leveled_up: boolean
+  multiplier: number
+}
+
+export async function getProgress(userId: number): Promise<ProgressData> {
+  const res = await api.get(`/progress/${userId}`)
+  return res.data
+}
+
+export async function logActivity(userId: number, activityType: string): Promise<LogActivityResult> {
+  const res = await api.post(`/progress/log-activity?user_id=${userId}&activity_type=${activityType}`)
   return res.data
 }

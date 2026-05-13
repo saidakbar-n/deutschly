@@ -45,6 +45,8 @@ class UserOut(BaseModel):
     words_count: int
     streak: int = 0
     last_active_date: Optional[str] = None
+    tree_points: int = 0
+    tree_level: int = 0
     posts_count: int = 0
     followers_count: int = 0
     following_count: int = 0

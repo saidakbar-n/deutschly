@@ -14,12 +14,15 @@ import { WolfLogo } from './components/WolfIllustrations'
 
 import type { User } from './hooks/useApi'
 import { fetchNotifications, followUser, fetchUnreadChatCount, createConversation, getUser, wsUrl } from './hooks/useApi'
-import { Home, User as UserIcon, BookOpen, PenTool, MessageCircle } from 'lucide-react'
+import { Home, User as UserIcon, BookOpen, PenTool, MessageCircle, TreePine, Compass, Bell, Languages, StickyNote } from 'lucide-react'
 import ChatScreen from './screens/ChatScreen'
 import TranslateScreen from './screens/TranslateScreen'
 import NotesScreen from './screens/NotesScreen'
+import ProgressScreen from './screens/ProgressScreen'
+import { LevelUpProvider } from './contexts/LevelUpContext'
+import LevelUpPopup from './components/LevelUpPopup'
 
-export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar' | 'chat' | 'translate' | 'notes'
+export type Screen = 'feed' | 'profile' | 'search' | 'words' | 'notifications' | 'user-profile' | 'grammar' | 'chat' | 'translate' | 'notes' | 'progress'
 
 function App() {
   const { user, loading, signIn, signInWithPassword, signOut, refresh, setUser } = useSession()
@@ -52,8 +55,10 @@ function App() {
   // App-level WebSocket for real-time chat unread badge updates
   useEffect(() => {
     if (!user) return
+    let cancelled = false
     const ws = new WebSocket(`${wsUrl}/api/v1/ws/chat/${user.id}`)
     ws.onmessage = (e) => {
+      if (cancelled) return
       try {
         const data = JSON.parse(e.data)
         if (data.type === 'new_message') {
@@ -61,10 +66,11 @@ function App() {
         }
       } catch {}
     }
+    ws.onerror = () => {}
     const ping = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) ws.send('ping')
     }, 30000)
-    return () => { if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close(); clearInterval(ping) }
+    return () => { cancelled = true; clearInterval(ping); ws.close() }
   }, [user?.id])
 
   const handleOpenChat = async (targetUserId: number) => {
@@ -126,15 +132,16 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen hero-bg pb-20 md:pb-0" style={{ overflow: 'visible' }}>
+    <LevelUpProvider>
+      <div className="min-h-screen hero-bg pb-20 md:pb-0" style={{ overflow: 'visible' }}>
       {/* ============================================
           Background Decorative Elements - QA Wolf Style
       ============================================ */}
       
-      {/* Floating orbs - QA Wolf uses these for visual interest */}
-      <div className="fixed top-40 right-1/4 w-40 h-40 qaw-orb qaw-orb-indigo opacity-20 animate-qaw-float will-change-transform" style={{ animationDelay: '0.5s' }} />
-      <div className="fixed bottom-20 left-1/4 w-32 h-32 qaw-orb qaw-orb-sky opacity-15 animate-qaw-float will-change-transform" style={{ animationDelay: '1.5s' }} />
-      <div className="fixed top-1/3 left-10 w-24 h-24 qaw-orb qaw-orb-purple opacity-10 animate-qaw-float will-change-transform" style={{ animationDelay: '2.5s' }} />
+      {/* Floating orbs - hidden on mobile to prevent overflow */}
+      <div className="hidden sm:block fixed top-40 right-1/4 w-40 h-40 qaw-orb qaw-orb-indigo opacity-20 animate-qaw-float will-change-transform" style={{ animationDelay: '0.5s' }} />
+      <div className="hidden sm:block fixed bottom-20 left-1/4 w-32 h-32 qaw-orb qaw-orb-sky opacity-15 animate-qaw-float will-change-transform" style={{ animationDelay: '1.5s' }} />
+      <div className="hidden sm:block fixed top-1/3 left-10 w-24 h-24 qaw-orb qaw-orb-purple opacity-10 animate-qaw-float will-change-transform" style={{ animationDelay: '2.5s' }} />
       
       {/* Subtle pattern overlay */}
       <div className="fixed inset-0 bg-qaw-pattern pointer-events-none" />
@@ -146,8 +153,10 @@ function App() {
         ============================================ */}
         <header className="relative bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg shadow-slate-100 border border-slate-100 p-4 animate-qaw-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between">
-            {/* Logo with Wolf */}
-            <WolfLogo showText />
+            {/* Logo with Wolf - click to go to feed */}
+            <button onClick={() => setScreen('feed')} className="hover:opacity-80 transition-opacity">
+              <WolfLogo showText />
+            </button>
             
             <Header 
               user={user} 
@@ -171,8 +180,8 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-[3fr,1fr] lg:grid-cols-[2fr,1fr] gap-6">
           
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
-          <div className="space-y-6 w-full">
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="space-y-6 w-full min-w-0">
+            <div className="card animate-qaw-fade-in-up break-words" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onNotifications={() => { setScreen('notifications'); setUnreadCount(0) }} unreadNotifCount={unreadCount} />}
               {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} onOpenChat={handleOpenChat} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
@@ -192,6 +201,7 @@ function App() {
               {screen === 'notifications' && <Notifications user={user} />}
               {screen === 'translate' && <TranslateScreen user={user} onUserUpdated={refresh} />}
               {screen === 'notes' && <NotesScreen user={user} />}
+              {screen === 'progress' && <ProgressScreen user={user} />}
             </div>
           </div>
 
@@ -252,14 +262,37 @@ function App() {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation - Only on small screens */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 safe-area-inset-bottom">
-        <div className="flex items-center justify-around px-2 py-1.5">
+      {/* Floating Progress Button - desktop only (hidden on tablet where it's in nav) */}
+      <div className="hidden lg:block fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => {
+            if (screen === 'progress') { setScreen('feed'); return }
+            setScreen('progress')
+          }}
+          className={`w-12 h-12 rounded-2xl shadow-lg flex items-center justify-center transition-all duration-300 ${
+            screen === 'progress'
+              ? 'bg-indigo-600 text-white shadow-indigo-300 scale-110'
+              : 'bg-white text-indigo-600 border border-slate-200 hover:shadow-xl hover:-translate-y-0.5 shadow-indigo-100'
+          }`}
+          title="Progress"
+        >
+          <TreePine size={20} />
+        </button>
+      </div>
+
+      {/* Mobile Bottom Navigation - All items, scrollable */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-40 safe-area-inset-bottom">
+        <div className="flex items-center gap-0.5 overflow-x-auto px-2 py-1.5 scrollbar-hide scroll-soft">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
+              { key: 'search' as Screen, icon: Compass, label: 'Discover' },
               { key: 'words' as Screen, icon: BookOpen, label: 'Words' },
               { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
+              { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
+              { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
+              { key: 'progress' as Screen, icon: TreePine, label: 'Progress' },
               { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
+              { key: 'notifications' as Screen, icon: Bell, label: 'Alerts' },
               { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
             ].map((item) => {
             const Icon = item.icon
@@ -268,7 +301,7 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 rounded-xl transition-colors flex-shrink-0 ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'
@@ -281,14 +314,21 @@ function App() {
                       {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                     </span>
                   )}
+                  {item.key === 'notifications' && unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </div>
-                <span className="text-[10px] font-semibold leading-tight">{item.label}</span>
+                <span className="text-[10px] font-semibold leading-tight whitespace-nowrap">{item.label}</span>
               </button>
             )
           })}
         </div>
       </div>
-    </div>
+      </div>
+      <LevelUpPopup />
+    </LevelUpProvider>
   )
 }
 
