@@ -30,6 +30,8 @@ ACTIVITY_POINTS = {
     "grammar": 15,
     "translate": 5,
     "note": 5,
+    "post": 8,
+    "chat": 3,
 }
 
 
@@ -113,7 +115,7 @@ def get_progress(user_id: int, db: Session = Depends(get_db)):
     points = user.tree_points or 0
     trees = _trees_grown(points)
     current_pts = _current_tree_points(points)
-    current_level = _get_tree_level(current_pts)
+    current_level = user.tree_level or _get_tree_level(current_pts)
 
     return {
         "tree_points": points,

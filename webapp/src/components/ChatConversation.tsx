@@ -10,13 +10,15 @@ interface ChatConversationProps {
   otherProfilePhoto?: string
   otherFullName?: string
   otherIsOnline?: boolean
+  otherIsPremium?: boolean
+  otherPremiumStatus?: string
   onBack: () => void
 }
 
 const WORD_NEW_RE = /^\[word:(\d+)\|(.+?)\|(.+?)(?:\|(.+))?\]$/
 const WORD_OLD_RE = /^\[word:(.+?)\|(.+?)(?:\|(.+))?\]$/
 
-export function ChatConversation({ user, conversationId, otherUserId, otherUsername, otherProfilePhoto, otherFullName, otherIsOnline, onBack }: ChatConversationProps) {
+export function ChatConversation({ user, conversationId, otherUserId, otherUsername, otherProfilePhoto, otherFullName, otherIsOnline, otherIsPremium, otherPremiumStatus, onBack }: ChatConversationProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
@@ -102,7 +104,9 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
     setSending(true)
     try {
       const msg = await sendMessage(conversationId, user.id, text.trim())
-      setMessages(prev => [...prev, msg])
+      setMessages(prev => [...prev, msg].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ))
       setText('')
     } catch (err) {
       console.error('Failed to send message:', err)
@@ -123,7 +127,9 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
     const wordMsg = `[word:${w.id}|${w.term}|${w.meaning}${w.note ? '|' + w.note : ''}]`
     try {
       const msg = await sendMessage(conversationId, user.id, wordMsg)
-      setMessages(prev => [...prev, msg])
+      setMessages(prev => [...prev, msg].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ))
     } catch (err) {
       console.error('Failed to send word:', err)
     }
@@ -161,6 +167,9 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
             {otherUsername}
+            {otherIsPremium && otherPremiumStatus && (
+              <span className="text-sm ml-0.5">{otherPremiumStatus}</span>
+            )}
             {otherFullName && <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({otherFullName})</span>}
           </p>
           <p className="text-xs flex items-center gap-1 mt-0.5">

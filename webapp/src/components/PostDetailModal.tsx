@@ -37,7 +37,7 @@ export type PostDetailModalProps = {
     timestamp?: string
     word?: PostWord | null
   }
-  author: { id?: number; username: string; level?: string; city?: string }
+  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string }
   isLiked: boolean
   currentUserId: number
   onClose: () => void
@@ -92,7 +92,12 @@ export function PostDetailModal({
               <span className="text-lg">🐺</span>
             </div>
             <div>
-              <p className="font-semibold text-slate-900 text-sm sm:text-base">{author.username}</p>
+              <p className="font-semibold text-slate-900 text-sm sm:text-base">
+                {author.username}
+                {author.is_premium && author.premium_status && (
+                  <span className="text-sm ml-0.5">{author.premium_status}</span>
+                )}
+              </p>
               <p className="text-xs text-slate-500">{author.level} · {author.city || '—'}</p>
             </div>
           </div>
@@ -203,6 +208,9 @@ export function PostDetailModal({
                             onClick={() => onViewUser?.(c.user_id)}
                           >
                             {c.user?.username || `User ${c.user_id}`}
+                            {c.user?.is_premium && c.user?.premium_status && (
+                              <span className="text-xs ml-0.5">{c.user.premium_status}</span>
+                            )}
                           </button>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>

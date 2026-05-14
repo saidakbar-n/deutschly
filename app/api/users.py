@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
@@ -29,6 +30,10 @@ def _attach_counts(user: User, db: Session) -> User:
     user.__dict__['posts_count'] = actual_posts
     user.__dict__['followers_count'] = followers
     user.__dict__['following_count'] = following
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    user.__dict__['is_premium'] = bool(
+        user.premium_status and user.premium_expires_at and user.premium_expires_at > now
+    )
     return user
 
 

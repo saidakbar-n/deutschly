@@ -19,6 +19,8 @@ from app.models.user_chapter_progress import UserChapterProgress
 from app.models.conversation import Conversation, ConversationParticipant, Message
 from app.models.sticky_note import StickyNote
 from app.models.word_review import WordReview
+from app.models.user_stars import UserStars, StarTransaction
+from app.models.post_reaction import PostReaction
 
 __all__ = [
     "User", "Post", "Follow", "Game", "Like", "Comment",
@@ -27,5 +29,6 @@ __all__ = [
     "GrammarRule", "GrammarExercise", "UserGrammarAttempt",
     "UserGrammarProgress", "UserChapterProgress",
     "Conversation", "ConversationParticipant", "Message",
-    "StickyNote", "WordReview",
+    "StickyNote", "WordReview", "UserStars", "StarTransaction",
+    "PostReaction",
 ]

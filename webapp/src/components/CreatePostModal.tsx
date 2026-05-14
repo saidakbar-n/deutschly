@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { createPost, PostPayload, uploadPostImage, listWords } from '../hooks/useApi'
+import { createPost, PostPayload, uploadPostImage, listWords, logActivity } from '../hooks/useApi'
+import { useLevelUp } from '../contexts/LevelUpContext'
 import { Image, X, Type, Tag, Send, BookOpen, ChevronDown } from 'lucide-react'
 
 type Word = {
@@ -11,6 +12,7 @@ type Word = {
 }
 
 export function CreatePostModal({ userId, onCreated }: { userId: number; onCreated?: () => void }) {
+  const { reportLevelUp } = useLevelUp()
   const [open, setOpen] = useState(false)
   const [visible, setVisible] = useState(false)
   const [text, setText] = useState('')
@@ -86,6 +88,11 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
       })
       closeModal()
       onCreated?.()
+      logActivity(userId, 'post').then((result) => {
+        if (result.leveled_up) {
+          reportLevelUp({ tree_level: result.tree_level, trees_grown: result.trees_grown })
+        }
+      }).catch(() => {})
     } catch (err) {
       console.error('Post failed:', err)
       alert('Failed to post. Please try again.')

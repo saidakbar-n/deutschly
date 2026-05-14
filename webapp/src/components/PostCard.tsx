@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Heart, MessageCircle, UserPlus, Trash2 } from 'lucide-react'
+import { Heart, MessageCircle, UserPlus, Trash2, Star } from 'lucide-react'
 
 export type PostWord = {
   id: number
@@ -9,9 +9,38 @@ export type PostWord = {
   is_singular?: boolean
 }
 
+const EMOJIS = ["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"]
+
+function ReactionPicker({ onReact }: { onReact: (emoji: string) => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      <button
+        className="px-2 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-yellow-500 hover:border-yellow-300 hover:bg-yellow-50 text-sm transition-all"
+        onClick={() => setOpen(o => !o)}
+      >
+        ✦ React
+      </button>
+      {open && (
+        <div className="absolute bottom-8 left-0 z-20 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 flex gap-1.5 flex-wrap max-w-[200px]">
+          {EMOJIS.map(e => (
+            <button
+              key={e}
+              className="text-xl hover:scale-125 transition-transform p-1 rounded-xl hover:bg-yellow-50"
+              onClick={() => { onReact(e); setOpen(false) }}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export type PostCardProps = {
   id: number
-  author: { id?: number; username: string; level?: string; city?: string }
+  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string | null }
   text?: string
   image_url?: string
   type: string
@@ -27,6 +56,9 @@ export type PostCardProps = {
   word?: PostWord | null
   isLiked?: boolean
   onClick?: () => void
+  reactions?: Record<string, number>
+  myReactions?: string[]
+  onReact?: (emoji: string) => void
 }
 
 function getArticleColor(term: string, isSingular: boolean): string {
@@ -77,6 +109,9 @@ export function PostCard({
   word,
   isLiked,
   onClick,
+  reactions,
+  myReactions,
+  onReact,
 }: PostCardProps) {
   const isMine = currentUserId !== undefined && author.id === currentUserId
   const [wordFlipped, setWordFlipped] = useState(false)
@@ -90,7 +125,12 @@ export function PostCard({
             <span className="text-lg">🐺</span>
           </div>
           <div>
-            <p className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm sm:text-base">{author.username}</p>
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm sm:text-base">
+              {author.username}
+              {author.is_premium && author.premium_status && (
+                <span className="text-sm ml-0.5">{author.premium_status}</span>
+              )}
+            </p>
             <div className="flex items-center gap-1 sm:gap-2 text-xs text-slate-500 flex-wrap">
               <LevelBadge level={author.level} />
               <span className="hidden sm:inline">·</span>
@@ -184,6 +224,27 @@ export function PostCard({
           <TypeBadge type={type} />
         </div>
       </div>
+
+      {(onReact || (reactions && Object.keys(reactions).length > 0)) && (
+        <div className="flex items-center gap-2 flex-wrap mt-2 pt-2 border-t border-slate-100">
+          {reactions && Object.entries(reactions).map(([emoji, count]) => (
+            <button
+              key={emoji}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all border ${
+                myReactions?.includes(emoji)
+                  ? 'bg-yellow-50 border-yellow-300 text-yellow-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-yellow-300 hover:bg-yellow-50'
+              }`}
+              onClick={() => onReact?.(emoji)}
+              disabled={!onReact}
+            >
+              <span>{emoji}</span>
+              <span className="text-xs font-semibold">{count}</span>
+            </button>
+          ))}
+          {onReact && <ReactionPicker onReact={onReact} />}
+        </div>
+      )}
 
       {timestamp && (
         <p className="text-xs text-slate-400 mt-2 sm:mt-3">{timestamp}</p>

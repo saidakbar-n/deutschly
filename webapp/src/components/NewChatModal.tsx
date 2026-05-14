@@ -6,7 +6,7 @@ interface NewChatModalProps {
   user: User
   isOpen: boolean
   onClose: () => void
-  onConversationCreated: (conversationId: number, otherUserId: number) => void
+  onConversationCreated: (conversationId: number, otherUserId: number, otherIsPremium?: boolean, otherPremiumStatus?: string) => void
 }
 
 export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: NewChatModalProps) {
@@ -68,7 +68,8 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
   const handleSelect = async (otherUserId: number) => {
     try {
       const conv = await createConversation(user.id, otherUserId)
-      onConversationCreated(conv.id, otherUserId)
+      const otherUser = [...results, ...suggestions].find(u => u.id === otherUserId)
+      onConversationCreated(conv.id, otherUserId, otherUser?.is_premium, otherUser?.premium_status)
     } catch (err) {
       console.error('Failed to create conversation:', err)
     }
@@ -132,6 +133,9 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5 truncate">
                       {u.username}
+                      {u.is_premium && u.premium_status && (
+                        <span className="text-sm ml-0.5">{u.premium_status}</span>
+                      )}
                       {suggestions.some(s => s.id === u.id) && (
                         <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Following</span>
                       )}
@@ -168,6 +172,9 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-semibold text-slate-900 text-sm flex items-center gap-1.5 truncate">
                       {u.username}
+                      {u.is_premium && u.premium_status && (
+                        <span className="text-sm ml-0.5">{u.premium_status}</span>
+                      )}
                       {suggestions.some(s => s.id === u.id) && (
                         <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Following</span>
                       )}

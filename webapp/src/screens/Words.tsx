@@ -13,7 +13,7 @@ type Word = {
   saved_from_id?: number
   created_at: string
   user_id: number
-  user?: { id: number; username: string; level?: string; city?: string }
+  user?: { id: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string }
   is_singular?: boolean
   folder_id?: number | null
 }
@@ -649,7 +649,11 @@ function WordCard({
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-2">
             {!isMine && word.user && (
-              <p className="text-xs text-slate-400">by {word.user.username}</p>
+              <p className="text-xs text-slate-400">by {word.user.username}
+                {word.user.is_premium && word.user.premium_status && (
+                  <span className="text-xs ml-0.5">{word.user.premium_status}</span>
+                )}
+              </p>
             )}
             {word.saved_from_id && (
               <p className="text-xs text-indigo-300">Saved from community</p>

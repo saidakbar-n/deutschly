@@ -24,6 +24,8 @@ class User(Base):
     last_active_date = Column(String(10), nullable=True)  # stored as 'YYYY-MM-DD'
     tree_points = Column(Integer, default=0, nullable=False, server_default='0')
     tree_level = Column(Integer, default=0, nullable=False, server_default='0')
+    premium_status = Column(String(10), nullable=True)
+    premium_expires_at = Column(DateTime, nullable=True)
     notify_likes = Column(Integer, default=1)
     notify_follows = Column(Integer, default=1)
     notify_comments = Column(Integer, default=1)

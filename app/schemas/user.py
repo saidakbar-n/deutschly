@@ -54,6 +54,9 @@ class UserOut(BaseModel):
     notify_follows: int = 1
     notify_comments: int = 1
     recovery_codes: Optional[list[int]] = None
+    premium_status: Optional[str] = None
+    premium_expires_at: Optional[datetime] = None
+    is_premium: bool = False
     created_at: datetime
 
     class Config:

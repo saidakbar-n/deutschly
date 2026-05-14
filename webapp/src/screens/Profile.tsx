@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, unfollowUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich, likePost, commentPost, listComments, deleteComment } from '../hooks/useApi'
+import { User, updateUser, listUserPosts, deletePost, listFollowers, listFollowing, followUser, unfollowUser, getUser, listWords, listWordsByFolder, listWordFolders, WordFolder, getImageUrl, fetchGrammarProgress, UserGrammarProgressRich, likePost, commentPost, listComments, deleteComment, changePremiumStatus, getStarWallet, activatePremium, type StarWallet } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { PostDetailModal } from '../components/PostDetailModal'
 import { ProfilePhotoUploader } from '../components/ProfilePhotoUploader'
 import { FollowersFollowingModal } from '../components/FollowersFollowingModal'
 import { WordCard } from '../components/WordCard'
 import type { TabType } from '../components/FollowersFollowingModal'
-import { ArrowLeft, Loader2, Folder, FolderOpen, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Folder, FolderOpen, MessageCircle, Crown, X, Check, Star } from 'lucide-react'
 import { createConversation } from '../hooks/useApi'
 
 interface ProfileProps {
@@ -22,6 +22,12 @@ interface ProfileProps {
 
 export function Profile({ user: initialUser, userId, currentUser, onUpdated, onBack, onNavigate, onViewUser, onOpenChat }: ProfileProps) {
   const [status, setStatus] = useState('')
+  const [wallet, setWallet] = useState<StarWallet | null>(null)
+  const [premiumEmoji, setPremiumEmoji] = useState('')
+  const [premiumLoading, setPremiumLoading] = useState(false)
+  const [showPremiumModal, setShowPremiumModal] = useState(false)
+  const [activateEmoji, setActivateEmoji] = useState('★')
+  const [activating, setActivating] = useState(false)
   const [posts, setPosts] = useState<any[]>([])
   const [postsLoading, setPostsLoading] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -239,11 +245,25 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         about: user.about || '',
         age: user.age ? String(user.age) : '',
       })
+      if (user.is_premium && user.premium_status) {
+        setPremiumEmoji(user.premium_status)
+      }
       loadPosts()
       loadFollowers()
       loadFollowing()
     }
   }, [user, loadPosts, loadFollowers, loadFollowing])
+
+  useEffect(() => {
+    if (!user) return
+    getStarWallet(user.id).then(w => {
+      setWallet(w)
+      if (w.is_premium) {
+        setUser({ ...user, premium_status: w.premium_status, premium_expires_at: w.premium_expires_at, is_premium: true })
+        if (w.premium_status) setPremiumEmoji(w.premium_status)
+      }
+    }).catch(() => {})
+  }, [user?.id])
 
   useEffect(() => {
     if (user && activeTab === 'words') {
@@ -447,6 +467,38 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">About</label>
                   <textarea className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none" rows={3} value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} />
                 </div>
+                {user.is_premium && (
+                  <div className="text-left pt-2 border-t border-slate-100">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Premium Status</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"].map(e => (
+                        <button
+                          key={e}
+                          className={`text-xl p-1.5 rounded-xl transition-all ${
+                            premiumEmoji === e ? 'bg-yellow-100 ring-2 ring-yellow-400 scale-110' : 'hover:bg-slate-100'
+                          } ${premiumLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                          onClick={async () => {
+                            if (premiumLoading) return
+                            setPremiumLoading(true)
+                            setPremiumEmoji(e)
+                            try {
+                              const result = await changePremiumStatus(user.id, e)
+                              const updated = { ...user, premium_status: result.premium_status }
+                              setUser(updated)
+                              onUpdated?.(updated)
+                            } catch {
+                              setPremiumEmoji(user.premium_status || '')
+                            } finally {
+                              setPremiumLoading(false)
+                            }
+                          }}
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-center md:justify-end gap-2 pt-1">
                   <button className="px-5 py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-all text-sm" onClick={() => { setEditMode(false); setForm({ username: user.username, city: user.city || '', level: user.level, full_name: user.full_name || '', about: user.about || '', age: user.age ? String(user.age) : '' }); }}>Cancel</button>
                   <button className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all text-sm disabled:opacity-50" onClick={save} disabled={status === 'Saving...'}>{status === 'Saving...' ? 'Saving...' : 'Save'}</button>
@@ -462,7 +514,14 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Username</p>
-                    <p className="text-sm text-slate-800 mt-0.5">@{user.username}</p>
+                    <p className="text-sm text-slate-800 mt-0.5">
+                      @{user.username}
+                      {user.is_premium && user.premium_status && (
+                        <span className="text-xl ml-1" title={user.premium_expires_at ? `Premium until ${new Date(user.premium_expires_at).toLocaleDateString()}` : undefined}>
+                          {user.premium_status}
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Age</p>
@@ -542,6 +601,39 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           </button>
         </div>
       </div>
+
+      {/* Premium & Stars - own profile only */}
+      {isOwnProfile && wallet && (
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
+                <Star size={20} className="text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  {wallet.balance} {wallet.balance === 1 ? 'Star' : 'Stars'}
+                </p>
+                {wallet.is_premium && wallet.premium_status ? (
+                  <p className="text-xs text-yellow-700">
+                    Premium active {wallet.premium_status} · expires {wallet.premium_expires_at ? new Date(wallet.premium_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—'}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500">Activate premium for 100 stars</p>
+                )}
+              </div>
+            </div>
+            {!wallet.is_premium && (
+              <button
+                className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white font-semibold rounded-xl hover:from-yellow-500 hover:to-yellow-600 shadow-md shadow-yellow-200 transition-all text-sm"
+                onClick={() => { setActivateEmoji('★'); setShowPremiumModal(true) }}
+              >
+                Activate Premium
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content Tabs (Posts / Words) - Responsive */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
@@ -865,6 +957,69 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           onFollow={handleFollow}
           onViewUser={onViewUser}
         />
+
+      {/* Premium Activation Modal */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowPremiumModal(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <Crown size={18} className="text-yellow-500" />
+                Activate Premium
+              </h3>
+              <button className="p-1.5 rounded-xl hover:bg-slate-100" onClick={() => setShowPremiumModal(false)}>
+                <X size={18} className="text-slate-400" />
+              </button>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              100 stars for 30 days of premium status. Choose your emoji:
+            </p>
+            <div className="flex gap-2 flex-wrap justify-center mb-4">
+              {["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"].map(e => (
+                <button
+                  key={e}
+                  className={`text-2xl p-2 rounded-xl transition-all ${
+                    activateEmoji === e ? 'bg-yellow-100 ring-2 ring-yellow-400 scale-110' : 'hover:bg-slate-100'
+                  }`}
+                  onClick={() => setActivateEmoji(e)}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+            <button
+              className="w-full btn-primary flex items-center justify-center gap-2"
+              onClick={async () => {
+                if (activating || !wallet || wallet.balance < 100) return
+                setActivating(true)
+                try {
+                  const result = await activatePremium(user!.id, activateEmoji)
+                  setWallet(prev => prev ? { ...prev, premium_status: result.premium_status, premium_expires_at: result.premium_expires_at, is_premium: true, balance: result.balance } : null)
+                  setUser(prev => prev ? { ...prev, premium_status: result.premium_status, premium_expires_at: result.premium_expires_at, is_premium: true } : null)
+                  setPremiumEmoji(activateEmoji)
+                  setShowPremiumModal(false)
+                } catch {
+                  alert('Failed to activate premium. Make sure you have 100 stars.')
+                } finally {
+                  setActivating(false)
+                }
+              }}
+              disabled={activating || !wallet || wallet.balance < 100}
+            >
+              {activating ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+              ) : (
+                <Check size={16} />
+              )}
+              Activate — 100 ★
+            </button>
+            {wallet && wallet.balance < 100 && (
+              <p className="text-xs text-red-500 mt-2 text-center">Not enough stars. Buy stars first.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { MessageCircle, ChevronRight, Plus, Check, X } from 'lucide-react'
 interface ChatListProps {
   user: User
   refreshTrigger?: number
-  onSelectConversation: (conversationId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean) => void
+  onSelectConversation: (conversationId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean, otherIsPremium?: boolean, otherPremiumStatus?: string) => void
   onStartNewChat: () => void
 }
 
@@ -68,7 +68,7 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
     try {
       const conv = await createConversation(user.id, otherUserId)
       const other = suggestions.find(u => u.id === otherUserId)
-      onSelectConversation(conv.id, otherUserId, other?.username || 'User', other?.profile_photo, other?.full_name, other?.is_online)
+      onSelectConversation(conv.id, otherUserId, other?.username || 'User', other?.profile_photo, other?.full_name, other?.is_online, other?.is_premium, other?.premium_status)
     } catch (err) {
       console.error('Failed to create conversation:', err)
     }
@@ -156,6 +156,9 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
                     {u.username}
+                    {u.is_premium && u.premium_status && (
+                      <span className="text-sm ml-0.5">{u.premium_status}</span>
+                    )}
                     {u.full_name && <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({u.full_name})</span>}
                   </p>
                   <p className="text-xs text-slate-500 truncate">{u.city || 'German Learner'} · <span className={`level-badge level-${(u.level || '').toLowerCase()}`}>{u.level}</span></p>
@@ -194,7 +197,12 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 text-sm truncate">{conv.other_user.username}</p>
+                      <p className="font-semibold text-slate-900 text-sm truncate">
+                        {conv.other_user.username}
+                        {(conv.other_user as any).is_premium && (conv.other_user as any).premium_status && (
+                          <span className="text-sm ml-0.5">{(conv.other_user as any).premium_status}</span>
+                        )}
+                      </p>
                       {conv.last_message && (
                          <p className="text-xs text-slate-500 truncate">{formatMessagePreview(conv.last_message.text)}</p>
                        )}
@@ -231,7 +239,7 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
                 <button
                   key={conv.id}
                   className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left min-h-[64px]"
-                  onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online)}
+                  onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online, conv.other_user.is_premium, conv.other_user.premium_status)}
                 >
                   {conv.other_user.profile_photo ? (
                     <img
@@ -248,6 +256,9 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
                         {conv.other_user.username}
+                        {(conv.other_user as any).is_premium && (conv.other_user as any).premium_status && (
+                          <span className="text-sm ml-0.5">{(conv.other_user as any).premium_status}</span>
+                        )}
                         {conv.other_user.full_name && (
                           <span className="text-xs text-slate-400 font-normal ml-1.5 hidden sm:inline">({conv.other_user.full_name})</span>
                         )}
@@ -300,7 +311,12 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
                     <span className="text-indigo-600 font-bold text-sm">{u.username.charAt(0).toUpperCase()}</span>
                   </div>
                 )}
-                <p className="font-semibold text-slate-900 text-[11px] truncate w-full text-center leading-tight">{u.username}</p>
+                <p className="font-semibold text-slate-900 text-[11px] truncate w-full text-center leading-tight">
+                  {u.username}
+                  {u.is_premium && u.premium_status && (
+                    <span className="text-[11px] ml-0.5">{u.premium_status}</span>
+                  )}
+                </p>
               </button>
             ))}
             <button

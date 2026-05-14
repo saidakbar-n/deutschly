@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
-import { getProgress, type ProgressData, type User } from '../hooks/useApi'
+import { getProgress, getStarWallet, getStarPackages, purchaseStars, activatePremium, type ProgressData, type User, type StarWallet, type StarPackage } from '../hooks/useApi'
 import TreeVisualization from '../components/TreeVisualization'
 import {
-  Flame, TrendingUp, Target, ChevronRight,
+  Flame, TrendingUp, Target, ChevronRight, ShoppingCart, Sparkles, X, Check, Crown
 } from 'lucide-react'
 import { useLevelUp } from '../contexts/LevelUpContext'
 
@@ -15,11 +15,52 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
   const [loading, setLoading] = useState(true)
   const [growthAnimation, setGrowthAnimation] = useState(false)
   const { consumeLevelUp } = useLevelUp()
+  const [wallet, setWallet] = useState<StarWallet | null>(null)
+  const [packages, setPackages] = useState<StarPackage[]>([])
+  const [showStoreModal, setShowStoreModal] = useState(false)
+  const [showPremiumModal, setShowPremiumModal] = useState(false)
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [premiumLoading, setPremiumLoading] = useState(false)
+  const [premiumEmoji, setPremiumEmoji] = useState("★")
+  const [purchaseMsg, setPurchaseMsg] = useState('')
 
   useEffect(() => {
     const data = consumeLevelUp()
     if (data) setGrowthAnimation(true)
   }, [consumeLevelUp])
+
+  useEffect(() => {
+    getStarWallet(user.id).then(setWallet).catch(() => {})
+    getStarPackages().then(setPackages).catch(() => {})
+  }, [user.id])
+
+  const handlePurchase = async (pkg: StarPackage) => {
+    setPurchaseLoading(true)
+    setPurchaseMsg('')
+    try {
+      const result = await purchaseStars(user.id, pkg.id)
+      setWallet(prev => prev ? { ...prev, balance: result.balance } : null)
+      setPurchaseMsg(`Purchased ${pkg.label}!`)
+    } catch {
+      setPurchaseMsg('Purchase failed')
+    } finally {
+      setPurchaseLoading(false)
+    }
+  }
+
+  const handleActivatePremium = async () => {
+    if (!wallet || wallet.balance < 100) return
+    setPremiumLoading(true)
+    try {
+      const result = await activatePremium(user.id, premiumEmoji)
+      setWallet(prev => prev ? { ...prev, premium_status: result.premium_status, premium_expires_at: result.premium_expires_at, is_premium: true, balance: result.balance } : null)
+      setShowPremiumModal(false)
+    } catch {
+      setPurchaseMsg('Failed to activate premium')
+    } finally {
+      setPremiumLoading(false)
+    }
+  }
 
   const loadProgress = useCallback(async () => {
     try {
@@ -111,7 +152,7 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
             <ul className="space-y-1.5 text-sm text-slate-600">
               <li className="flex items-start gap-2">
                 <ChevronRight size={14} className="mt-0.5 text-indigo-400 flex-shrink-0" />
-                Every action (Words, Grammar, Translate, Notes) earns XP
+                Every action (Words, Grammar, Translate, Notes, Posts) earns XP
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight size={14} className="mt-0.5 text-indigo-400 flex-shrink-0" />
@@ -123,7 +164,131 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
               </li>
             </ul>
           </div>
+
+          {/* Stars & Premium */}
+          {wallet && (
+            <div className="card space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                  <Sparkles size={18} className="text-yellow-500" />
+                  Stars
+                  <span className="text-2xl font-bold text-yellow-500">{wallet.balance}</span>
+                </h3>
+                <button
+                  className="btn-primary text-sm py-2 px-4"
+                  onClick={() => setShowStoreModal(true)}
+                >
+                  Get Stars
+                </button>
+              </div>
+              {wallet.is_premium ? (
+                <div className="flex items-center gap-2 bg-yellow-50 rounded-xl p-3 border border-yellow-200">
+                  <span className="text-2xl">{wallet.premium_status}</span>
+                  <div>
+                    <p className="font-semibold text-yellow-800 text-sm">Premium Active</p>
+                    <p className="text-xs text-yellow-600">
+                      Expires {wallet.premium_expires_at ? new Date(wallet.premium_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="w-full py-3 border-2 border-dashed border-yellow-300 rounded-2xl text-yellow-600 font-medium text-sm hover:bg-yellow-50 transition-colors"
+                  onClick={() => setShowPremiumModal(true)}
+                >
+                  ✦ Activate Premium Status — 100 stars / 30 days
+                </button>
+              )}
+            </div>
+          )}
         </>
+      )}
+
+      {/* Store Modal */}
+      {showStoreModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowStoreModal(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <ShoppingCart size={18} className="text-yellow-500" />
+                Star Shop
+              </h3>
+              <button className="p-1.5 rounded-xl hover:bg-slate-100" onClick={() => setShowStoreModal(false)}>
+                <X size={18} className="text-slate-400" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {packages.map(pkg => (
+                <button
+                  key={pkg.id}
+                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all"
+                  onClick={() => handlePurchase(pkg)}
+                  disabled={purchaseLoading}
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-900">{pkg.label}</p>
+                    <p className="text-xs text-slate-400">${pkg.price_usd}</p>
+                  </div>
+                  <span className="text-yellow-500 font-bold">{pkg.stars} ★</span>
+                </button>
+              ))}
+            </div>
+            {purchaseMsg && (
+              <p className="text-center text-sm font-medium mt-3 text-green-600">{purchaseMsg}</p>
+            )}
+            <p className="text-xs text-slate-400 mt-4 text-center">Simulated purchase — no real payment</p>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Modal */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowPremiumModal(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <Crown size={18} className="text-yellow-500" />
+                Activate Premium
+              </h3>
+              <button className="p-1.5 rounded-xl hover:bg-slate-100" onClick={() => setShowPremiumModal(false)}>
+                <X size={18} className="text-slate-400" />
+              </button>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              100 stars for 30 days of premium status. Choose your emoji:
+            </p>
+            <div className="flex gap-2 flex-wrap justify-center mb-4">
+              {["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"].map(e => (
+                <button
+                  key={e}
+                  className={`text-2xl p-2 rounded-xl transition-all ${
+                    premiumEmoji === e ? 'bg-yellow-100 ring-2 ring-yellow-400 scale-110' : 'hover:bg-slate-100'
+                  }`}
+                  onClick={() => setPremiumEmoji(e)}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+            <button
+              className="w-full btn-primary flex items-center justify-center gap-2"
+              onClick={handleActivatePremium}
+              disabled={premiumLoading || !wallet || wallet.balance < 100}
+            >
+              {premiumLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+              ) : (
+                <Check size={16} />
+              )}
+              Activate — 100 ★
+            </button>
+            {wallet && wallet.balance < 100 && (
+              <p className="text-xs text-red-500 mt-2 text-center">Not enough stars. Purchase stars first.</p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

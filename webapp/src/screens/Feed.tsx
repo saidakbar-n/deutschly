@@ -283,6 +283,9 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                           <div className="flex items-center justify-between flex-wrap gap-1">
                             <button className="font-semibold text-blue-600 text-sm" onClick={() => viewUser(c.user_id)}>
                               {c.user?.username || (c.user_id === userId ? user.username : `User ${c.user_id}`)}
+                              {c.user?.is_premium && c.user?.premium_status && (
+                                <span className="text-xs ml-0.5">{c.user.premium_status}</span>
+                              )}
                             </button>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] sm:text-xs text-slate-400">{new Date(c.created_at).toLocaleString()}</span>
@@ -315,7 +318,12 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
               <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-2 sm:p-4" onClick={() => setPeekUser(null)}>
                 <div className="bg-white rounded-2xl shadow-lg p-3 sm:p-4 w-full max-w-sm space-y-2" onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-lg">{peekUser.username}</h3>
+                    <h3 className="font-semibold text-lg">
+                      {peekUser.username}
+                      {peekUser.is_premium && peekUser.premium_status && (
+                        <span className="text-lg ml-1">{peekUser.premium_status}</span>
+                      )}
+                    </h3>
                     <button className="text-slate-500 text-sm" onClick={() => setPeekUser(null)}>Close</button>
                   </div>
                   <p className="text-sm text-slate-600">{peekUser.city || '—'} · {peekUser.level}</p>

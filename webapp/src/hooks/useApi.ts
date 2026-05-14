@@ -33,6 +33,9 @@ export type User = {
   last_active_date?: string
   tree_points?: number
   tree_level?: number
+  premium_status?: string | null
+  premium_expires_at?: string | null
+  is_premium?: boolean
   is_online?: boolean
   posts_count?: number
   followers_count?: number
@@ -573,6 +576,8 @@ export type Conversation = {
     level?: string
     last_active_date?: string
     is_online?: boolean
+    is_premium?: boolean
+    premium_status?: string
   }
   last_message?: {
     id: number
@@ -844,5 +849,63 @@ export async function getProgress(userId: number): Promise<ProgressData> {
 
 export async function logActivity(userId: number, activityType: string): Promise<LogActivityResult> {
   const res = await api.post(`/progress/log-activity?user_id=${userId}&activity_type=${activityType}`)
+  return res.data
+}
+
+// ── Stars & Premium ──────────────────────────────────────────────
+
+export type StarWallet = {
+  balance: number
+  total_earned: number
+  total_spent: number
+  premium_status: string | null
+  premium_expires_at: string | null
+  is_premium: boolean
+}
+
+export type StarPackage = {
+  id: string
+  stars: number
+  price_usd: number
+  label: string
+}
+
+export type PostReactions = {
+  reactions: Record<string, number>
+  my_reactions: string[]
+}
+
+export async function getStarWallet(userId: number): Promise<StarWallet> {
+  const res = await api.get(`/stars/wallet/${userId}`)
+  return res.data
+}
+
+export async function getStarPackages(): Promise<StarPackage[]> {
+  const res = await api.get('/stars/packages')
+  return res.data
+}
+
+export async function purchaseStars(userId: number, packageId: string): Promise<{ balance: number; earned: number }> {
+  const res = await api.post('/stars/purchase', { user_id: userId, package_id: packageId })
+  return res.data
+}
+
+export async function reactToPost(postId: number, userId: number, emoji: string): Promise<{ success: boolean; balance: number; reactions: Record<string, number> }> {
+  const res = await api.post(`/stars/react/${postId}`, { user_id: userId, emoji })
+  return res.data
+}
+
+export async function getPostReactions(postId: number, userId?: number): Promise<PostReactions> {
+  const res = await api.get(`/stars/reactions/${postId}`, { params: userId ? { user_id: userId } : {} })
+  return res.data
+}
+
+export async function activatePremium(userId: number, statusEmoji: string): Promise<{ premium_status: string; premium_expires_at: string; balance: number }> {
+  const res = await api.post('/stars/premium/activate', { user_id: userId, status_emoji: statusEmoji })
+  return res.data
+}
+
+export async function changePremiumStatus(userId: number, statusEmoji: string): Promise<{ premium_status: string }> {
+  const res = await api.post('/stars/premium/change-status', { user_id: userId, status_emoji: statusEmoji })
   return res.data
 }

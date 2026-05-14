@@ -22,6 +22,8 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
   const [activeOtherPhoto, setActiveOtherPhoto] = useState<string | undefined>(undefined)
   const [activeOtherFullName, setActiveOtherFullName] = useState<string | undefined>(undefined)
   const [activeOtherIsOnline, setActiveOtherIsOnline] = useState(false)
+  const [activeOtherIsPremium, setActiveOtherIsPremium] = useState(false)
+  const [activeOtherPremiumStatus, setActiveOtherPremiumStatus] = useState<string | undefined>(undefined)
   const [newChatOpen, setNewChatOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -35,20 +37,24 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
     }
   }, [initialConvId, initialOtherUserId])
 
-  const handleSelectConversation = (convId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean) => {
+  const handleSelectConversation = (convId: number, otherUserId: number, otherUsername: string, otherProfilePhoto?: string, otherFullName?: string, otherIsOnline?: boolean, otherIsPremium?: boolean, otherPremiumStatus?: string) => {
     setActiveConvId(convId)
     setActiveOtherUserId(otherUserId)
     setActiveOtherUsername(otherUsername)
     setActiveOtherPhoto(otherProfilePhoto)
     setActiveOtherFullName(otherFullName)
     setActiveOtherIsOnline(otherIsOnline || false)
+    setActiveOtherIsPremium(otherIsPremium || false)
+    setActiveOtherPremiumStatus(otherPremiumStatus)
     setView('conversation')
   }
 
-  const handleConversationCreated = (convId: number, otherUserId: number) => {
+  const handleConversationCreated = (convId: number, otherUserId: number, otherIsPremium?: boolean, otherPremiumStatus?: string) => {
     setNewChatOpen(false)
     setActiveConvId(convId)
     setActiveOtherUserId(otherUserId)
+    setActiveOtherIsPremium(otherIsPremium || false)
+    setActiveOtherPremiumStatus(otherPremiumStatus)
     setView('conversation')
   }
 
@@ -73,6 +79,8 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
             otherProfilePhoto={activeOtherPhoto}
             otherFullName={activeOtherFullName}
             otherIsOnline={activeOtherIsOnline}
+            otherIsPremium={activeOtherIsPremium}
+            otherPremiumStatus={activeOtherPremiumStatus}
             onBack={() => {
               setView('list')
               setRefreshKey(k => k + 1)
@@ -80,6 +88,8 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
               setActiveOtherUserId(null)
               setActiveOtherFullName(undefined)
               setActiveOtherIsOnline(false)
+              setActiveOtherIsPremium(false)
+              setActiveOtherPremiumStatus(undefined)
             }}
           />
         )}

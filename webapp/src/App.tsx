@@ -280,9 +280,9 @@ function App() {
         </button>
       </div>
 
-      {/* Mobile Bottom Navigation - All items, scrollable */}
+      {/* Mobile Bottom Navigation - All items, compact fit */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-40 safe-area-inset-bottom">
-        <div className="flex items-center gap-0.5 overflow-x-auto px-2 py-1.5 scrollbar-hide scroll-soft">
+        <div className="flex items-center px-1 py-1.5">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
               { key: 'search' as Screen, icon: Compass, label: 'Discover' },
@@ -301,14 +301,14 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 rounded-xl transition-colors flex-shrink-0 ${
+                className={`flex flex-col items-center gap-0 py-1 px-1.5 rounded-xl transition-colors flex-1 min-w-0 ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 <div className="relative">
-                  <Icon size={20} />
+                  <Icon size={18} />
                   {item.key === 'chat' && chatUnreadCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-indigo-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                       {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
@@ -320,7 +320,7 @@ function App() {
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-semibold leading-tight whitespace-nowrap">{item.label}</span>
+                <span className="text-[9px] font-semibold leading-tight whitespace-nowrap">{item.label}</span>
               </button>
             )
           })}

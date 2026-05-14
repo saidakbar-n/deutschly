@@ -135,7 +135,12 @@ export function FollowersFollowingModal({
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="font-semibold text-slate-900">{u.username}</p>
+                      <p className="font-semibold text-slate-900">
+                        {u.username}
+                        {u.is_premium && u.premium_status && (
+                          <span className="text-sm ml-0.5">{u.premium_status}</span>
+                        )}
+                      </p>
                       <p className="text-sm text-slate-500 truncate">
                         {u.full_name || u.city || 'German Learner'}
                       </p>
