@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Heart, MessageCircle, UserPlus, Trash2, Star } from 'lucide-react'
+import { Heart, MessageCircle, UserPlus, Trash2, Star, User } from 'lucide-react'
+import { getImageUrl } from '../hooks/useApi'
 
 export type PostWord = {
   id: number
@@ -40,7 +41,7 @@ function ReactionPicker({ onReact }: { onReact: (emoji: string) => void }) {
 
 export type PostCardProps = {
   id: number
-  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string | null }
+  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string | null; profile_photo?: string | null }
   text?: string
   image_url?: string
   type: string
@@ -121,8 +122,12 @@ export function PostCard({
       {/* Author Info */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-100 to-sky-100 rounded-xl flex items-center justify-center">
-            <span className="text-lg">🐺</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-indigo-100 flex items-center justify-center shrink-0">
+            {author.profile_photo ? (
+              <img src={getImageUrl(author.profile_photo)} className="w-full h-full object-cover" alt={author.username} />
+            ) : (
+              <span className="text-slate-400"><User size={20} /></span>
+            )}
           </div>
           <div>
             <p className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm sm:text-base">

@@ -31,9 +31,7 @@ const BOTTOM_NAV_ITEMS = [
   { key: 'grammar' as Screen, icon: PenTool, label: 'Grammar' },
   { key: 'translate' as Screen, icon: Languages, label: 'Translate' },
   { key: 'notes' as Screen, icon: StickyNote, label: 'Notes' },
-  { key: 'progress' as Screen, icon: TreePine, label: 'Progress' },
   { key: 'chat' as Screen, icon: MessageCircle, label: 'Chat' },
-  { key: 'notifications' as Screen, icon: Bell, label: 'Alerts' },
   { key: 'profile' as Screen, icon: UserIcon, label: 'Profile' },
 ]
 
@@ -211,7 +209,7 @@ function App() {
   const renderScreen = () => {
     switch (screen) {
       case 'feed':
-        return <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onNotifications={() => { setScreen('notifications'); setUnreadCount(0) }} unreadNotifCount={unreadCount} />
+        return <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onNotifications={() => { setScreen('notifications'); setUnreadCount(0) }} onProgress={() => setScreen('progress')} unreadNotifCount={unreadCount} />
       case 'search':
         return <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} onOpenChat={handleOpenChat} />
       case 'words':
@@ -373,7 +371,7 @@ function App() {
             Tier 1: Mobile Bottom Navigation
         ============================================ */}
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-40 safe-area-bottom-nav shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-          <div className="flex items-center justify-around px-1 py-1">
+          <div className="flex items-center justify-start gap-0.5 px-2 py-1 overflow-x-auto scrollbar-hide">
             {BOTTOM_NAV_ITEMS.map((item) => {
               const Icon = item.icon
               const isActive = screen === item.key
@@ -390,11 +388,6 @@ function App() {
                     {item.key === 'chat' && chatUnreadCount > 0 && (
                       <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-indigo-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center px-1">
                         {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
-                      </span>
-                    )}
-                    {item.key === 'notifications' && unreadCount > 0 && (
-                      <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center px-1">
-                        {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </div>

@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, deleteComment, User, getImageUrl, fetchStories, type StoryAuthor } from '../hooks/useApi'
+import { fetchFeed, fetchDiscoverFeed, followUser, likePost, commentPost, listComments, getUser, deletePost, deleteComment, User, getImageUrl } from '../hooks/useApi'
 import { PostCard } from '../components/PostCard'
 import { PostDetailModal } from '../components/PostDetailModal'
 import { CreatePostModal } from '../components/CreatePostModal'
-import { Bell, Trash2, Search, X } from 'lucide-react'
+import { Bell, Trash2, Search, X, TreePine } from 'lucide-react'
 
-export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotifications, unreadNotifCount }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void; onNotifications?: () => void; unreadNotifCount?: number }) {
+export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotifications, onProgress, unreadNotifCount }: { user: User; onDiscover?: () => void; onUserUpdated?: () => void; onViewUser?: (userId: number) => void; onNotifications?: () => void; onProgress?: () => void; unreadNotifCount?: number }) {
   const userId = user.id
   const [items, setItems] = useState<any[]>([])
   const [feedTab, setFeedTab] = useState<'following' | 'discover'>('following')
@@ -24,8 +24,6 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
   const [peekLoading, setPeekLoading] = useState(false)
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
   const [followedIds, setFollowedIds] = useState<Set<number>>(new Set())
-  const [stories, setStories] = useState<StoryAuthor[]>([])
-
   const loadFeed = useCallback(async () => {
     setLoading(true)
     const fetchFn = feedTab === 'following' ? fetchFeed : fetchDiscoverFeed
@@ -38,8 +36,6 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
     )
     setLikedPosts(alreadyLiked)
     setLoading(false)
-    const storiesData = await fetchStories(userId).catch(() => [])
-    setStories(storiesData)
   }, [userId, feedTab])
 
   useEffect(() => {
@@ -139,6 +135,11 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
       <div className="flex items-center justify-between px-4 pt-3 pb-2 md:hidden">
         <h1 className="text-lg font-bold text-slate-900">Feed</h1>
         <div className="flex gap-1.5">
+          {onProgress && (
+            <button onClick={onProgress} className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-colors native-touch-subtle">
+              <TreePine size={20} className="text-slate-500" />
+            </button>
+          )}
           {onDiscover && (
             <button onClick={onDiscover} className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-slate-100 active:bg-slate-200 transition-colors native-touch-subtle">
               <Search size={20} className="text-slate-500" />
@@ -163,36 +164,6 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
           <CreatePostModal userId={userId} onCreated={() => { loadFeed(); onUserUpdated?.() }} />
         </div>
       </div>
-
-      {/* Stories */}
-      {stories.length > 0 && (
-        <div className="px-3 sm:px-0 mb-3 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2.5 pb-1 min-w-0">
-            {stories.map((s) => (
-              <button
-                key={s.user_id}
-                className="flex flex-col items-center gap-1 shrink-0"
-                onClick={() => onViewUser?.(s.user_id)}
-              >
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full p-0.5 ${
-                  s.is_own ? 'bg-slate-300' : 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500'
-                }`}>
-                  <div className="w-full h-full rounded-full bg-white p-0.5 overflow-hidden">
-                    {s.profile_photo ? (
-                      <img src={getImageUrl(s.profile_photo)} className="w-full h-full object-cover rounded-full" alt={s.username} />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-sm">🐺</div>
-                    )}
-                  </div>
-                </div>
-                <span className="text-[10px] text-slate-500 font-medium max-w-[48px] truncate">
-                  {s.is_own ? 'You' : s.username}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Feed Tabs */}
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm px-3 sm:px-0 pb-2 pt-1 -mt-1 border-b border-slate-100 mb-3">
@@ -245,7 +216,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
           <div key={it.post.id} className="space-y-2">
             <PostCard
               id={it.post.id}
-              author={{ id: it.author.id, username: it.author.username, level: it.author.level, city: it.author.city }}
+              author={{ id: it.author.id, username: it.author.username, level: it.author.level, city: it.author.city, profile_photo: it.author.profile_photo }}
               text={it.post.text}
               image_url={it.post.image_url}
               type={it.post.type}
@@ -373,7 +344,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
             timestamp: detailItem.post.timestamp ? new Date(detailItem.post.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined,
             word: detailItem.post.word || null,
           }}
-          author={{ id: detailItem.author.id, username: detailItem.author.username, level: detailItem.author.level, city: detailItem.author.city }}
+          author={{ id: detailItem.author.id, username: detailItem.author.username, level: detailItem.author.level, city: detailItem.author.city, profile_photo: detailItem.author.profile_photo }}
           isLiked={likedPosts.has(detailItem.post.id)}
           currentUserId={userId}
           onClose={() => setDetailPostId(null)}

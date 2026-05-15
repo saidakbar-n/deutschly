@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Heart, MessageCircle, X, Trash2 } from 'lucide-react'
+import { Heart, MessageCircle, X, Trash2, User } from 'lucide-react'
 import { getImageUrl } from '../hooks/useApi'
 import type { PostWord } from './PostCard'
 
@@ -37,7 +37,7 @@ export type PostDetailModalProps = {
     timestamp?: string
     word?: PostWord | null
   }
-  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string }
+  author: { id?: number; username: string; level?: string; city?: string; is_premium?: boolean; premium_status?: string; profile_photo?: string | null }
   isLiked: boolean
   currentUserId: number
   onClose: () => void
@@ -89,8 +89,12 @@ export function PostDetailModal({
         {/* Header */}
         <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-3 sm:p-4 border-b border-slate-100">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-100 to-sky-100 rounded-xl flex items-center justify-center">
-              <span className="text-lg">🐺</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-indigo-100 flex items-center justify-center shrink-0">
+              {author.profile_photo ? (
+                <img src={getImageUrl(author.profile_photo)} className="w-full h-full object-cover" alt={author.username} />
+              ) : (
+                <span className="text-slate-400"><User size={20} /></span>
+              )}
             </div>
             <div>
               <p className="font-semibold text-slate-900 text-sm sm:text-base">

@@ -706,7 +706,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   <div key={p.id} className="w-full">
                     <PostCard
                       id={p.id}
-                      author={{ id: p.user_id, username: user.username, level: user.level, city: user.city }}
+                      author={{ id: p.user_id, username: user.username, level: user.level, city: user.city, profile_photo: user.profile_photo }}
                       text={p.text}
                       image_url={p.image_url}
                       type={p.type}
@@ -914,7 +914,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
             timestamp: detailPost.timestamp ? new Date(detailPost.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : undefined,
             word: detailPost.word || null,
           }}
-          author={{ id: user?.id, username: user?.username || '', level: user?.level, city: user?.city }}
+          author={{ id: user?.id, username: user?.username || '', level: user?.level, city: user?.city, profile_photo: user?.profile_photo }}
           isLiked={likedPosts.has(detailPost.id)}
           currentUserId={currentUser?.id || user?.id || 0}
           onClose={() => { setDetailPostId(null); setDetailComments([]) }}
