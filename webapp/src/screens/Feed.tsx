@@ -212,7 +212,9 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
       </div>
 
       {/* Content */}
-      <div className="px-3 sm:px-0 space-y-3">
+      <div className="px-3 sm:px-0">
+        {/* Mobile/Tablet: single column. Desktop: 2-column grid */}
+        <div className="space-y-3 xl:grid xl:grid-cols-2 xl:gap-3 xl:space-y-0">
         {loading && (
           <div className="flex items-center justify-center py-8">
             <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-qaw-spin" />
@@ -398,6 +400,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
           onDeleteComment={(commentId) => handleDeleteComment(detailItem.post.id, commentId)}
         />
       )}
+      </div>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { Screen } from '../App'
 type NavItem = { key: Screen; label: string }
 
 const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) => {
-  const iconClass = `w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`
+  const iconClass = `w-[18px] h-[18px] ${isActive ? 'text-indigo-600' : 'text-slate-400'}`
   
   switch (screen) {
     case 'feed': return <Home className={iconClass} />
@@ -20,11 +20,6 @@ const NavIcon = ({ screen, isActive }: { screen: Screen; isActive: boolean }) =>
     case 'progress': return <TreePine className={iconClass} />
     default: return null
   }
-}
-
-const LevelBadge = ({ level }: { level?: string }) => {
-  if (!level) return null
-  return <span className={`level-badge level-${level.toLowerCase()}`}>{level}</span>
 }
 
 export function Header({
@@ -45,44 +40,44 @@ export function Header({
   chatUnreadCount?: number
 }) {
   return (
-    <div className="flex items-center gap-3">
-      {/* Desktop: full nav with labels */}
-      <div className="hidden lg:flex items-center gap-1 bg-slate-100 rounded-2xl p-1">
+    <div className="flex items-center gap-2">
+      {/* Tier 3: Desktop — full nav with labels, compact */}
+      <div className="hidden xl:flex items-center gap-0.5 bg-slate-100 rounded-xl p-0.5">
         {nav.map((item) => (
           <button
             key={item.key}
             onClick={() => onNav(item.key)}
-            className={`flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap
               ${active === item.key 
-                ? 'bg-white text-indigo-600 shadow-md' 
-                : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'
+                ? 'bg-white text-indigo-600 shadow-sm' 
+                : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'
               }`}
           >
             <div className="relative">
               <NavIcon screen={item.key} isActive={active === item.key} />
               {item.key === 'notifications' && (unreadCount || 0) > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount! > 9 ? '9+' : unreadCount}
                 </span>
               )}
               {item.key === 'chat' && (chatUnreadCount || 0) > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-indigo-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center">
                   {chatUnreadCount! > 9 ? '9+' : chatUnreadCount}
                 </span>
               )}
             </div>
-            {item.label}
+            <span className="hidden 2xl:inline">{item.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Tablet: icon-only nav */}
-      <div className="flex md:flex lg:hidden items-center gap-1 overflow-x-auto scrollbar-hide scroll-soft max-w-[60vw]">
+      {/* Tier 2: Tablet — icon-only nav, scrollable */}
+      <div className="md:flex xl:hidden items-center gap-0.5 overflow-x-auto scrollbar-hide scroll-soft max-w-[55vw]">
         {nav.map((item) => (
           <button
             key={item.key}
             onClick={() => onNav(item.key)}
-            className={`p-2 rounded-xl transition-all duration-200 relative shrink-0 min-touch-target flex items-center justify-center
+            className={`p-2 rounded-lg transition-all duration-200 relative shrink-0 min-h-[40px] min-w-[40px] flex items-center justify-center
               ${active === item.key 
                 ? 'bg-indigo-100 text-indigo-600' 
                 : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
@@ -91,12 +86,12 @@ export function Header({
           >
             <NavIcon screen={item.key} isActive={active === item.key} />
             {item.key === 'notifications' && (unreadCount || 0) > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center">
                 {unreadCount! > 9 ? '9+' : unreadCount}
               </span>
             )}
             {item.key === 'chat' && (chatUnreadCount || 0) > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-indigo-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center">
                 {chatUnreadCount! > 9 ? '9+' : chatUnreadCount}
               </span>
             )}
@@ -104,15 +99,15 @@ export function Header({
         ))}
       </div>
 
-      {/* Logout + user badge */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Logout */}
+      <div className="flex items-center shrink-0">
         <button 
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm shadow-sm border border-slate-100 
+          className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm shadow-sm border border-slate-100 
                     hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600"
           onClick={onLogout}
           title="Sign out"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
         </button>
       </div>
     </div>

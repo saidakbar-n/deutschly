@@ -723,6 +723,114 @@ pre, code {
 }
 
 /* ============================================
+   Three-Tier Layout System (Mobile / Tablet / Desktop)
+   ============================================ */
+
+/* Content max-widths per tier */
+.content-container {
+  @apply w-full mx-auto;
+}
+
+@media (max-width: 767px) {
+  .content-container { @apply max-w-full px-0; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .content-container { @apply max-w-5xl px-4; }
+}
+
+@media (min-width: 1280px) {
+  .content-container { @apply max-w-7xl px-6; }
+}
+
+/* Card padding per tier */
+.card-padding {
+  @apply p-3;
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .card-padding { @apply p-4; }
+}
+
+@media (min-width: 1280px) {
+  .card-padding { @apply p-5; }
+}
+
+/* Content gap per tier */
+.content-gap {
+  @apply gap-3;
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .content-gap { @apply gap-4; }
+}
+
+@media (min-width: 1280px) {
+  .content-gap { @apply gap-5; }
+}
+
+/* Typography scale per tier */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .text-tier-heading { @apply text-lg; }
+  .text-tier-body { @apply text-sm; }
+  .text-tier-small { @apply text-xs; }
+}
+
+@media (min-width: 1280px) {
+  .text-tier-heading { @apply text-xl; }
+  .text-tier-body { @apply text-sm; }
+  .text-tier-small { @apply text-xs; }
+}
+
+/* Tablet sidebar auto-collapse at narrower widths */
+@media (max-width: 900px) {
+  .sidebar-collapsible {
+    display: none;
+  }
+  .sidebar-collapsible.open {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 300px;
+    background: white;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+}
+
+/* Tablet landscape fine-tuning */
+@media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) {
+  .tablet-landscape-wide {
+    @apply max-w-6xl;
+  }
+}
+
+/* Desktop content density - tighter spacing for productivity */
+@media (min-width: 1280px) {
+  .desktop-dense {
+    @apply leading-snug;
+  }
+  .desktop-card-stack {
+    @apply space-y-3;
+  }
+  .desktop-grid-tight {
+    @apply gap-3;
+  }
+}
+
+/* Simple sidebar toggle for tablet */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 40;
+}
+
+/* ============================================
    Mobile-First Layout Utilities
    ============================================ */
 
