@@ -92,7 +92,7 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
 
         <div className="flex gap-2 px-4 sm:px-0 pb-3 sm:pb-4">
           <input
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
             placeholder="Search users..."
             value={q}
             onChange={(e) => {

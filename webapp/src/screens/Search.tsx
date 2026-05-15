@@ -76,7 +76,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
     <div className="card space-y-3 animate-qaw-fade-in-up">
       <div className="flex flex-col sm:flex-row gap-2">
         <input 
-          className="border rounded-lg p-3 sm:p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base" 
+          className="border rounded-lg p-3 sm:p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base min-h-[48px]" 
           placeholder="Search city or username" 
           value={q} 
           onChange={(e) => setQ(e.target.value)}
@@ -92,7 +92,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
             {['A1','A2','B1','B2','C1'].map(l => <option key={l} value={l}>{l}</option>)}
           </select>
           <button 
-            className="btn-primary whitespace-nowrap px-4 py-2 sm:py-1 text-sm sm:text-base" 
+                className="btn-primary whitespace-nowrap px-4 py-2 sm:py-1 text-sm sm:text-base min-h-[44px] native-touch" 
             onClick={run}
             disabled={loading}
           >
@@ -121,7 +121,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
           return (
             <div
               key={u.id}
-              className="flex items-center justify-between border rounded-xl p-3 hover:bg-slate-50 transition-colors"
+              className="flex items-center justify-between border rounded-xl p-3 hover:bg-slate-50 transition-colors min-h-[52px]"
             >
               <button
                 className="flex items-center gap-3 flex-1 text-left min-w-0"
@@ -166,7 +166,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
                   </button>
                 )}
                 <button
-                  className={`px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 flex-shrink-0 ${
+                  className={`px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 flex-shrink-0 min-h-[44px] native-touch ${
                     isFollowing
                       ? 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       : 'bg-indigo-600 text-white hover:bg-indigo-700'

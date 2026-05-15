@@ -63,11 +63,11 @@ export function FollowersFollowingModal({
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
           <button
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
-            onClick={onClose}
-          >
-            <X size={20} />
-          </button>
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700 native-touch"
+          onClick={onClose}
+        >
+          <X size={20} />
+        </button>
         </div>
 
         {/* Tabs */}
@@ -108,7 +108,7 @@ export function FollowersFollowingModal({
               {displayUsers.map((u) => (
                 <div
                   key={u.id}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-xl"
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-xl min-h-[52px]"
                 >
                   <button
                     className="flex items-center gap-3 flex-1 text-left min-w-0"

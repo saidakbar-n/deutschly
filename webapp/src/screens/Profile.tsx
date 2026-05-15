@@ -392,21 +392,24 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
   }
 
   return (
-    <div className="space-y-6 animate-qaw-fade-in-up">
-      {/* Back Button (for viewing other users) - Responsive */}
+    <div className="space-y-4 md:space-y-6 animate-qaw-fade-in-up pb-4 md:pb-0">
+      {/* Back Button (for viewing other users) */}
       {onBack && (
-        <button
-          className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mb-4 px-2"
-          onClick={onBack}
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="hidden sm:inline">Back to Search</span>
-        </button>
+        <div className="px-4 md:px-0 pt-2">
+          <button
+            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium min-h-[44px] native-touch-subtle"
+            onClick={onBack}
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="hidden sm:inline">Back to Search</span>
+            <span className="sm:hidden text-sm">Back</span>
+          </button>
+        </div>
       )}
 
-      {/* Profile Header - Responsive */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-5 md:p-8">
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+      {/* Profile Header */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 mx-3 md:mx-0 p-5 md:p-8">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-center md:items-start">
           {/* Profile Photo */}
           <div className="shrink-0">
             {isOwnProfile ? (
@@ -442,23 +445,23 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Full Name</label>
-                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                    <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all min-h-[48px]" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Username</label>
-                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value.replace(/[^a-z0-9_]/g, '').slice(0, 30) })} />
+                    <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all min-h-[48px]" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value.replace(/[^a-z0-9_]/g, '').slice(0, 30) })} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Age</label>
-                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
+                    <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all min-h-[48px]" type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">City</label>
-                    <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                    <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all min-h-[48px]" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">German Level</label>
-                    <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value as User['level'] })}>
+                    <select className="w-full border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all min-h-[48px]" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value as User['level'] })}>
                       {['A1', 'A2', 'B1', 'B2', 'C1'].map((l) => (<option key={l} value={l}>{l}</option>))}
                     </select>
                   </div>
@@ -499,10 +502,10 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                     </div>
                   </div>
                 )}
-                <div className="flex justify-center md:justify-end gap-2 pt-1">
-                  <button className="px-5 py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-all text-sm" onClick={() => { setEditMode(false); setForm({ username: user.username, city: user.city || '', level: user.level, full_name: user.full_name || '', about: user.about || '', age: user.age ? String(user.age) : '' }); }}>Cancel</button>
-                  <button className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all text-sm disabled:opacity-50" onClick={save} disabled={status === 'Saving...'}>{status === 'Saving...' ? 'Saving...' : 'Save'}</button>
-                  {status === 'Saved' && <span className="ml-2 text-green-600 text-sm font-medium self-center">Saved!</span>}
+                <div className="flex justify-center md:justify-end gap-3 pt-2">
+                  <button className="flex-1 sm:flex-none px-5 py-3 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-all text-sm min-h-[48px]" onClick={() => { setEditMode(false); setForm({ username: user.username, city: user.city || '', level: user.level, full_name: user.full_name || '', about: user.about || '', age: user.age ? String(user.age) : '' }); }}>Cancel</button>
+                  <button className="flex-1 sm:flex-none px-5 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all text-sm disabled:opacity-50 min-h-[48px]" onClick={save} disabled={status === 'Saving...'}>{status === 'Saving...' ? 'Saving...' : 'Save'}</button>
+                  {status === 'Saved' && <span className="text-green-600 text-sm font-medium self-center">Saved!</span>}
                 </div>
               </div>
             ) : (
@@ -543,15 +546,15 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                   </div>
                 )}
                 {isOwnProfile ? (
-                  <div className="flex justify-center md:justify-end pt-1">
-                    <button className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all duration-200 text-sm" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  <div className="flex justify-center md:justify-end pt-2">
+                    <button className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-md shadow-indigo-200 transition-all text-sm min-h-[48px]" onClick={() => setEditMode(true)}>Edit Profile</button>
                   </div>
                 ) : (
-                  <div className="flex justify-center md:justify-end pt-1 gap-2">
+                  <div className="flex flex-row justify-center md:justify-end pt-2 gap-3">
                     <button
-                      className={`px-6 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm ${
+                      className={`flex-1 sm:flex-none px-6 py-3 font-semibold rounded-xl shadow-md transition-all text-sm min-h-[48px] ${
                         isFollowing
-                          ? 'bg-slate-200 text-slate-600 hover:bg-slate-300 shadow-slate-200'
+                          ? 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                           : 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 shadow-indigo-200'
                       }`}
                       onClick={handleFollowButton}
@@ -560,7 +563,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                       {followLoading ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
                     </button>
                     <button
-                      className="px-4 py-2 font-semibold rounded-xl shadow-md transition-all duration-200 text-sm bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+                      className="flex-1 sm:flex-none px-5 py-3 font-semibold rounded-xl shadow-md transition-all text-sm bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 min-h-[48px]"
                       onClick={() => {
                         if (onOpenChat && user?.id) {
                           onOpenChat(user.id)
@@ -569,7 +572,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                         }
                       }}
                     >
-                      <MessageCircle size={16} />
+                      <MessageCircle size={18} />
                       Message
                     </button>
                   </div>
@@ -580,26 +583,24 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         </div>
       </div>
 
-      {/* Follower and Following Stats Bar - Responsive */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6">
-        <div className="flex flex-row items-center justify-center gap-4 md:gap-8">
-          <div className="flex items-center gap-4 md:gap-8">
-            <button
-              className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors"
-              onClick={() => openFollowersModal('followers')}
-            >
-              <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
-              <p className="text-xs md:text-sm text-slate-600 font-medium">Followers</p>
-            </button>
-            <div className="w-px h-10 md:h-12 bg-slate-200" />
-            <button
-              className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors"
-              onClick={() => openFollowersModal('following')}
-            >
-              <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
-              <p className="text-xs md:text-sm text-slate-600 font-medium">Following</p>
-            </button>
-          </div>
+      {/* Follower and Following Stats Bar */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 mx-3 md:mx-0 p-4 md:p-6">
+        <div className="flex items-center justify-center gap-4 md:gap-8">
+          <button
+            className="flex-1 text-center hover:bg-slate-50 rounded-xl p-3 md:p-3 transition-colors min-h-[52px] flex flex-col items-center justify-center native-touch-subtle"
+            onClick={() => openFollowersModal('followers')}
+          >
+            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
+            <p className="text-xs md:text-sm text-slate-600 font-medium">Followers</p>
+          </button>
+          <div className="w-px h-10 md:h-12 bg-slate-200" />
+          <button
+            className="flex-1 text-center hover:bg-slate-50 rounded-xl p-3 md:p-3 transition-colors min-h-[52px] flex flex-col items-center justify-center native-touch-subtle"
+            onClick={() => openFollowersModal('following')}
+          >
+            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
+            <p className="text-xs md:text-sm text-slate-600 font-medium">Following</p>
+          </button>
         </div>
       </div>
 
@@ -636,12 +637,12 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
         </div>
       )}
 
-      {/* Content Tabs (Posts / Words) - Responsive */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6 lg:p-8">
-        {/* Tab Navigation - Responsive */}
-        <div className="flex border-b border-slate-200 mb-4 md:mb-6 overflow-x-auto">
+      {/* Content Tabs */}
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 mx-3 md:mx-0 p-4 md:p-6 lg:p-8">
+        {/* Tab Navigation - sticky on mobile */}
+        <div className="sticky -top-1 z-10 bg-white flex border-b border-slate-200 mb-4 md:mb-6 overflow-x-auto scrollbar-hide -mx-4 md:mx-0 px-4 md:px-0">
           <button
-            className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
+            className={`px-4 py-3 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap min-h-[44px] ${
               activeTab === 'posts'
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-slate-500 hover:text-slate-700'
@@ -651,7 +652,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
             Posts ({user.posts_count || 0})
           </button>
           <button
-            className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
+            className={`px-4 py-3 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap min-h-[44px] ${
               activeTab === 'words'
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-slate-500 hover:text-slate-700'
@@ -662,7 +663,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           </button>
           {isOwnProfile && (
             <button
-              className={`px-4 py-2 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap ${
+              className={`px-4 py-3 md:px-6 md:py-3 font-semibold text-sm transition-all whitespace-nowrap min-h-[44px] ${
                 activeTab === 'grammar'
                   ? 'text-indigo-600 border-b-2 border-indigo-600'
                   : 'text-slate-500 hover:text-slate-700'
@@ -673,9 +674,9 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
             </button>
           )}
           {(user.streak || 0) > 0 && (
-            <div className="flex items-center gap-1.5 text-orange-600 font-semibold text-sm px-4 py-2">
+            <div className="flex items-center gap-1.5 text-orange-600 font-semibold text-sm px-4 py-2 shrink-0">
               <span>🔥</span>
-              <span>{user.streak} day streak</span>
+              <span className="whitespace-nowrap">{user.streak} day streak</span>
             </div>
           )}
         </div>
@@ -959,17 +960,18 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
           onViewUser={onViewUser}
         />
 
-      {/* Premium Activation Modal */}
+      {/* Premium Activation Modal — bottom sheet on mobile */}
       {showPremiumModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowPremiumModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowPremiumModal(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm sm:m-4 p-6 max-h-[85vh] overflow-y-auto overscroll-contain modal-scroll" onClick={e => e.stopPropagation()}>
+            <div className="bottom-sheet-handle sm:hidden mb-4" />
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Crown size={18} className="text-yellow-500" />
                 Activate Premium
               </h3>
-              <button className="p-1.5 rounded-xl hover:bg-slate-100" onClick={() => setShowPremiumModal(false)}>
+              <button className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors" onClick={() => setShowPremiumModal(false)}>
                 <X size={18} className="text-slate-400" />
               </button>
             </div>
@@ -980,7 +982,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
               {["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"].map(e => (
                 <button
                   key={e}
-                  className={`text-2xl p-2 rounded-xl transition-all ${
+                  className={`w-10 h-10 flex items-center justify-center text-xl rounded-xl transition-all native-touch ${
                     activateEmoji === e ? 'bg-yellow-100 ring-2 ring-yellow-400 scale-110' : 'hover:bg-slate-100'
                   }`}
                   onClick={() => setActivateEmoji(e)}
@@ -990,7 +992,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
               ))}
             </div>
             <button
-              className="w-full btn-primary flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-indigo-200 transition-all active:translate-y-[1px] disabled:opacity-50 flex items-center justify-center gap-2 min-h-[48px]"
               onClick={async () => {
                 if (activating || !wallet || wallet.balance < 100) return
                 setActivating(true)
@@ -1009,9 +1011,9 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
               disabled={activating || !wallet || wallet.balance < 100}
             >
               {activating ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-qaw-spin" />
               ) : (
-                <Check size={16} />
+                <Check size={18} />
               )}
               Activate — 100 ★
             </button>

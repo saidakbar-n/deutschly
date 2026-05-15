@@ -104,6 +104,7 @@ function BatchAddModal({
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
       <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6">
+        <div className="bottom-sheet-handle sm:hidden mb-4" />
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -111,7 +112,7 @@ function BatchAddModal({
             </div>
             <h2 className="text-lg font-bold text-slate-900">Batch Import</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 native-touch min-h-[44px] min-w-[44px] flex items-center justify-center">
             <X size={20} />
           </button>
         </div>
@@ -134,7 +135,7 @@ function BatchAddModal({
         </div>
 
         <textarea
-          className="w-full input-primary resize-none text-sm"
+          className="w-full input-primary resize-none text-base"
           rows={6}
           placeholder="Paste your words here..."
           value={text}
@@ -162,7 +163,7 @@ function BatchAddModal({
         <div className="mb-4">
           <label className="text-sm font-medium text-slate-700 mb-1 block">Save to folder (optional)</label>
           <select
-            className="input-primary text-sm w-full"
+            className="input-primary text-base min-h-[48px] w-full"
             value={selectedFolderId || ''}
             onChange={(e) => setSelectedFolderId(e.target.value ? Number(e.target.value) : null)}
           >
@@ -174,11 +175,11 @@ function BatchAddModal({
         </div>
 
         <div className="flex gap-3">
-          <button className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors" onClick={onClose}>
+          <button className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors min-h-[44px] native-touch" onClick={onClose}>
             Cancel
           </button>
           <button
-            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px] native-touch"
             onClick={submit}
             disabled={parsed.length === 0 || loading}
           >
@@ -241,7 +242,7 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
   if (!open) {
     return (
       <button
-        className="btn-primary w-full flex items-center justify-center gap-2 py-3 md:py-4"
+        className="btn-primary w-full flex items-center justify-center gap-2 py-3 md:py-4 min-h-[48px] native-touch"
         onClick={() => setOpen(true)}
       >
         <Plus size={18} className="md:size-5" />
@@ -258,28 +259,28 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
           <X size={18} className="md:size-5" />
         </button>
       </div>
-      <input
-        className="input-primary text-sm md:text-base"
-        placeholder="German word (e.g. der Hund)"
-        value={term}
-        autoFocus
-        onChange={(e) => setTerm(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
-      />
-      <input
-        className="input-primary text-sm md:text-base"
-        placeholder="Meaning (e.g. the dog)"
-        value={meaning}
-        onChange={(e) => setMeaning(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
-      />
-      <textarea
-        className="input-primary resize-none text-sm md:text-base"
-        placeholder="Your note (optional)"
-        rows={2}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
+          <input
+            className="input-primary text-sm md:text-base text-base min-h-[48px]"
+            placeholder="German word (e.g. der Hund)"
+            value={term}
+            autoFocus
+            onChange={(e) => setTerm(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+          />
+          <input
+            className="input-primary text-sm md:text-base text-base min-h-[48px]"
+            placeholder="Meaning (e.g. the dog)"
+            value={meaning}
+            onChange={(e) => setMeaning(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+          />
+          <textarea
+            className="input-primary resize-none text-sm md:text-base text-base min-h-[48px]"
+            placeholder="Your note (optional)"
+            rows={2}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
       <div className="flex items-center gap-3 py-1">
         <span className={`text-sm font-medium ${isSingular ? 'text-indigo-600' : 'text-slate-400'}`}>Singular</span>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -295,7 +296,7 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
       </div>
       <div className="relative">
         <button
-          className="w-full flex items-center justify-between p-2.5 sm:p-3 border border-slate-200 rounded-lg bg-white text-left hover:border-indigo-300 transition-colors text-sm sm:text-base"
+          className="w-full flex items-center justify-between p-2.5 sm:p-3 border border-slate-200 rounded-lg bg-white text-left hover:border-indigo-300 transition-colors text-sm sm:text-base min-h-[44px] native-touch"
           onClick={() => setFolderDropdownOpen(!folderDropdownOpen)}
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -337,7 +338,7 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
               </>
             )}
             <button
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 border-t border-slate-100 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 border-t border-slate-100 transition-colors min-h-[44px] native-touch"
               onClick={() => {
                 setFolderDropdownOpen(false)
                 onCreateFolder()
@@ -350,7 +351,7 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
         )}
       </div>
       <button
-        className="btn-primary w-full disabled:opacity-50"
+        className="btn-primary w-full disabled:opacity-50 min-h-[48px] native-touch"
         onClick={submit}
         disabled={loading || !term.trim() || !meaning.trim()}
       >
@@ -435,9 +436,10 @@ function FolderManagerModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto p-6">
+        <div className="bottom-sheet-handle sm:hidden mb-4" />
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-slate-900">Manage Folders</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 native-touch min-h-[44px] min-w-[44px] flex items-center justify-center">
             <X size={20} />
           </button>
         </div>
@@ -447,7 +449,7 @@ function FolderManagerModal({
           <h3 className="font-semibold text-slate-900 mb-3">Create New Folder</h3>
           <div className="flex gap-2">
             <input
-              className="flex-1 input-primary"
+              className="flex-1 input-primary text-base min-h-[48px]"
               placeholder="Folder name"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
@@ -462,7 +464,7 @@ function FolderManagerModal({
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border border-slate-200" style={{ backgroundColor: newFolderColor }} />
             </div>
             <button
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 min-h-[44px] native-touch"
               onClick={createFolder}
               disabled={!newFolderName.trim() || loading}
             >
@@ -482,11 +484,11 @@ function FolderManagerModal({
               {editingFolder?.id === folder.id ? (
                 <div className="flex gap-2">
                   <input
-                    className="flex-1 input-primary text-sm"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && updateFolder()}
-                  />
+              className="flex-1 input-primary text-base min-h-[48px]"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && updateFolder()}
+            />
                   <div className="w-6 h-6 rounded-lg cursor-pointer" style={{ backgroundColor: editColor }} onClick={() => setEditColor(editColor === colors[0] ? colors[1] : colors[0])} />
                   <button
                     className="p-1 text-green-600 hover:bg-green-50 rounded-lg"
@@ -537,7 +539,7 @@ function FolderManagerModal({
         </div>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-100">
-          <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200" onClick={onClose}>
+          <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 min-h-[44px] native-touch" onClick={onClose}>
             Close
           </button>
         </div>
@@ -863,27 +865,27 @@ function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz, onS
         </div>
         {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
       </div>
-      <div className="px-4 pb-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
+        <div className="px-4 pb-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
         <button
-          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1 min-h-[44px] native-touch"
           onClick={(e) => { e.stopPropagation(); onAddWord(folder.id) }}
         >
           <Plus size={12} className="sm:size-[14]" /> Add
         </button>
         <button
-          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1 min-h-[44px] native-touch"
           onClick={(e) => { e.stopPropagation(); onBatchAdd(folder.id) }}
         >
           <Upload size={12} className="sm:size-[14]" /> Batch
         </button>
         <button
-          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors flex items-center gap-1"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors flex items-center gap-1 min-h-[44px] native-touch"
           onClick={(e) => { e.stopPropagation(); onStartFlashcards(folder.id, folder.name) }}
         >
           <Brain size={12} className="sm:size-[14]" /> Cards
         </button>
         <button
-          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1 min-h-[44px] native-touch"
           onClick={(e) => { e.stopPropagation(); onStartFolderQuiz(words) }}
         >
           <Sparkles size={12} className="sm:size-[14]" /> Quiz
@@ -926,7 +928,7 @@ function UncategorizedSection({ words, userId, onDelete, onStartQuiz }: {
         <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
           {words.length >= 3 && (
             <button
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200 min-h-[44px] native-touch"
               onClick={(e) => { e.stopPropagation(); onStartQuiz(words) }}
             >
               🧠 Quiz uncategorized ({words.length} words)
@@ -1145,7 +1147,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
 
       {flashcardStats && flashcardStats.due > 0 && (
         <button
-          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-1.5 sm:gap-2 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200 text-sm sm:text-base"
+          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-1.5 sm:gap-2 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200 text-sm sm:text-base min-h-[48px] native-touch"
           onClick={() => {
             setFlashcardFolderId(undefined)
             setFlashcardFolderName('All Words')
@@ -1159,7 +1161,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
       {/* Tabs - Responsive */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-hide">
         <button
-          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap native-touch ${
             tab === 'mine' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('mine')}
@@ -1173,7 +1175,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
           )}
         </button>
         <button
-          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap native-touch ${
             tab === 'community' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('community')}
@@ -1182,7 +1184,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
           <span className="sm:inline">Community</span>
         </button>
         <button
-          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap native-touch ${
             tab === 'history' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('history')}
@@ -1211,7 +1213,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
                 <p className="text-sm text-slate-500 mt-1">Create a folder to organize your words and start studying</p>
               </div>
               <button
-                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200 text-sm sm:text-base"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200 text-sm sm:text-base min-h-[48px] native-touch"
                 onClick={() => setFolderModalOpen(true)}
               >
                 <FolderPlus size={16} className="sm:size-[18]" /> Create First Folder
@@ -1232,14 +1234,14 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
             <div className="flex items-stretch gap-2">
               {myWords.length >= 3 && (
                 <button
-                  className="flex-1 py-2.5 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
-                  onClick={() => setQuizMode(true)}
+              className="flex-1 py-2.5 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200 min-h-[44px] native-touch"
+              onClick={() => setQuizMode(true)}
                 >
                   <Sparkles size={14} className="sm:size-[15]" /> Quiz All ({myWords.length})
                 </button>
               )}
               <button
-                className="py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all"
+                className="py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all min-h-[44px] native-touch"
                 onClick={() => setFolderModalOpen(true)}
               >
                 <Folder size={14} className="sm:size-[15]" /> Manage
@@ -1304,7 +1306,7 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
               <p className="text-indigo-200 mt-1">{wordOfDay.meaning}</p>
               {!savedIds.has(wordOfDay.id) ? (
                 <button
-                  className="mt-3 bg-white/20 hover:bg-white/30 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  className="mt-3 bg-white/20 hover:bg-white/30 text-white text-sm px-3 py-1.5 rounded-lg transition-colors min-h-[44px] native-touch"
                   onClick={() => handleSave(wordOfDay)}
                 >
                   + Save to my words

@@ -66,7 +66,7 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
               {LEVELS.map((l) => (
                 <button
                   key={l.value}
-                  className={`flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all ${
+                  className={`flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all min-h-[48px] native-touch ${
                     level === l.value
                       ? 'border-indigo-500 bg-indigo-50'
                       : 'border-slate-200 hover:border-indigo-200'
@@ -82,7 +82,7 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
               ))}
             </div>
             <button
-              className="btn-primary w-full"
+              className="btn-primary w-full min-h-[48px] native-touch"
               onClick={handleLevelNext}
               disabled={loading}
             >
@@ -101,14 +101,14 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
             </div>
             <div className="space-y-3">
               <input
-                className="input-primary"
+                className="input-primary text-base min-h-[48px]"
                 placeholder="German word (e.g. der Hund)"
                 value={term}
                 autoFocus
                 onChange={(e) => setTerm(e.target.value)}
               />
               <input
-                className="input-primary"
+                className="input-primary text-base min-h-[48px]"
                 placeholder="Meaning (e.g. the dog)"
                 value={meaning}
                 onChange={(e) => setMeaning(e.target.value)}
@@ -116,11 +116,11 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
               />
             </div>
             <div className="flex gap-3">
-              <button className="btn-secondary flex-1" onClick={() => setStep(3)}>
+              <button className="btn-secondary flex-1 min-h-[48px] native-touch" onClick={() => setStep(3)}>
                 Skip
               </button>
               <button
-                className="btn-primary flex-1"
+                className="btn-primary flex-1 min-h-[48px] native-touch"
                 onClick={handleWordNext}
                 disabled={loading}
               >
@@ -145,7 +145,7 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
               <p className="text-sm text-slate-600">🌍 Follow other German learners</p>
             </div>
             <button
-              className="btn-primary w-full text-lg py-4"
+              className="btn-primary w-full text-lg py-4 min-h-[48px] native-touch"
               onClick={handleDone}
               disabled={loading}
             >

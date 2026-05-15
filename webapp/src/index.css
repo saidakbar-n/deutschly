@@ -723,6 +723,104 @@ pre, code {
 }
 
 /* ============================================
+   Mobile-First Layout Utilities
+   ============================================ */
+
+/* iPhone SE / small devices (320-375px) */
+@media (max-width: 375px) {
+  .text-responsive-xs { font-size: 0.75rem; }
+  .text-responsive-sm { font-size: 0.8125rem; }
+  .text-responsive-base { font-size: 0.875rem; }
+  .p-responsive { padding: 0.625rem; }
+  .gap-responsive { gap: 0.5rem; }
+}
+
+/* iPhone standard (376-414px) */
+@media (min-width: 376px) and (max-width: 414px) {
+  .text-responsive-xs { font-size: 0.8125rem; }
+  .text-responsive-sm { font-size: 0.875rem; }
+  .text-responsive-base { font-size: 0.9375rem; }
+}
+
+/* iPhone Plus/Max (415px+) */
+@media (min-width: 415px) and (max-width: 767px) {
+  .text-responsive-xs { font-size: 0.875rem; }
+  .text-responsive-sm { font-size: 0.9375rem; }
+  .text-responsive-base { font-size: 1rem; }
+}
+
+/* Safe area padding for bottom navigation */
+.safe-area-bottom-nav {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Mobile container - full bleed without horizontal scroll */
+.mobile-container {
+  @apply w-full max-w-full overflow-x-hidden;
+}
+
+/* Card with no horizontal padding on mobile */
+.mobile-card {
+  @apply bg-white rounded-2xl shadow-lg shadow-slate-100 border border-slate-100;
+}
+
+/* Native-feeling list item */
+.mobile-list-item {
+  @apply flex items-center gap-3 px-4 py-3.5 active:bg-slate-50 transition-colors tap-highlight-transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Bottom sheet handle */
+.bottom-sheet-handle {
+  @apply w-10 h-1 rounded-full bg-slate-300 mx-auto;
+}
+
+/* Sticky bottom action bar */
+.sticky-bottom-bar {
+  @apply fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 z-30 px-4 pb-safe pt-3;
+}
+
+/* Page header for mobile */
+.mobile-page-header {
+  @apply flex items-center justify-between px-4 py-3;
+}
+
+/* Content area with proper bottom spacing for nav */
+.mobile-content {
+  @apply pb-safe;
+}
+
+/* Better overflow scroll for modals */
+.modal-scroll {
+  @apply overflow-y-auto overscroll-contain scroll-soft;
+}
+
+/* ============================================
+   Native Touch Feedback
+   ============================================ */
+.native-touch {
+  -webkit-tap-highlight-color: transparent;
+  @apply active:scale-[0.97] transition-transform duration-150;
+}
+
+.native-touch-subtle {
+  -webkit-tap-highlight-color: transparent;
+  @apply active:opacity-70 transition-opacity duration-150;
+}
+
+/* ============================================
+   Pull-to-refresh indicator
+   ============================================ */
+@keyframes qawPullIndicator {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.pull-indicator {
+  animation: qawPullIndicator 1s ease-in-out infinite;
+}
+
+/* ============================================
    Reduced Motion
    ============================================ */
 @media (prefers-reduced-motion: reduce) {

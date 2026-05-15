@@ -115,7 +115,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={closeModal}
     >
       <div
@@ -126,11 +126,12 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
 
       <div
         ref={(el) => { if (el && visible) el.scrollTop = 0 }}
-        className={`relative bg-white rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col p-4 sm:p-6 max-h-[85vh] overflow-y-auto overscroll-contain transition-all duration-200 ease-out ${
+        className={`relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-slate-300 w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col p-4 sm:p-6 max-h-[85vh] overflow-y-auto overscroll-contain transition-all duration-200 ease-out pb-safe ${
           visible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.97] translate-y-4'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="bottom-sheet-handle sm:hidden mb-4" />
         {/* Header */}
         <div className="flex justify-between items-center mb-4 sm:mb-6 pt-2">
           <h2 className="text-xl sm:text-2xl font-bold text-gradient-indigo">New Post</h2>
@@ -294,7 +295,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
         {/* Action Buttons */}
         <div className="flex gap-2 sm:gap-4 sticky bottom-0 bg-white pt-3 pb-3 sm:pb-1 border-t border-slate-100 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <button
-            className="flex-1 btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
+            className="flex-1 btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base min-h-[48px] native-touch"
             onClick={closeModal}
             disabled={loading}
           >
@@ -302,7 +303,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
             Cancel
           </button>
           <button
-            className="flex-1 btn-primary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
+            className="flex-1 btn-primary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base min-h-[48px] native-touch"
             onClick={submit}
             disabled={loading || !text.trim()}
           >

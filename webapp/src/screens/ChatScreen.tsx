@@ -59,8 +59,8 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
   }
 
   return (
-    <div className="relative">
-      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-0 pointer-events-none absolute inset-0 -translate-x-4' : 'opacity-100'}`}>
+    <div className="min-h-0 sm:relative">
+      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-0 pointer-events-none absolute inset-0 -translate-x-4 sm:relative sm:opacity-100 sm:pointer-events-auto sm:translate-x-0' : 'opacity-100'}`}>
         <ChatList
           refreshTrigger={refreshKey}
           user={user}
@@ -69,7 +69,7 @@ export default function ChatScreen({ user, initialConvId, initialOtherUserId, in
         />
       </div>
 
-      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none absolute inset-0 translate-x-4'}`}>
+      <div className={`transition-all duration-300 ease-in-out ${view === 'conversation' ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none absolute inset-0 translate-x-4 sm:relative sm:opacity-100 sm:pointer-events-auto sm:translate-x-0'}`}>
         {view === 'conversation' && activeConvId && activeOtherUserId && (
           <ChatConversation
             user={user}

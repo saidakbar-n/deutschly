@@ -170,7 +170,7 @@ export function Notifications({ user }: { user: User }) {
               <button
                 key={n.id}
                 onClick={() => isUnread && handleMarkRead(n.id)}
-                className={`flex justify-between items-center w-full p-3 rounded-xl text-left transition-colors
+                className={`flex justify-between items-center w-full p-3 py-3.5 rounded-xl text-left transition-colors min-h-[52px]
                   ${isUnread ? 'bg-indigo-50/50 border border-indigo-100 hover:bg-indigo-50' : 'border border-transparent hover:bg-slate-50'}`}
               >
                 <div className="flex items-center gap-3">

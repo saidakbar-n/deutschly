@@ -85,6 +85,7 @@ export function PostDetailModal({
         className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="bottom-sheet-handle sm:hidden mb-4 mt-2" />
         {/* Header */}
         <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-3 sm:p-4 border-b border-slate-100">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -103,12 +104,12 @@ export function PostDetailModal({
           </div>
           <div className="flex items-center gap-2">
             {isMine && onDelete && (
-              <button className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors" onClick={onDelete}>Delete</button>
+              <button className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors min-h-[36px] native-touch" onClick={onDelete}>Delete</button>
             )}
             {!isMine && onFollow && (
-              <button className="text-xs text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded-lg transition-colors" onClick={onFollow}>Follow</button>
+              <button className="text-xs text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded-lg transition-colors min-h-[36px] native-touch" onClick={onFollow}>Follow</button>
             )}
-            <button className="p-1.5 rounded-xl hover:bg-slate-100 transition-colors" onClick={onClose}>
+            <button className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors native-touch" onClick={onClose}>
               <X size={18} className="text-slate-500" />
             </button>
           </div>
@@ -163,7 +164,7 @@ export function PostDetailModal({
           {/* Actions */}
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-1.5 text-slate-600 hover:text-red-500 transition-colors" onClick={onLike}>
+              <button className="flex items-center gap-1.5 text-slate-600 hover:text-red-500 transition-colors min-h-[44px] native-touch" onClick={onLike}>
                 <Heart size={18} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
                 <span className="text-sm font-medium">{post.likes || 0}</span>
               </button>
@@ -184,13 +185,13 @@ export function PostDetailModal({
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <div className="flex gap-2">
                 <input
-                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                  className="flex-1 border rounded-lg px-3 py-2 text-base min-h-[44px]"
                   placeholder="Write a comment..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleComment()}
                 />
-                <button className="btn-primary px-4" onClick={handleComment} disabled={!commentText.trim()}>
+                <button className="btn-primary px-4 min-h-[44px] native-touch" onClick={handleComment} disabled={!commentText.trim()}>
                   Send
                 </button>
               </div>

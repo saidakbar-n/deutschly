@@ -171,28 +171,28 @@ export default function FlashcardMode({ user, folderId, folderName, onExit, onCo
           <p className="text-xs text-slate-400 text-center font-medium">How well did you know it?</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
-              className="py-3 px-2 rounded-2xl bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition-colors border border-red-100 text-xs sm:text-sm flex flex-col items-center gap-1"
+              className="py-3 px-2 rounded-2xl bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition-colors border border-red-100 text-xs sm:text-sm flex flex-col items-center gap-1 min-h-[48px] native-touch"
               onClick={() => handleRate(0)}
             >
               <ThumbsDown size={14} className="sm:size-[16]" />
               <span>Again</span>
             </button>
             <button
-              className="py-3 px-2 rounded-2xl bg-orange-50 text-orange-600 font-semibold hover:bg-orange-100 transition-colors border border-orange-100 text-xs sm:text-sm flex flex-col items-center gap-1"
+              className="py-3 px-2 rounded-2xl bg-orange-50 text-orange-600 font-semibold hover:bg-orange-100 transition-colors border border-orange-100 text-xs sm:text-sm flex flex-col items-center gap-1 min-h-[48px] native-touch"
               onClick={() => handleRate(1)}
             >
               <Sparkles size={14} className="sm:size-[16]" />
               <span>Hard</span>
             </button>
             <button
-              className="py-3 px-2 rounded-2xl bg-green-50 text-green-700 font-semibold hover:bg-green-100 transition-colors border border-green-100 text-xs sm:text-sm flex flex-col items-center gap-1"
+              className="py-3 px-2 rounded-2xl bg-green-50 text-green-700 font-semibold hover:bg-green-100 transition-colors border border-green-100 text-xs sm:text-sm flex flex-col items-center gap-1 min-h-[48px] native-touch"
               onClick={() => handleRate(2)}
             >
               <ThumbsUp size={14} className="sm:size-[16]" />
               <span>Good</span>
             </button>
             <button
-              className="py-3 px-2 rounded-2xl bg-indigo-50 text-indigo-600 font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100 text-xs sm:text-sm flex flex-col items-center gap-1"
+              className="py-3 px-2 rounded-2xl bg-indigo-50 text-indigo-600 font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100 text-xs sm:text-sm flex flex-col items-center gap-1 min-h-[48px] native-touch"
               onClick={() => handleRate(3)}
             >
               <Brain size={14} className="sm:size-[16]" />

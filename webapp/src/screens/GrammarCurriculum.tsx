@@ -137,7 +137,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
           <p className="text-sm text-red-600">Revisit patterns you got wrong</p>
         </div>
         <button
-          className="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
+          className="          bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors min-h-[44px] native-touch"
           onClick={() => { setMistakeReplay(true); setActiveChapter(null); setView('practicing') }}
         >
           Review →
@@ -149,7 +149,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
         {levels.map(level => (
           <button
             key={level}
-            className={`flex-1 min-w-[48px] px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-[48px] px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
               activeLevel === level ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
             }`}
             onClick={() => setActiveLevel(level)}
@@ -161,9 +161,9 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
 
       {/* Quick Start Button */}
       <button
-        className="w-full mb-6 py-4 px-6 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-semibold flex items-center justify-center gap-3 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200 disabled:opacity-50"
-        onClick={handleQuickStart}
-        disabled={quickStartLoading}
+          className="w-full mb-6 py-4 px-6 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-semibold flex items-center justify-center gap-3 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200 disabled:opacity-50 min-h-[48px] native-touch"
+          onClick={handleQuickStart}
+          disabled={quickStartLoading}
       >
         {quickStartLoading ? (
           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -229,7 +229,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
             return (
               <button
                 key={chapter.id}
-                className={`w-full text-left p-4 rounded-xl border transition-all ${
+                className={`w-full text-left p-4 rounded-xl border transition-all min-h-[44px] ${
                   status === 'locked'
                     ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
                     : status === 'completed'
@@ -304,8 +304,9 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
 
       {/* Retake Confirmation Modal */}
       {retakeChapter && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto">
+        <div         className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-qaw-fade-in-up">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-6 mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto">
+            <div className="bottom-sheet-handle sm:hidden mb-4" />
             <div className="text-center">
               <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={28} className="text-amber-600" />
@@ -320,13 +321,13 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
             </div>
             <div className="flex gap-3">
               <button
-                className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+                className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors min-h-[44px] native-touch"
                 onClick={() => setRetakeChapter(null)}
               >
                 Cancel
               </button>
               <button
-                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 min-h-[44px] native-touch"
                 onClick={handleRetake}
                 disabled={retakeLoading}
               >

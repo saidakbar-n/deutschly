@@ -152,7 +152,7 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
   }
 
   return (
-    <div className="card p-0 flex flex-col h-[70dvh] sm:h-[600px] min-h-[400px]">
+    <div className="card p-0 flex flex-col h-[85dvh] sm:h-[600px] min-h-[400px]">
       <div className="flex items-center gap-3 px-3 py-3 sm:px-4 sm:py-4 border-b border-slate-200 pt-safe">
         <button className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-1 rounded-xl hover:bg-slate-100 transition-colors active:bg-slate-200 tap-highlight-transparent" onClick={onBack}>
           <ArrowLeft size={22} className="text-slate-600" />
@@ -251,11 +251,11 @@ export function ChatConversation({ user, conversationId, otherUserId, otherUsern
           )}
         </div>
       )}
-      <div className="border-t border-slate-200 px-3 py-3 sm:px-4 sm:py-4 safe-area-inset-bottom">
+      <div className="border-t border-slate-200 px-3 py-3 sm:px-4 sm:py-4 pb-safe">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[44px]"
             placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}

@@ -292,11 +292,11 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
               <p className="text-sm text-green-600 mt-1">The next chapter is now unlocked</p>
             </div>
           )}
-          <button className="btn-primary" onClick={loadExercises}>
+          <button className="btn-primary min-h-[44px] native-touch" onClick={loadExercises}>
             Practice Again
           </button>
           {onExit && (
-            <button className="btn-secondary mt-2 mx-auto" onClick={onExit}>
+            <button className="btn-secondary mt-2 mx-auto min-h-[44px] native-touch" onClick={onExit}>
               Back to Curriculum
             </button>
           )}
@@ -326,7 +326,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
           <div className="flex items-center gap-3">
             {onExit && (
               <button
-                className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600 min-h-[44px] min-w-[44px] flex items-center justify-center native-touch"
                 onClick={handleQuit}
                 title="Save & quit"
               >
@@ -342,7 +342,7 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
           </div>
           {!chapterId && (
             <button
-              className="text-sm text-red-600 hover:underline"
+              className="text-sm text-red-600 hover:underline min-h-[44px] flex items-center native-touch"
               onClick={() => {
                 setQuizType('mistake-replay')
                 loadExercises()
@@ -375,11 +375,11 @@ export default function GrammarPracticer({ user, chapterId, chapterTitle, onExit
 
       {readyToAdvance && (
         <button
-          className="btn-primary w-full mt-6 text-lg py-3"
-          onClick={handleNext}
-        >
-          {currentIndex < exercises.length - 1 ? 'Next Question →' : 'See Results →'}
-        </button>
+        className="btn-primary w-full mt-6 text-lg py-3 min-h-[48px] native-touch"
+        onClick={handleNext}
+      >
+        {currentIndex < exercises.length - 1 ? 'Next Question →' : 'See Results →'}
+      </button>
       )}
     </div>
   )

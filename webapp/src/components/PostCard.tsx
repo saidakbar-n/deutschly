@@ -16,7 +16,7 @@ function ReactionPicker({ onReact }: { onReact: (emoji: string) => void }) {
   return (
     <div className="relative">
       <button
-        className="px-2 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-yellow-500 hover:border-yellow-300 hover:bg-yellow-50 text-sm transition-all"
+        className="px-2 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:text-yellow-500 hover:border-yellow-300 hover:bg-yellow-50 text-sm transition-all min-h-[36px] native-touch"
         onClick={() => setOpen(o => !o)}
       >
         ✦ React
@@ -142,7 +142,7 @@ export function PostCard({
         <div className="flex items-center gap-1 sm:gap-2 sm:ml-auto" onClick={(e) => e.stopPropagation()}>
           {!isMine && onFollow && (
             <button 
-              className="text-indigo-600 text-xs sm:text-sm flex items-center gap-1 hover:bg-indigo-50 px-2 sm:px-3 py-1.5 rounded-xl transition-colors"
+              className="              text-indigo-600 text-xs sm:text-sm flex items-center gap-1 hover:bg-indigo-50 px-2 sm:px-3 py-1.5 rounded-xl transition-colors min-h-[44px] native-touch"
               onClick={onFollow}
             >
               <UserPlus size={14} className="sm:hidden" /><UserPlus size={16} className="hidden sm:inline" /> <span className="hidden sm:inline">Follow</span>
@@ -150,7 +150,7 @@ export function PostCard({
           )}
           {isMine && onDelete && (
             <button 
-              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-red-500 transition-colors"
+              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-red-500 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center native-touch"
               onClick={onDelete}
             >
               <Trash2 size={14} className="sm:hidden" /><Trash2 size={16} className="hidden sm:inline" />
@@ -199,7 +199,7 @@ export function PostCard({
         <div className="flex flex-row items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 sm:gap-6">
           <button 
-            className="flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-red-500 transition-colors group"
+            className="flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-red-500 transition-colors group min-h-[40px] min-w-[40px] native-touch"
             onClick={onLike}
           >
             <div className={`p-1.5 sm:p-2 rounded-xl transition-colors ${isLiked ? 'bg-red-50' : 'bg-slate-100 group-hover:bg-red-50'}`}>
@@ -209,7 +209,7 @@ export function PostCard({
           </button>
           
           <button 
-            className={`flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-indigo-500 transition-colors group
+            className={`flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-indigo-500 transition-colors group min-h-[40px] min-w-[40px] native-touch
               ${commentsOpen ? 'text-indigo-600' : ''}`}
             onClick={onComment}
           >

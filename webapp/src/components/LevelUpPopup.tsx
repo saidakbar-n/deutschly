@@ -41,7 +41,7 @@ export default function LevelUpPopup() {
 
         <button
           onClick={dismissPopup}
-          className="w-full btn-primary py-3"
+          className="w-full btn-primary py-3 min-h-[48px] native-touch"
         >
           Awesome!
         </button>

@@ -143,8 +143,8 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
             {availableSuggestions.map((u) => (
               <button
                 key={u.id}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors text-left min-h-[60px]"
-                onClick={() => handleStartChat(u.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors text-left min-h-[56px]"
+                  onClick={() => handleStartChat(u.id)}
               >
                 {u.profile_photo ? (
                   <img src={getImageUrl(u.profile_photo)} alt={u.username} className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0" />
@@ -238,7 +238,7 @@ export function ChatList({ user, refreshTrigger = 0, onSelectConversation, onSta
               {acceptedConversations.map((conv) => (
                 <button
                   key={conv.id}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left min-h-[64px]"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left min-h-[56px]"
                   onClick={() => onSelectConversation(conv.id, conv.other_user.id, conv.other_user.username, conv.other_user.profile_photo, conv.other_user.full_name, conv.other_user.is_online, conv.other_user.is_premium, conv.other_user.premium_status)}
                 >
                   {conv.other_user.profile_photo ? (

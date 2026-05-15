@@ -102,7 +102,7 @@ function NoteCard({ note, userId, onUpdate, onDelete }: NoteCardProps) {
           {Object.entries(COLOR_CONFIG).map(([color, c]) => (
             <button
               key={color}
-              className={`w-4 h-4 rounded-full ${c.dot} ${note.color === color ? 'ring-2 ring-offset-1 ring-slate-400' : ''}`}
+               className={`w-10 h-10 rounded-full ${c.dot} ${note.color === color ? 'ring-2 ring-offset-1 ring-slate-400' : ''}`}
               onClick={() => changeColor(color)}
               title={color}
             />
@@ -229,30 +229,30 @@ export default function NotesScreen({ user }: NotesScreenProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900">Notes</h2>
         <button
-          className="btn-primary flex items-center gap-1.5 text-sm py-2 px-4"
-          onClick={() => setCreating(true)}
+               className="btn-primary flex items-center gap-1.5 text-sm py-2 px-4 min-h-[44px] native-touch"
+               onClick={() => setCreating(true)}
         >
           <Plus size={16} /> New note
         </button>
       </div>
 
-      <input
-        className="input-primary text-sm"
-        placeholder="Search notes..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+          <input
+            className="input-primary text-base min-h-[48px]"
+            placeholder="Search notes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
       {creating && (
         <div className="card space-y-3 border-2 border-indigo-200 bg-indigo-50">
           <input
-            className="input-primary text-sm"
+            className="input-primary text-base min-h-[48px]"
             placeholder="Title (optional)"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
           />
           <textarea
-            className="w-full input-primary text-sm resize-none"
+            className="w-full input-primary text-base min-h-[48px] resize-none"
             placeholder="Write your note..."
             rows={4}
             value={newContent}
@@ -264,7 +264,7 @@ export default function NotesScreen({ user }: NotesScreenProps) {
               {Object.entries(COLOR_CONFIG).map(([color, c]) => (
                 <button
                   key={color}
-                  className={`w-5 h-5 rounded-full ${c.dot} ${newColor === color ? 'ring-2 ring-offset-1 ring-slate-500' : ''}`}
+                  className={`w-10 h-10 rounded-full ${c.dot} ${newColor === color ? 'ring-2 ring-offset-1 ring-slate-500' : ''}`}
                   onClick={() => setNewColor(color)}
                 />
               ))}

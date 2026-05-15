@@ -175,8 +175,8 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
                   <span className="text-2xl font-bold text-yellow-500">{wallet.balance}</span>
                 </h3>
                 <button
-                  className="btn-primary text-sm py-2 px-4"
-                  onClick={() => setShowStoreModal(true)}
+              className="btn-primary text-sm py-2 px-4 min-h-[44px] native-touch"
+              onClick={() => setShowStoreModal(true)}
                 >
                   Get Stars
                 </button>
@@ -193,8 +193,8 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
                 </div>
               ) : (
                 <button
-                  className="w-full py-3 border-2 border-dashed border-yellow-300 rounded-2xl text-yellow-600 font-medium text-sm hover:bg-yellow-50 transition-colors"
-                  onClick={() => setShowPremiumModal(true)}
+              className="w-full py-3 border-2 border-dashed border-yellow-300 rounded-2xl text-yellow-600 font-medium text-sm hover:bg-yellow-50 transition-colors min-h-[44px] native-touch"
+              onClick={() => setShowPremiumModal(true)}
                 >
                   ✦ Activate Premium Status — 100 stars / 30 days
                 </button>
@@ -206,9 +206,10 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
 
       {/* Store Modal */}
       {showStoreModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowStoreModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowStoreModal(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bottom-sheet-handle sm:hidden mb-4" />
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <ShoppingCart size={18} className="text-yellow-500" />
@@ -222,7 +223,7 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
               {packages.map(pkg => (
                 <button
                   key={pkg.id}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all"
+                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all min-h-[44px] native-touch"
                   onClick={() => handlePurchase(pkg)}
                   disabled={purchaseLoading}
                 >
@@ -244,9 +245,10 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
 
       {/* Premium Modal */}
       {showPremiumModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowPremiumModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowPremiumModal(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bottom-sheet-handle sm:hidden mb-4" />
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Crown size={18} className="text-yellow-500" />
@@ -273,7 +275,7 @@ export default function ProgressScreen({ user }: ProgressScreenProps) {
               ))}
             </div>
             <button
-              className="w-full btn-primary flex items-center justify-center gap-2"
+              className="w-full btn-primary flex items-center justify-center gap-2 min-h-[48px] native-touch"
               onClick={handleActivatePremium}
               disabled={premiumLoading || !wallet || wallet.balance < 100}
             >
