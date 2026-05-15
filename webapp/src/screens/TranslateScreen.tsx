@@ -187,9 +187,9 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
     <div className="space-y-4 p-3 sm:p-0 animate-qaw-fade-in-up">
       <h2 className="text-xl font-bold text-slate-900">Translate</h2>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <select
-          className="flex-1 input-primary text-sm py-2"
+          className="flex-1 input-primary text-xs sm:text-sm py-2 px-2 sm:px-3"
           value={sourceLang}
           onChange={(e) => {
             const newSource = e.target.value
@@ -206,15 +206,15 @@ export default function TranslateScreen({ user, onUserUpdated }: TranslateScreen
         </select>
 
         <button
-          className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+          className="p-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors shrink-0"
           onClick={swapLanguages}
           title="Swap languages"
         >
-          <ArrowLeftRight size={18} />
+          <ArrowLeftRight size={16} className="sm:size-[18]" />
         </button>
 
         <select
-          className="flex-1 input-primary text-sm py-2"
+          className="flex-1 input-primary text-xs sm:text-sm py-2 px-2 sm:px-3"
           value={targetLang}
           onChange={(e) => {
             const newTarget = e.target.value

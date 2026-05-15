@@ -133,7 +133,7 @@ function App() {
 
   return (
     <LevelUpProvider>
-      <div className="min-h-screen hero-bg pb-20 md:pb-0" style={{ overflow: 'visible' }}>
+      <div className="min-h-screen min-h-dynamic hero-bg pb-safe md:pb-0" style={{ overflow: 'visible' }}>
       {/* ============================================
           Background Decorative Elements - QA Wolf Style
       ============================================ */}
@@ -146,7 +146,7 @@ function App() {
       {/* Subtle pattern overlay */}
       <div className="fixed inset-0 bg-qaw-pattern pointer-events-none" />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         
         {/* ============================================
             Header - QA Wolf Style
@@ -177,11 +177,11 @@ function App() {
         {/* ============================================
             Main Content Grid - Responsive Layout
         ============================================ */}
-        <div className="grid grid-cols-1 md:grid-cols-[3fr,1fr] lg:grid-cols-[2fr,1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[3fr,1fr] lg:grid-cols-[2fr,1fr] gap-4 md:gap-6">
           
           {/* Main Content Area - Full width on mobile, 3/4 on tablet, 2/3 on desktop */}
-          <div className="space-y-6 w-full min-w-0">
-            <div className="card animate-qaw-fade-in-up break-words" style={{ animationDelay: '0.3s' }}>
+          <div className="space-y-4 md:space-y-6 w-full min-w-0">
+            <div className="card animate-qaw-fade-in-up break-words p-3 sm:p-4 md:p-6" style={{ animationDelay: '0.3s' }}>
               {screen === 'feed' && <Feed key={followVersion} user={user} onDiscover={() => setScreen('search')} onUserUpdated={refresh} onViewUser={(uid) => { setViewedUserId(uid); setScreen('user-profile'); }} onNotifications={() => { setScreen('notifications'); setUnreadCount(0) }} unreadNotifCount={unreadCount} />}
               {screen === 'search' && <Search user={user} onViewUser={(userId) => { setViewedUserId(userId); setScreen('user-profile'); }} onFollow={async (targetId) => { await followUser(targetId, user.id); setFollowVersion(v => v + 1) }} onOpenChat={handleOpenChat} />}
               {screen === 'words' && <Words user={user} onUserUpdated={refresh} />}
@@ -212,7 +212,7 @@ function App() {
           <div className="space-y-4 hidden md:block">
             
             {/* Quick Stats */}
-            <div className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="card p-4 animate-qaw-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
                 <svg className="w-5 h-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 3 L15 9 L21 12 L15 15 L12 21 L9 15 L3 12 L9 9 L12 3" />
@@ -280,9 +280,9 @@ function App() {
         </button>
       </div>
 
-      {/* Mobile Bottom Navigation - All items, compact fit */}
+      {/* Mobile Bottom Navigation - larger touch targets, safe-area aware */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 md:hidden z-40 safe-area-inset-bottom">
-        <div className="flex items-center px-1 py-1.5">
+        <div className="flex items-center overflow-x-auto scrollbar-hide px-0.5">
             {[
               { key: 'feed' as Screen, icon: Home, label: 'Feed' },
               { key: 'search' as Screen, icon: Compass, label: 'Discover' },
@@ -301,26 +301,26 @@ function App() {
               <button
                 key={item.key}
                 onClick={() => { setScreen(item.key); if (item.key === 'notifications') setUnreadCount(0); if (item.key !== 'chat') { setChatTargetConvId(null); setChatTargetUserId(null) } }}
-                className={`flex flex-col items-center gap-0 py-1 px-1.5 rounded-xl transition-colors flex-1 min-w-0 ${
+                className={`flex flex-col items-center justify-center gap-0 py-1.5 min-w-[56px] min-h-[52px] rounded-xl transition-colors shrink-0 tap-highlight-transparent touch-manipulation ${
                   isActive
                     ? 'text-indigo-600 bg-indigo-50'
                     : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 <div className="relative">
-                  <Icon size={18} />
+                  <Icon size={20} />
                   {item.key === 'chat' && chatUnreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-indigo-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                       {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                     </span>
                   )}
                   {item.key === 'notifications' && unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </div>
-                <span className="text-[9px] font-semibold leading-tight whitespace-nowrap">{item.label}</span>
+                <span className="text-[10px] font-semibold leading-tight whitespace-nowrap mt-0.5">{item.label}</span>
               </button>
             )
           })}

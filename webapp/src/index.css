@@ -12,6 +12,8 @@ body {
   color: #0f172a;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
 
 /* ============================================
@@ -506,6 +508,44 @@ body {
   background: #94a3b8;
 }
 
+/* Prevent iOS zoom on input focus */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: inherit;
+  }
+}
+
+/* Dynamic viewport height for mobile browsers */
+.min-h-dynamic {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-dynamic {
+  height: 100vh;
+  height: 100dvh;
+}
+
 /* Responsive Overflow Protection */
 img {
   max-width: 100%;
@@ -637,4 +677,67 @@ pre, code {
 
 .will-change-opacity {
   will-change: opacity;
+}
+
+/* ============================================
+   Touch Target Utilities
+   ============================================ */
+.min-touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* ============================================
+   Safe Area Utilities
+   ============================================ */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+.pl-safe {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+}
+
+.pr-safe {
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+.px-safe {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+/* ============================================
+   Bottom Sheet Pattern
+   ============================================ */
+@media (max-width: 639px) {
+  .modal-mobile-bottom {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-top: auto;
+    max-height: 90dvh !important;
+  }
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-qaw-fade-in-up,
+  .animate-qaw-fade-in-down,
+  .animate-qaw-scale-in,
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5,
+  .stagger-6,
+  .stagger-7,
+  .stagger-8 {
+    animation: none !important;
+    opacity: 1 !important;
+  }
 }

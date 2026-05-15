@@ -166,7 +166,7 @@ export function Search({ user, onViewUser, onFollow, onOpenChat }: SearchProps) 
                   </button>
                 )}
                 <button
-                  className={`ml-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                  className={`px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 flex-shrink-0 ${
                     isFollowing
                       ? 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       : 'bg-indigo-600 text-white hover:bg-indigo-700'

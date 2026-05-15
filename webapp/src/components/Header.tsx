@@ -66,7 +66,7 @@ export function Header({
           <button
             key={item.key}
             onClick={() => onNav(item.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200
+            className={`flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap
               ${active === item.key 
                 ? 'bg-white text-indigo-600 shadow-md' 
                 : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -75,12 +75,12 @@ export function Header({
               <div className="relative">
                 <NavIcon screen={item.key} isActive={active === item.key} />
                 {item.key === 'notifications' && (unreadCount || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                     {unreadCount! > 9 ? '9+' : unreadCount}
                   </span>
                 )}
                 {item.key === 'chat' && (chatUnreadCount || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                     {chatUnreadCount! > 9 ? '9+' : chatUnreadCount}
                   </span>
                 )}
@@ -128,21 +128,6 @@ export function Header({
             <TreePine className={active === 'progress' ? 'w-5 h-5 text-indigo-600' : 'w-5 h-5 text-slate-400'} />
           </button>
         </div>
-
-      {/* Mobile navigation dropdown - hidden since we use bottom nav */}
-      <div className="md:hidden hidden">
-        <select
-          className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold"
-          value={active}
-          onChange={(e) => onNav(e.target.value as Screen)}
-        >
-          {nav.map((item) => (
-            <option key={item.key} value={item.key}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {/* Logout */}
       <div className="flex items-center gap-3">

@@ -303,43 +303,43 @@ export function Landing({
       <div className="fixed bottom-40 right-20 w-48 h-48 bg-sky-100 rounded-full blur-3xl opacity-20 animate-qaw-float" style={{ animationDelay: '1s' }} />
       <div className="fixed top-1/2 right-10 w-24 h-24 bg-purple-100 rounded-full blur-2xl opacity-25 animate-qaw-float" style={{ animationDelay: '2s' }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:py-8 md:py-16">
         {/* ============================================
             Hero Section - QA Wolf Style
         ============================================ */}
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
           {/* Left side - Content */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-600 to-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 16 16" fill="currentColor" shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2 2 H10 V4 H12 V6 H14 V10 H12 V12 H10 V14 H2 Z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gradient-indigo">Deutschly</span>
+              <span className="text-lg sm:text-xl font-bold text-gradient-indigo">Deutschly</span>
             </div>
 
             {/* Main Headline */}
-            <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
                 Learn German.
                 <br />
-                <span className="inline-block animate-qaw-pulse">
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0s' }}>The </span>
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0.1s' }}>social </span>
-                  <span className="text-gradient-indigo" style={{ animationDelay: '0.2s' }}>way.</span>
+                <span className="inline-block">
+                  <span className="text-gradient-indigo">The </span>
+                  <span className="text-gradient-indigo">social </span>
+                  <span className="text-gradient-indigo">way.</span>
                 </span>
               </h1>
-              <p className="text-xl text-slate-600 max-w-lg">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 max-w-lg">
                 Social feed. Vocabulary builder. Structured grammar curriculum.
-                <br />
+                <br className="hidden sm:block" />
                 Built for German learners — <span className="text-indigo-600 font-medium">especially Uzbeks heading to Germany.</span>
               </p>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 disabled={loading}
                 className="btn-primary flex items-center justify-center gap-2"
@@ -411,9 +411,9 @@ export function Landing({
         {/* ============================================
             How It Works - 3 Steps
         ============================================ */}
-        <div className="mt-16 lg:mt-24">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-10">How it works</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="mt-12 sm:mt-16 lg:mt-24">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 text-center mb-6 sm:mb-8 md:mb-10">How it works</h2>
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
             {[
               {
                 step: '1',
@@ -460,7 +460,7 @@ export function Landing({
         {/* ============================================
             Auth Form Card - QA Wolf Style
         ============================================ */}
-        <div className="mt-16 lg:mt-24">
+        <div className="mt-12 sm:mt-16 lg:mt-24">
           <div className="max-w-2xl mx-auto">
             <div ref={formRef} className="card animate-qaw-fade-in-up" style={{ animationDelay: '0.6s' }}>
               {/* Header */}
@@ -613,7 +613,7 @@ export function Landing({
                     <p className="text-xs text-slate-500 mb-3">
                       These 5 numbers can help recover your account. They will not be shown again.
                     </p>
-                    <div className="grid grid-cols-5 gap-2 text-center font-mono text-slate-700">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center font-mono text-slate-700">
                       {recoveryCodes.map((c) => (
                         <span key={c} className="bg-white rounded-lg py-2 text-sm border border-slate-200">
                           {c}
@@ -629,7 +629,7 @@ export function Landing({
       </div>
 
       {/* Footer */}
-      <div className="relative z-10 mt-16 text-center text-sm text-slate-400">
+      <div className="relative z-10 mt-12 sm:mt-16 text-center text-sm text-slate-400 pb-4">
         <p>© 2026 Deutschly. All rights reserved.</p>
       </div>
     </div>

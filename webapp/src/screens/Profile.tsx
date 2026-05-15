@@ -474,7 +474,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
                       {["⚡️", "❤️", "💘", "🐝", "★", "🧸", "💎", "🍻", "👑"].map(e => (
                         <button
                           key={e}
-                          className={`text-xl p-1.5 rounded-xl transition-all ${
+                          className={`w-10 h-10 text-xl rounded-xl transition-all flex items-center justify-center ${
                             premiumEmoji === e ? 'bg-yellow-100 ring-2 ring-yellow-400 scale-110' : 'hover:bg-slate-100'
                           } ${premiumLoading ? 'opacity-50 pointer-events-none' : ''}`}
                           onClick={async () => {
@@ -582,23 +582,24 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
 
       {/* Follower and Following Stats Bar - Responsive */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-4 md:p-6">
-        <div className="flex items-center justify-center gap-4 md:gap-8 mb-4 md:mb-6 flex-wrap">
-          <button
-            className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors w-24 md:w-auto"
-            onClick={() => openFollowersModal('followers')}
-          >
-            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
-            <p className="text-xs md:text-sm text-slate-600 font-medium">Followers</p>
-          </button>
-          <div className="hidden md:block w-px h-10 md:h-12 bg-slate-200" />
-          <div className="md:hidden w-full h-px bg-slate-200 my-2" />
-          <button
-            className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors w-24 md:w-auto"
-            onClick={() => openFollowersModal('following')}
-          >
-            <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
-            <p className="text-xs md:text-sm text-slate-600 font-medium">Following</p>
-          </button>
+        <div className="flex flex-row items-center justify-center gap-4 md:gap-8">
+          <div className="flex items-center gap-4 md:gap-8">
+            <button
+              className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors"
+              onClick={() => openFollowersModal('followers')}
+            >
+              <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.followers_count || 0}</p>
+              <p className="text-xs md:text-sm text-slate-600 font-medium">Followers</p>
+            </button>
+            <div className="w-px h-10 md:h-12 bg-slate-200" />
+            <button
+              className="text-center hover:bg-slate-50 rounded-xl p-2 md:p-3 transition-colors"
+              onClick={() => openFollowersModal('following')}
+            >
+              <p className="text-xl md:text-2xl font-bold text-indigo-700">{user.following_count || 0}</p>
+              <p className="text-xs md:text-sm text-slate-600 font-medium">Following</p>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -962,7 +963,7 @@ export function Profile({ user: initialUser, userId, currentUser, onUpdated, onB
       {showPremiumModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowPremiumModal(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Crown size={18} className="text-yellow-500" />

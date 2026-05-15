@@ -172,14 +172,14 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
         <CreatePostModal userId={userId} onCreated={() => { loadFeed(); onUserUpdated?.() }} />
       </div>
       {stories.length > 0 && (
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
           {stories.map((s) => (
             <button
               key={s.user_id}
-              className="flex flex-col items-center gap-1 shrink-0 min-w-[60px]"
+              className="flex flex-col items-center gap-1 shrink-0 min-w-[56px] sm:min-w-[60px]"
               onClick={() => onViewUser?.(s.user_id)}
             >
-              <div className={`w-14 h-14 rounded-full p-0.5 ${
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full p-0.5 ${
                 s.is_own
                   ? 'bg-slate-300'
                   : 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500'
@@ -192,13 +192,13 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                       alt={s.username}
                     />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-xl">
+                    <div className="w-full h-full rounded-full bg-indigo-100 flex items-center justify-center text-sm sm:text-xl">
                       🐺
                     </div>
                   )}
                 </div>
               </div>
-              <span className="text-[10px] text-slate-500 font-medium max-w-[56px] truncate">
+              <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium max-w-[48px] sm:max-w-[56px] truncate">
                 {s.is_own ? 'Your story' : s.username}
               </span>
             </button>
@@ -220,18 +220,18 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
       </div>
       {loading && <p className="text-sm text-slate-500">Loading feed...</p>}
       {!loading && items.length === 0 && (
-        <div className="text-center py-14 space-y-3">
-          <p className="text-5xl">{feedTab === 'following' ? '🌱' : '🔍'}</p>
-          <p className="text-slate-700 font-semibold text-lg">
+        <div className="text-center py-10 sm:py-14 space-y-3">
+          <p className="text-4xl sm:text-5xl">{feedTab === 'following' ? '🌱' : '🔍'}</p>
+          <p className="text-slate-700 font-semibold text-base sm:text-lg">
             {feedTab === 'following' ? 'Your feed is empty' : 'No posts to discover'}
           </p>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-400 text-xs sm:text-sm max-w-xs mx-auto">
             {feedTab === 'following' 
               ? 'Follow some learners to see their posts here' 
               : 'Check back later for new posts from other learners'}
           </p>
           {feedTab === 'following' && onDiscover && (
-            <button className="btn-primary mt-2" onClick={onDiscover}>
+            <button className="btn-primary mt-2 text-sm" onClick={onDiscover}>
               Discover people →
             </button>
           )}
@@ -263,12 +263,12 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
               <div className="border border-slate-200 rounded-xl p-2 sm:p-3 space-y-3 bg-slate-50">
                 <div className="flex gap-2">
                   <input
-                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    className="input-primary flex-1 text-sm"
                     placeholder="Write a comment..."
                     value={commentText[it.post.id] || ''}
                     onChange={(e) => setCommentText((prev) => ({ ...prev, [it.post.id]: e.target.value }))}
                   />
-                  <button className="btn-primary px-3 sm:px-4" onClick={() => handleCommentSubmit(it.post.id)} disabled={!(commentText[it.post.id] || '').trim()}>
+                  <button className="btn-primary px-4 min-touch-target" onClick={() => handleCommentSubmit(it.post.id)} disabled={!(commentText[it.post.id] || '').trim()}>
                     Send
                   </button>
                 </div>
@@ -315,8 +315,8 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
         ))}
       </div>
             {peekUser && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-2 sm:p-4" onClick={() => setPeekUser(null)}>
-                <div className="bg-white rounded-2xl shadow-lg p-3 sm:p-4 w-full max-w-sm space-y-2" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50" onClick={() => setPeekUser(null)}>
+                <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-lg p-4 sm:p-4 w-full max-w-sm space-y-3 modal-mobile-bottom" onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg">
                       {peekUser.username}
@@ -324,7 +324,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                         <span className="text-lg ml-1">{peekUser.premium_status}</span>
                       )}
                     </h3>
-                    <button className="text-slate-500 text-sm" onClick={() => setPeekUser(null)}>Close</button>
+                    <button className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-500 min-touch-target flex items-center justify-center" onClick={() => setPeekUser(null)}>Close</button>
                   </div>
                   <p className="text-sm text-slate-600">{peekUser.city || '—'} · {peekUser.level}</p>
                   {peekUser.age && <p className="text-sm text-slate-600">{peekUser.age} years old</p>}
@@ -332,7 +332,7 @@ export function Feed({ user, onDiscover, onUserUpdated, onViewUser, onNotificati
                 <p className="text-xs text-slate-500">Words: {peekUser.words_count}</p>
                    {onViewUser && (
                      <button
-                       className="btn-primary w-full mt-2 text-sm"
+                       className="btn-primary w-full mt-2 text-sm min-touch-target"
                        onClick={() => {
                          setPeekUser(null)
                          onViewUser(peekUser.id)

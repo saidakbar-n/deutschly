@@ -292,7 +292,7 @@ export function CreatePostModal({ userId, onCreated }: { userId: number; onCreat
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 sm:gap-4 sticky bottom-0 bg-white pt-3 pb-1 border-t border-slate-100 -mx-4 sm:-mx-6 px-4 sm:px-6">
+        <div className="flex gap-2 sm:gap-4 sticky bottom-0 bg-white pt-3 pb-3 sm:pb-1 border-t border-slate-100 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <button
             className="flex-1 btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
             onClick={closeModal}

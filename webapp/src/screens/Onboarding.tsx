@@ -66,18 +66,18 @@ export function Onboarding({ user, onDone }: { user: User; onDone: (u: User) => 
               {LEVELS.map((l) => (
                 <button
                   key={l.value}
-                  className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                  className={`flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all ${
                     level === l.value
                       ? 'border-indigo-500 bg-indigo-50'
                       : 'border-slate-200 hover:border-indigo-200'
                   }`}
                   onClick={() => setLevel(l.value as User['level'])}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className={`level-badge level-${l.value.toLowerCase()}`}>{l.label}</span>
-                    <span className="text-slate-600 text-sm">{l.desc}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span className={`level-badge level-${l.value.toLowerCase()} shrink-0`}>{l.label}</span>
+                    <span className="text-slate-600 text-xs sm:text-sm truncate">{l.desc}</span>
                   </div>
-                  {level === l.value && <span className="text-indigo-500 text-lg">✓</span>}
+                  {level === l.value && <span className="text-indigo-500 text-lg shrink-0">✓</span>}
                 </button>
               ))}
             </div>

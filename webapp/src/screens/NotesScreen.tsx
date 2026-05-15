@@ -259,8 +259,8 @@ export default function NotesScreen({ user }: NotesScreenProps) {
             onChange={(e) => setNewContent(e.target.value)}
             autoFocus
           />
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex gap-2 flex-wrap">
               {Object.entries(COLOR_CONFIG).map(([color, c]) => (
                 <button
                   key={color}
@@ -271,7 +271,7 @@ export default function NotesScreen({ user }: NotesScreenProps) {
             </div>
             <input
               type="datetime-local"
-              className="input-primary text-xs py-1 flex-1 min-w-0"
+              className="input-primary text-xs py-1.5 w-full sm:flex-1 sm:min-w-0"
               value={newReminder}
               onChange={(e) => setNewReminder(e.target.value)}
               title="Set reminder"

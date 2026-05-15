@@ -145,11 +145,11 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
       </div>
 
       {/* Level Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 overflow-x-auto">
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 overflow-x-auto scrollbar-hide">
         {levels.map(level => (
           <button
             key={level}
-            className={`flex-1 px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+            className={`flex-1 min-w-[48px] px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
               activeLevel === level ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
             }`}
             onClick={() => setActiveLevel(level)}
@@ -305,7 +305,7 @@ export default function GrammarCurriculum({ user, onUserUpdated }: { user: User;
       {/* Retake Confirmation Modal */}
       {retakeChapter && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto">
             <div className="text-center">
               <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={28} className="text-amber-600" />

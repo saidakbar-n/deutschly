@@ -196,7 +196,7 @@ export function PostCard({
       )}
 
       {/* Post Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-row items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 sm:gap-6">
           <button 
             className="flex items-center gap-1 sm:gap-1.5 text-slate-600 hover:text-red-500 transition-colors group"
@@ -220,7 +220,7 @@ export function PostCard({
           </button>
         </div>
         
-        <div className="sm:ml-auto">
+        <div className="shrink-0">
           <TypeBadge type={type} />
         </div>
       </div>

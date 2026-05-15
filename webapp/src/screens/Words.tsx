@@ -102,8 +102,8 @@ function BatchAddModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -295,16 +295,16 @@ function AddWordForm({ userId, onAdded, folders, onCreateFolder, openTrigger = 0
       </div>
       <div className="relative">
         <button
-          className="w-full flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-white text-left hover:border-indigo-300 transition-colors"
+          className="w-full flex items-center justify-between p-2.5 sm:p-3 border border-slate-200 rounded-lg bg-white text-left hover:border-indigo-300 transition-colors text-sm sm:text-base"
           onClick={() => setFolderDropdownOpen(!folderDropdownOpen)}
         >
-          <div className="flex items-center gap-2">
-            <Folder size={16} className="text-slate-400" />
-            <span className="text-slate-700">
+          <div className="flex items-center gap-2 min-w-0">
+            <Folder size={14} className="sm:size-[16] shrink-0 text-slate-400" />
+            <span className="text-slate-700 truncate">
               {selectedFolderId ? folders.find(f => f.id === selectedFolderId)?.name : 'No folder (Uncategorized)'}
             </span>
           </div>
-          <ChevronDown size={16} className="text-slate-400" />
+          <ChevronDown size={14} className="sm:size-[16] shrink-0 text-slate-400" />
         </button>
         {folderDropdownOpen && (
           <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden animate-qaw-fade-in-up">
@@ -433,8 +433,8 @@ function FolderManagerModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-qaw-fade-in-up">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-slate-900">Manage Folders</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
@@ -863,30 +863,30 @@ function FolderSection({ folder, words, userId, onDelete, onStartFolderQuiz, onS
         </div>
         {collapsed ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronUp size={16} className="text-slate-400" />}
       </div>
-      <div className="px-4 pb-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+      <div className="px-4 pb-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
         <button
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1"
           onClick={(e) => { e.stopPropagation(); onAddWord(folder.id) }}
         >
-          <Plus size={14} /> Add Word
+          <Plus size={12} className="sm:size-[14]" /> Add
         </button>
         <button
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors flex items-center gap-1"
           onClick={(e) => { e.stopPropagation(); onBatchAdd(folder.id) }}
         >
-          <Upload size={14} /> Batch Add
+          <Upload size={12} className="sm:size-[14]" /> Batch
         </button>
         <button
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors flex items-center gap-1"
           onClick={(e) => { e.stopPropagation(); onStartFlashcards(folder.id, folder.name) }}
         >
-          <Brain size={14} /> Flashcards
+          <Brain size={12} className="sm:size-[14]" /> Cards
         </button>
         <button
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+          className="px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1"
           onClick={(e) => { e.stopPropagation(); onStartFolderQuiz(words) }}
         >
-          <Sparkles size={14} /> Quiz
+          <Sparkles size={12} className="sm:size-[14]" /> Quiz
         </button>
       </div>
       {!collapsed && (
@@ -1127,25 +1127,25 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
       </div>
 
       {flashcardStats && flashcardStats.total > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-indigo-50 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-bold text-indigo-700">{flashcardStats.due}</p>
-            <p className="text-[11px] text-indigo-500 font-medium">Due today</p>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          <div className="bg-indigo-50 rounded-xl p-2 sm:p-2.5 text-center">
+            <p className="text-base sm:text-xl font-bold text-indigo-700">{flashcardStats.due}</p>
+            <p className="text-[10px] sm:text-[11px] text-indigo-500 font-medium leading-tight">Due today</p>
           </div>
-          <div className="bg-green-50 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-bold text-green-700">{flashcardStats.reviewed}</p>
-            <p className="text-[11px] text-green-500 font-medium">Reviewed</p>
+          <div className="bg-green-50 rounded-xl p-2 sm:p-2.5 text-center">
+            <p className="text-base sm:text-xl font-bold text-green-700">{flashcardStats.reviewed}</p>
+            <p className="text-[10px] sm:text-[11px] text-green-500 font-medium leading-tight">Reviewed</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-2.5 text-center">
-            <p className="text-xl font-bold text-slate-700">{flashcardStats.total}</p>
-            <p className="text-[11px] text-slate-500 font-medium">Total cards</p>
+          <div className="bg-slate-50 rounded-xl p-2 sm:p-2.5 text-center">
+            <p className="text-base sm:text-xl font-bold text-slate-700">{flashcardStats.total}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">Total cards</p>
           </div>
         </div>
       )}
 
       {flashcardStats && flashcardStats.due > 0 && (
         <button
-          className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200"
+          className="w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold flex items-center justify-center gap-1.5 sm:gap-2 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md shadow-indigo-200 text-sm sm:text-base"
           onClick={() => {
             setFlashcardFolderId(undefined)
             setFlashcardFolderName('All Words')
@@ -1159,38 +1159,38 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
       {/* Tabs - Responsive */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-hide">
         <button
-          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'mine' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('mine')}
         >
-          <BookOpen size={15} className="md:size-5" />
-          <span className="hidden sm:inline">My Words</span>
+          <BookOpen size={14} className="sm:size-4" />
+          <span className="sm:inline">My Words</span>
           {myWords.length > 0 && (
-            <span className="ml-1 bg-indigo-100 text-indigo-600 text-xs px-1.5 py-0.5 rounded-full font-bold">
+            <span className="bg-indigo-100 text-indigo-600 text-[10px] sm:text-xs px-1 py-0.5 rounded-full font-bold">
               {myWords.length}
             </span>
           )}
         </button>
         <button
-          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'community' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('community')}
         >
-          <Globe size={15} className="md:size-5" />
-          <span className="hidden sm:inline">Community</span>
+          <Globe size={14} className="sm:size-4" />
+          <span className="sm:inline">Community</span>
         </button>
         <button
-          className={`flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          className={`flex items-center justify-center gap-1 py-2 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
             tab === 'history' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
           }`}
           onClick={() => setTab('history')}
         >
-          <History size={15} className="md:size-5" />
-          <span className="hidden sm:inline">Quiz History</span>
+          <History size={14} className="sm:size-4" />
+          <span className="sm:inline">History</span>
           {quizHistory.length > 0 && (
-            <span className="ml-1 bg-indigo-100 text-indigo-600 text-xs px-1.5 py-0.5 rounded-full font-bold">
+            <span className="bg-indigo-100 text-indigo-600 text-[10px] sm:text-xs px-1 py-0.5 rounded-full font-bold">
               {quizHistory.length}
             </span>
           )}
@@ -1211,10 +1211,10 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
                 <p className="text-sm text-slate-500 mt-1">Create a folder to organize your words and start studying</p>
               </div>
               <button
-                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200 text-sm sm:text-base"
                 onClick={() => setFolderModalOpen(true)}
               >
-                <FolderPlus size={18} /> Create Your First Folder
+                <FolderPlus size={16} className="sm:size-[18]" /> Create First Folder
               </button>
             </div>
           )}
@@ -1229,20 +1229,20 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
           />
 
           {folders.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-stretch gap-2">
               {myWords.length >= 3 && (
                 <button
-                  className="flex-1 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
+                  className="flex-1 py-2.5 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-sm shadow-indigo-200"
                   onClick={() => setQuizMode(true)}
                 >
-                  <Sparkles size={15} /> Quiz All ({myWords.length})
+                  <Sparkles size={14} className="sm:size-[15]" /> Quiz All ({myWords.length})
                 </button>
               )}
               <button
-                className="py-2.5 px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-all"
+                className="py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all"
                 onClick={() => setFolderModalOpen(true)}
               >
-                <Folder size={15} /> Manage
+                <Folder size={14} className="sm:size-[15]" /> Manage
               </button>
             </div>
           )}
