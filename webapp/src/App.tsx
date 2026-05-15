@@ -401,7 +401,7 @@ function App() {
                   <span className={`text-[10px] font-semibold leading-tight whitespace-nowrap mt-0.5 transition-colors ${
                     isActive ? 'text-indigo-600' : 'text-slate-400'
                   }`}>
-                    {isActive ? `● ${item.label}` : item.label}
+                    {item.label}
                   </span>
                 </button>
               )
