@@ -85,7 +85,7 @@ export function NewChatModal({ user, isOpen, onClose, onConversationCreated }: N
         <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-0 sm:pt-0 sm:pb-4">
           <div className="sm:hidden w-10 h-1 rounded-full bg-slate-300 mx-auto absolute left-1/2 -translate-x-1/2 top-2" />
           <h2 className="text-lg sm:text-xl font-bold text-slate-900">New Message</h2>
-          <button className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center" onClick={onClose}>
+          <button className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
