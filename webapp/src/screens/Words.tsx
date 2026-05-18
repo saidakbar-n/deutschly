@@ -1242,11 +1242,26 @@ export function Words({ user, onUserUpdated }: { user: User; onUserUpdated?: () 
               )}
               <button
                 className="py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all min-h-[44px] native-touch"
+                onClick={() => setBatchModalOpen(true)}
+              >
+                <Upload size={14} className="sm:size-[15]" /> Batch
+              </button>
+              <button
+                className="py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all min-h-[44px] native-touch"
                 onClick={() => setFolderModalOpen(true)}
               >
                 <Folder size={14} className="sm:size-[15]" /> Manage
               </button>
             </div>
+          )}
+
+          {folders.length === 0 && (
+            <button
+              className="w-full py-2.5 px-3 sm:px-4 rounded-2xl bg-slate-100 text-slate-600 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-all min-h-[44px] native-touch"
+              onClick={() => setBatchModalOpen(true)}
+            >
+              <Upload size={14} className="sm:size-[15]" /> Batch Import
+            </button>
           )}
 
           {/* Folder cards */}
